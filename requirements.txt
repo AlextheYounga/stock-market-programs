@@ -20,3 +20,4 @@ colored
 pytrends
 python-dateutil
 progressbar2
+django-tailwind
