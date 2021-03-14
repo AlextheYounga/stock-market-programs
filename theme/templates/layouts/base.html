@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>Tailwind CSS Skeleton</title>
+		<meta name="description" content="">
+		<meta name="keywords" content="">
+		<meta name="author" content="">
+
+		<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+	</head>
+
+	<body class="bg-dark-mode">
+		{% include "partials\topbar.html" %}
+        <section class="main flex mx-8">
+        {% comment %} {% include "partials\topbar.html" %} {% endcomment %}
+
+            <div class="content w-5/6 bg-dark-mode-light shadow-inner-dark text-old-gray py-6 px-8">
+                {% comment %} Content {% endcomment %}
+            </div>
+        </section>
+        {% comment %} {% include "partials\footer.html" %} {% endcomment %}
+
+
+	</body>
+
+</html>
+

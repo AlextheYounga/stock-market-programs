@@ -28,6 +28,10 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 TAILWIND_APP_NAME = 'theme'
+STATIC_URL = 'theme/resources/'
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'theme/resources/',
+# ]
 
 
 # Application definition
