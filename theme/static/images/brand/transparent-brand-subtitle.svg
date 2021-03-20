@@ -6,8 +6,8 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    id="svg51"
-   xml:space="preserve"
-   viewBox="0 0 1024 768"
+
+   viewBox="200 300 620 160"
    y="0px"
    x="0px"
    version="1.1"><metadata
@@ -16,7 +16,7 @@
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
      id="defs55" /><g
      style="stroke-miterlimit:2"
-     transform="translate(0,0.91125)"
+
      stroke-miterlimit="2"
      id="logo-group"><path
        d="m 216.71,420.81 h 2.16 v -7.632 h 7.656 v -1.8 h -9.816 z m 0,-17.04 v 5.448 h 2.16 v -3.528 h 9.096 v -1.92 z"
