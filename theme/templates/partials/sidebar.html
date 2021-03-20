@@ -1,0 +1,23 @@
+{% load static %}
+<div class="sidebar w-1/6">
+    <a href="{!! route('dashboard') !!}" class="w-full flex py-6 text-gold">
+        <img class="w-full" src="{% static 'svg/dashboard.svg' %}" />
+        <span class="pl-2">Dashboard</span>
+    </a>    
+    <a href="#" class="w-full flex py-6 text-old-gray">
+        <img class="w-full" src="{% static 'svg/earth.svg' %}" />
+        <span class="pl-2">VIX</span>
+    </a>
+    <a href="#" class="w-full flex py-6 text-old-gray">
+        <img class="w-full" src="{% static 'svg/skyscrapers.svg' %}" />
+        <span class="pl-2">Correlations</span>        
+    </a>
+    <a href="#" class="w-full flex py-6 text-old-gray">
+        <img class="w-full" src="{% static 'svg/commodity.svg' %}" />
+        <span class="pl-2">Priced in Gold</span>
+    </a>
+    <a href="#" class="w-full flex py-6 text-old-gray">
+        <img class="w-full" src="{% static 'svg/research.svg' %}" />
+        <span class="pl-2">Inflation</span>
+    </a>
+</div>
