@@ -2,13 +2,13 @@
 <!-- This example requires Tailwind CSS v2.0+ -->
 <nav class="bg-dark-mode">
   <div class="mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
+    <div class="flex h-16 items-center justify-between">
+      <div class="flex items-center w-full">
+        <div class="flex-shrink-0 w-1/5">
           <img class="w-full" src="{% static 'svg/brand/transparent-brand.svg' %}" />
         </div>
-        <div class="hidden sm:block sm:ml-6">
-          <div class="flex space-x-4">
+        <div class="hidden sm:block w-4/5">
+          <div class="flex space-x-4 justify-end">
             <!-- Current: "bg-dark-mode-light text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
             <a href="#" class="bg-dark-mode-light text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
             <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Team</a>
