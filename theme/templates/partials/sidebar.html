@@ -13,28 +13,33 @@
         Dashboard
       </a>
 
-      <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+      <a href="{% url 'vix' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
         <!-- Heroicon name: outline/users -->
         <img class="w-8 mr-1" src="{% static 'svg/vol.svg' %}" />
         VIX
       </a>
 
-      <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+      <a href="{% url 'correlations' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
         <!-- Heroicon name: outline/folder -->
         <img class="w-8 mr-1" src="{% static 'svg/correlation.svg' %}" />
         Correlations
       </a>
 
-      <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+      <a href="{% url 'pricedingold' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
         <!-- Heroicon name: outline/calendar -->
         <img class="w-8 mr-1" src="{% static 'svg/gold.svg' %}" />
         Priced in Gold
       </a>
 
-      <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+      <a href="{% url 'inflation' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
         <!-- Heroicon name: outline/inbox -->
         <img class="w-8 mr-1" src="{% static 'svg/inflation.svg' %}" />
         Inflation
+      </a>
+      <a href="{% url 'rescaledrange' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+        <!-- Heroicon name: outline/inbox -->
+        <img class="w-8 mr-1" src="{% static 'svg/prediction.svg' %}" />
+        Rescaled Range
       </a>
 
     </nav>

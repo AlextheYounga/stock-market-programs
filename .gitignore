@@ -223,6 +223,8 @@ venv/
 ENV/ 
 env.bak/ 
 venv.bak/ 
+wslenv/
+wslevn
 
 # mkdocs documentation 
 /site 
@@ -254,3 +256,21 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+node_modules
+
+# Lab GitIgnored
+app/lab/exports/*
+app/lab/graveyard/
+app/lab/riskrange/output/*
+app/lab/COMMANDS.txt
+app/lab/correlations/output/*
+app/lab/rescaledrange/output/*
+app/lab/macro/output/*
+app/lab/trend/output/*
+app/lab/donchian/output/*
+app/lab/news/output/*
+app/lab/volume/output/*
+app/lab/donchian/news/*
+app/lab/fintwit/user.py
+app/lab/fintwit/notes.*

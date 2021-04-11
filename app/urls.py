@@ -22,4 +22,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard, name='dashboard'),
+    path('vix', views.vix, name='vix'),
+    path('correlations', views.correlations, name='correlations'),
+    path('pricedingold', views.pricedingold, name='pricedingold'),
+    path('inflation', views.inflation, name='inflation'),
+    path('rescaledrange', views.rescaledrange, name='rescaledrange'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
