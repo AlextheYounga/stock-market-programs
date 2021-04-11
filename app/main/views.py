@@ -5,7 +5,7 @@ from django.template import loader
 # Create your views here.
 
 def dashboard(request):
-    template = loader.get_template("layouts/base.html")
+    template = loader.get_template("dashboard.html")
     # context = {
     #     'latest_question_list': latest_question_list,
     # }
