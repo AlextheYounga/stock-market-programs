@@ -274,3 +274,5 @@ app/lab/volume/output/*
 app/lab/donchian/news/*
 app/lab/fintwit/user.py
 app/lab/fintwit/notes.*
+app/lab/core/storage/
+app/lab/database/
