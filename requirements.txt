@@ -10,7 +10,6 @@ requests
 python-dotenv
 python-twitter
 tweepy
-django
 python-environ
 beautifulsoup4
 python-telegram-bot
@@ -20,6 +19,8 @@ colored
 pytrends
 python-dateutil
 progressbar2
+django
 django-tailwind
 django-compressor 
 django-compressor-toolkit
+django-sass
