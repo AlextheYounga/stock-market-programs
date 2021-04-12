@@ -124,3 +124,4 @@ USE_TZ = True
 # https://docs.djangoapp.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
