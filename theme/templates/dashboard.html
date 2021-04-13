@@ -1,6 +1,11 @@
-{% extends "layouts/base.html" %} {% block title %}Hazlitt Data{% endblock %} {% block content %}
+{% extends "layouts/base.html" %} 
+
+{% block title %}Dashboard{% endblock %} 
+
+{% block content %}
 <div class="dashboard">
     <h1 class="text-3xl text-gold">TSLA</h1>
+    <h1>{{ session_id }}</h1>
     <div id="chart" class="w-full"></div>
 </div>
 
