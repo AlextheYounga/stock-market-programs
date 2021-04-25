@@ -30,7 +30,7 @@ def collectOptionChain(ticker, dummyData):
 
     if (dummyData):
         # Test Data
-        JSON = 'lab/vix/sample_response/response.json'
+        JSON = 'app/lab/vix/sample_response/response.json'
         with open(JSON) as jsonfile:
             chain = json.loads(jsonfile.read())
             return chain
@@ -129,8 +129,7 @@ def selectOptionExpirations(chain):
                     return {'nearTerm': nearTermExp, 'nextTerm': nextTermExp }
 
             # If not enough option data, end program. We can go no further.
-            print(stylize("Not enough option data for ticker to make a useful measurement.", colored.fg("red")))
-            sys.exit()
+            return "Not enough option data for ticker to make a useful measurement."
 
         properExpir = vixExpirationRules(options)
 
