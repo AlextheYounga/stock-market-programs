@@ -134,4 +134,4 @@ def vix_equation(ticker, sendtweet=False, debug=False, dummyData=False):
         send_tweet(tweet)
 
 
-    return ticker+" VIX: "+str(round(vix, 3))
+    return round(vix, 3)

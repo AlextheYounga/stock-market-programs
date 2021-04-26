@@ -9,17 +9,19 @@ def dashboard(request):
     context = {}
     return render(request, 'dashboard.html', context)
 
-def vix(request, ticker):
-    context = {
-        ticker: ticker,
-    }
-    page = 'pages/vix/index.html'
-    # TODO: Figure out how to get context to show on view.
-    if (ticker): 
-        page = 'pages/vix/show.html'
-        # context[vix] = vix_equation(ticker)
 
-    return render(request, page, context)
+def vix(request, ticker=None):
+    template = loader.get_template('pages/vix/index.html')
+    context = {
+        'ticker': ticker,
+    }
+
+    if (ticker): 
+        template = loader.get_template('pages/vix/show.html')
+        # context['vix'] = vix_equation(ticker)
+
+    return HttpResponse(template.render(context, request))
+    
 
 def correlations(request, ticker):    
     context = {}
