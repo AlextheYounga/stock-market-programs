@@ -42,20 +42,17 @@ def pricedingold(request, ticker):
         page = 'show.html'
 
     return render(request, path+page, context)
-
-def inflation(request, ticker):
+  
+def news(request):
     context = {}
     path = 'pages/inflation/'
     page = 'index.html'
 
-    if (ticker):
-        page = 'show.html'
-
     return render(request, path+page, context)
 
-def rescaledrange(request, ticker):
+def hurst(request, ticker):
     context = {}
-    path = 'pages/rescaledrange/'
+    path = 'pages/hurst/'
     page = 'index.html'
 
     if (ticker):
@@ -63,3 +60,14 @@ def rescaledrange(request, ticker):
 
     return render(request, path+page, context)
 
+
+
+# def inflation(request, ticker):
+#     context = {}
+#     path = 'pages/inflation/'
+#     page = 'index.html'
+
+#     if (ticker):
+#         page = 'show.html'
+
+#     return render(request, path+page, context)

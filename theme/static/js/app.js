@@ -3,18 +3,6 @@ window.onload = function () {
     var myChart = echarts.init(chartDom);
     var option;
 
-    var base = +new Date(1988, 9, 3);
-    var oneDay = 24 * 3600 * 1000;
-
-    var data = [[base, Math.random() * 300]];
-
-    for (var i = 1; i < 20000; i++) {
-        var now = new Date(base += oneDay);
-        data.push([
-            [now.getFullYear(), now.getMonth() + 1, now.getDate()].join('/'),
-            Math.round((Math.random() - 0.5) * 20 + data[i - 1][1])
-        ]);
-    }
     option = {
         tooltip: {
             trigger: "axis",
