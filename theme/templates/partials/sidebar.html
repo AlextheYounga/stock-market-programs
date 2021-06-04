@@ -30,6 +30,11 @@
                 <img class="w-8 mr-4" src="{% static 'svg/news.svg' %}" />
                 News Scraper
             </a>
+            <a href="{% url 'news.index' %}" class="{% if '/news' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <!-- Heroicon name: outline/inbox -->
+                <img class="w-8 mr-4" src="{% static 'svg/reddit.svg' %}" />
+                Reddit Scraper
+            </a>
             <a href="{% url 'hurst.index' %}" class="{% if '/hurst' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
                 <!-- Heroicon name: outline/inbox -->
                 <img class="w-8 mr-4" src="{% static 'svg/prediction.svg' %}" />

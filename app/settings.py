@@ -33,7 +33,9 @@ STATIC_URL = '/static/'
 
 # Application definition
 
+
 INSTALLED_APPS = [
+    'app.main.apps.MainConfig',
     'theme.apps.ThemeConfig',
     'tailwind',
     'django_sass',
