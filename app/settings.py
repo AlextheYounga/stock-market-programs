@@ -34,9 +34,10 @@ STATIC_URL = '/static/'
 # Application definition
 
 
-INSTALLED_APPS = [
-    'app.main.apps.MainConfig',
-    'theme.apps.ThemeConfig',
+INSTALLED_APPS = [    
+    'app.controller',
+    'app.database',
+    'theme',    
     'tailwind',
     'django_sass',
     'django.contrib.admin',
