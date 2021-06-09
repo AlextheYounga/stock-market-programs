@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from ..lab.vix.equation import vix_equation
+from django.template import RequestContext
 
 # Create your views here.
 
@@ -17,8 +18,12 @@ def vix(request, ticker=None):
     }
 
     if (ticker): 
-        template = loader.get_template('pages/vix/show.html')
-        # context['vix'] = vix_equation(ticker)
+        # vix = vix_equation(ticker)
+        if (vix):
+            template = loader.get_template('pages/vix/show.html')
+            # context['vix'] = vix
+        else:
+            handler404(request)
 
     return HttpResponse(template.render(context, request))
     
@@ -59,6 +64,20 @@ def hurst(request, ticker):
         page = 'show.html'
 
     return render(request, path+page, context)
+
+
+def handler404(request, *args, **argv):
+    response = render('404.html', {},
+                                  context_instance=RequestContext(request))
+    response.status_code = 404
+    return response
+
+
+def handler500(request, *args, **argv):
+    response = render('500.html', {},
+                                  context_instance=RequestContext(request))
+    response.status_code = 500
+    return response
 
 
 

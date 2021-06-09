@@ -1,3 +1,4 @@
+import django
 import json
 import math
 import statistics
@@ -10,6 +11,8 @@ from ..core.scrape.bonds import scrape3mTreasury
 from ..core.functions import extract_data, logReturns
 from ..fintwit.tweet import send_tweet
 from .functions import *
+from django.apps import apps
+django.setup()
 
 
 def vix_explanation():
@@ -132,6 +135,17 @@ def vix_equation(ticker, sendtweet=False, debug=False, dummyData=False):
         headline = "${} VIX: ".format(ticker)
         tweet = headline + str(round(vix, 3))
         send_tweet(tweet)
+
+    
+    Vix = apps.get_model('database', 'Vix')
+
+    if (vix):
+        Vix.objects.create(
+            ticker=ticker,
+            value=round(vix, 3),
+        )
+        print('saved {} vix'.format(ticker))
+
 
 
     return round(vix, 3)

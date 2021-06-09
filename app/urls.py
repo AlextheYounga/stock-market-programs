@@ -30,5 +30,8 @@ urlpatterns = [
     path('pricedingold/<str:ticker>/', views.pricedingold, name='gold.show'),
     path('news', views.news, name='news.index'),
     path('hurst', views.hurst, name='hurst.index'),
-    path('hurst/<str:ticker>/', views.hurst, name='hurst.show'),
+    path('hurst/<str:ticker>/', views.hurst, name='hurst.show'),    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+handler404 = 'app.controller.views.handler404'
+handler500 = 'app.controller.views.handler500'
