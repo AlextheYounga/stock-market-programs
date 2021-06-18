@@ -1,3 +1,8 @@
 from django.contrib import admin
+from ..database.models import *
 
-# Register your models here.
+admin.site.register(Stock)
+admin.site.register(Hurst)
+admin.site.register(Gold)
+admin.site.register(Vix)
+admin.site.register(News)
