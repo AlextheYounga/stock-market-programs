@@ -5,7 +5,7 @@ import csv
 
 
 def parseIndexDateClose(file):
-    with open('lab/imports/{}'.format(file), newline='', encoding='utf-8') as csvfile:
+    with open('app/lab/imports/{}'.format(file), newline='', encoding='utf-8') as csvfile:
         asset_data = {}
         reader = csv.DictReader(csvfile)
 
@@ -36,7 +36,7 @@ def parseCSV(path, fullPath=False, headers=True):
         CSV values converted to dict
     """
 
-    csv_path = 'lab/core/storage/{}'.format(path)
+    csv_path = 'app/lab/core/storage/{}'.format(path)
     if (fullPath == True):
         csv_path = path
     with open(csv_path, newline='', encoding='utf-8-sig') as csvfile:
@@ -52,7 +52,7 @@ def parseCSV(path, fullPath=False, headers=True):
 
 
 def read_historical_gold_prices(datepriceOnly=True):
-    data = parseCSV('lab/core/storage/gold/goldprices1970.csv', fullPath=True)
+    data = parseCSV('app/lab/core/storage/gold/goldprices1970.csv', fullPath=True)
     gold_prices = {}
     if (datepriceOnly):
         for row in data:

@@ -140,7 +140,7 @@ if results:
     print('Saved to Watchlist: '+str(wlsaved))
 
     # today = date.today().strftime('%m-%d')
-    # writeCSV(results, 'lab/trend/output/volume/trend_chasing_{}.csv'.format(today))
+    # writeCSV(results, 'app/lab/trend/output/volume/trend_chasing_{}.csv'.format(today))
 
     printFullTable(results, struct='dictlist')
 

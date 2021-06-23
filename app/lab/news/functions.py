@@ -16,7 +16,7 @@ def cleanExchangeTicker(exchange):
 
 
 def blacklistWords():
-    txtfile = open("lab/news/blacklist_words.txt", "r")
+    txtfile = open("app/lab/news/blacklist_words.txt", "r")
 
     blacklist = []
     for line in txtfile:
@@ -30,7 +30,7 @@ def blacklistWords():
 
 
 def blacklistUrls():
-    txtfile = open("lab/news/blacklist_urls.txt", "r")
+    txtfile = open("app/lab/news/blacklist_urls.txt", "r")
 
     blacklist = []
     for line in txtfile:
@@ -56,7 +56,7 @@ def cleanLinks(links):
 
 
 def updateBlacklist(lst):
-    txtfile = "lab/news/blacklist_words.txt"
+    txtfile = "app/lab/news/blacklist_words.txt"
     os.remove(txtfile)
     with open(txtfile, 'w') as f:
         for item in lst:

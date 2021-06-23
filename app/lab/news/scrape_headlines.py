@@ -89,7 +89,7 @@ def scanHeap(heap):
     apiOnly = [
         'symbol',
         'companyName',
-        'close',
+        'latestPrice',
         'changePercent',
         'ytdChange',
         'volume'
@@ -154,8 +154,4 @@ def scrape_news(query):
         time.sleep(1)
 
     results = scanHeap(heap)
-    if (results):
-        sorted_results = sorted(results, key=lambda i: i['frequency'], reverse=True)
-        printFullTable(sorted_results, struct='dictlist')
-    else:
-        return print(stylize("No results found", colored.fg("red")))
+    return results

@@ -64,4 +64,4 @@ if results:
     printFullTable(results, struct='dictlist')
 
     today = date.today().strftime('%m-%d')
-    writeCSV(results, 'lab/volume/output/anomalies/anomalies{}.csv'.format(today))
+    writeCSV(results, 'app/lab/volume/output/anomalies/anomalies{}.csv'.format(today))

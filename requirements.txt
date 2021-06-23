@@ -24,3 +24,4 @@ django-tailwind
 django-compressor 
 django-compressor-toolkit
 django-sass
+praw

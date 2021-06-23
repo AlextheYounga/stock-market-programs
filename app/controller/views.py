@@ -7,9 +7,7 @@ from django.template import RequestContext
 # Create your views here.
 
 def dashboard(request):
-    # context = {
-    #     ''
-    # }    
+    context = {}    
     return render(request, 'dashboard.html', context)
 
 

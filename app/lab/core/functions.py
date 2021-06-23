@@ -14,7 +14,6 @@ def extract_data_pd(data, key):
     df = pd.DataFrame(data, columns=data[0].keys())
     return df[key].tolist()
 
-
 def burrow(data, key):
     values = []
     if len(key) == 2:
@@ -153,6 +152,14 @@ def interdayReturns(prices):
         int_returns.append(ret)
 
     return int_returns
+
+
+def frequencyInList(lst, x):
+    count = 0
+    for ele in lst:
+        if (ele == x):
+            count = count + 1
+    return count
 
 
 def zipfolder(path, filename):

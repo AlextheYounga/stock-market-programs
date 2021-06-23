@@ -124,7 +124,7 @@ def search(string):
 
         if results:
             today = date.today().strftime('%m-%d')
-            writeCSV(results, 'lab/trend/output/chase/trend_chasing_{}.csv'.format(today))
+            writeCSV(results, 'app/lab/trend/output/chase/trend_chasing_{}.csv'.format(today))
 
             printFullTable(results, struct='dictlist')
 
