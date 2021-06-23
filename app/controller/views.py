@@ -7,7 +7,9 @@ from django.template import RequestContext
 # Create your views here.
 
 def dashboard(request):
-    context = {}
+    context = {
+        'top_stocks': ['TSLA']
+    }    
     return render(request, 'dashboard.html', context)
 
 
