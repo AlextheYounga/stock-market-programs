@@ -36,5 +36,14 @@ class News(models.Model):
     id = models.AutoField(primary_key=True)
     url = models.CharField(null=True, max_length=1000)
     stock = models.CharField(db_index=True, max_length=30, unique=True)
+    frequency = models.IntegerField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class Reddit(models.Model):
+    id = models.AutoField(primary_key=True)
+    stock = models.CharField(db_index=True, max_length=30, unique=True)
+    frequency = models.IntegerField(null=True)
+    sentiment = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
