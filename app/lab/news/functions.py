@@ -46,10 +46,14 @@ def blacklistUrls():
 def cleanLinks(links):
     whitelist = []
     blacklist = blacklistUrls()
-    for bl in blacklist:
+    if (blacklist):
+        for bl in blacklist:
+            for link in links:
+                if (bl in link['href']):
+                    continue
+                whitelist.append(link['href'])
+    else:
         for link in links:
-            if (bl in link['href']):
-                continue
             whitelist.append(link['href'])
 
     return whitelist

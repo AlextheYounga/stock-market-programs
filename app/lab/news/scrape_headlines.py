@@ -48,40 +48,40 @@ def scanHeap(heap):
     dict
         list of results confirmed to be stocks
     """
-    target_strings = []
+    blacklist = blacklistWords()
+    possible = []
+    keyedByStock = {}
+    stockfound = []
+    results = []
+
     for h in heap:
         exchange_tickers = []
         # Find all capital letter strings, ranging from 1 to 5 characters, with optional dollar
         # signs preceded and followed by space.
         tickerlike = re.findall(r'[\S][$][A-Z]{1,5}[\S]*', str(h))
         for exchange in EXCHANGES:
-            exchangelike = re.findall(r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h))
+            exchangelike = re.findall(
+                r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h))
             if (len(exchangelike) > 0):
                 exchange_tickers = exchange_tickers + exchangelike
 
         tickers = tickerlike + exchange_tickers
 
+        target_strings = []
         for tick in tickers:
             if (type(tick) != list):
-                if (len(tick) > 5):
+                if (':' in tick):
                     tick = cleanExchangeTicker(tick)
 
-                tformat = removeBadCharacters(tick)
-                if (tformat != False):
-                    target_strings.append(tformat)
+                target_strings.append(removeBadCharacters(tick))
 
-    blacklist = blacklistWords()
-    possible = []
-
-    for string in target_strings:
-        if (string):
-            if ((not string) or (string in blacklist)):
-                continue
-
-            possible.append(string)
-
-    results = []
-    stockfound = []
+        for string in target_strings:
+            if ((string) and (string not in blacklist)):
+                possible.append(string)
+                if (string in keyedByStock):
+                    keyedByStock[string].append(h['url'])
+                    continue
+                keyedByStock[string] = [h['url']]
 
     unique_possibles = list(dict.fromkeys(possible))
     chunked_strings = chunks(unique_possibles, 100)
@@ -95,7 +95,8 @@ def scanHeap(heap):
         'volume'
     ]
 
-    print(stylize("{} possibilities".format(len(unique_possibles)), colored.fg("yellow")))
+    print(stylize("{} possibilities".format(
+        len(unique_possibles)), colored.fg("yellow")))
 
     for i, chunk in enumerate(chunked_strings):
 
@@ -106,17 +107,16 @@ def scanHeap(heap):
         for ticker, stockinfo in batch.items():
 
             if (stockinfo.get('quote', False)):
-                result = {}
-                stockfound.append(ticker)
-                freq = frequencyInList(possible, ticker)
-
-                print(stylize("{} stock found".format(ticker), colored.fg("green")))
 
                 result = {
                     'ticker': ticker,
-                    'frequency': freq,
+                    'urls': keyedByStock[ticker],
                 }
-                filteredinfo = {key: stockinfo['quote'][key] for key in apiOnly}
+
+                print(stylize("{} stock found".format(ticker), colored.fg("green")))
+
+                filteredinfo = {
+                    key: stockinfo['quote'][key] for key in apiOnly}
                 result.update(filteredinfo)
                 results.append(result)
 
@@ -131,27 +131,50 @@ def scanHeap(heap):
 
 def scrape_news(query):
     print(stylize("Searching {}".format(query), colored.fg("green")))
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    tickers = []
+    headers = {
+        'dnt': '1',
+        'upgrade-insecure-requests': '1',
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'sec-fetch-site': 'none',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-user': '?1',
+        'sec-fetch-dest': 'document',
+        'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
+    }
     heap = []
 
     try:
         url = 'https://www.bing.com/news/search?q={}'.format(query)
-        results = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=5)
     except:
         print(stylize("Unexpected error:", colored.fg("red")))
         print(stylize(sys.exc_info()[0], colored.fg("red")))
 
-    soup = BeautifulSoup(results.text, 'html.parser')
-    links = soup.find_all("a", {"class": "title"})
+    if (response.status_code == 200):
+        soup = BeautifulSoup(response.text, 'html.parser')
+        links = soup.find_all("a", {"class": "title"})
 
-    for link in cleanLinks(links):
-        print(stylize("Searching... "+link, colored.fg("yellow")))
+        # Begin traversing links
+        for link in cleanLinks(links):
+            print(stylize("Searching... "+link, colored.fg("yellow")))
+            try:
+                page = requests.get(link, headers=headers, timeout=5)
+            except:
+                print(stylize("Unexpected error:", colored.fg("red")))
+                print(stylize(sys.exc_info()[0], colored.fg("red")))
 
-        page = requests.get(link, headers=headers)
-        soup = BeautifulSoup(page.text, 'html.parser')
-        heap.append(soup.text)
-        time.sleep(1)
+            if (page and page.status_code == 200):
+                soup = BeautifulSoup(page.text, 'html.parser')
+                heapMap = {
+                    'url': link,
+                    'soup': soup.text,
+                }
+                heap.append(heapMap)
+                time.sleep(1)
 
     results = scanHeap(heap)
-    return results
+    
+
+    # News = apps.get_model('database', 'News')
+    # for key, value in results.items():

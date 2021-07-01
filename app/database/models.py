@@ -1,4 +1,6 @@
 from django.db import models
+from jsonfield import JSONField
+
 
 # Create your models here.
 class Stock(models.Model):
@@ -45,7 +47,7 @@ class Vix(models.Model):
 
 class News(models.Model):
     id = models.AutoField(primary_key=True)
-    url = models.CharField(null=True, max_length=1000)
+    urls = models.JSONField(null=True, max_length=1000)
     stock = models.OneToOneField(Stock, on_delete=models.CASCADE, null=False)
     frequency = models.IntegerField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
