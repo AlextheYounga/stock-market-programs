@@ -1,10 +1,7 @@
-import django
-from django.apps import apps
 import sys
 import json
 import os
 import re
-django.setup()
 
 
 def cleanExchangeTicker(exchange):    

@@ -1,6 +1,6 @@
 import django
 from ...lab.core.api.batch import batchQuote
-from ...lab.reddit.scraper import scrapeWSB
+from ...lab.reddit.api_scraper import scrapeWSB
 from ...lab.core.functions import chunks
 from django.apps import apps
 import json
@@ -21,11 +21,11 @@ for bet in wsb:
     stock = Stock.objects.update_or_create(
         ticker=bet.get('symbol'),
         defaults={
-            'name': bet.get('companyName'),
-            'lastPrice': bet.get('latestPrice'),                    
-            'changePercent': bet.get('changePercent'),
-            'ytdChange': bet.get('ytdChange'),
-            'volume': bet.get('volume')
+            'name': bet.get('companyName', None),
+            'lastPrice': bet.get('latestPrice', None),                    
+            'changePercent': bet.get('changePercent', None),
+            'ytdChange': bet.get('ytdChange', None),
+            'volume': bet.get('volume', None)
         }
     )
 

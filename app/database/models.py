@@ -1,12 +1,14 @@
 from django.db import models
+from django.db.models.deletion import CASCADE, DO_NOTHING
 from jsonfield import JSONField
+from ..lab.core.functions import frequencyInList
 
 
 # Create your models here.
 class Stock(models.Model):
     id = models.AutoField(primary_key=True)
     ticker = models.CharField(db_index=True, max_length=30, unique=True)
-    name = models.CharField(max_length=1000, null=True)
+    name = models.CharField(max_length=1000)
     lastPrice = models.CharField(max_length=300, null=True)
     changePercent = models.FloatField(null=True)
     ytdChange = models.FloatField(null=True)
@@ -16,7 +18,7 @@ class Stock(models.Model):
 
 class Hurst(models.Model):
     id = models.AutoField(primary_key=True)
-    stock_id = models.ForeignKey(Stock, on_delete = models.CASCADE)
+    stock = models.ForeignKey(Stock, on_delete = models.CASCADE)
     values = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -47,13 +49,41 @@ class Vix(models.Model):
 
 class News(models.Model):
     id = models.AutoField(primary_key=True)
-    urls = models.JSONField(null=True, max_length=1000)
-    stock = models.OneToOneField(Stock, on_delete=models.CASCADE, null=False)
-    frequency = models.IntegerField(null=True)
+    url = models.TextField(unique=True)
+    headline = models.CharField(null=True, max_length=2000)
+    author = models.CharField(null=True, max_length=200)
+    stocks = JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         verbose_name_plural = "news"
+
+
+class StockNews(models.Model):
+    id = models.AutoField(primary_key=True)
+    url = models.ForeignKey(News, on_delete=CASCADE)
+    stock = models.ForeignKey(Stock, on_delete=CASCADE)
+    ticker = models.CharField(db_index=True, max_length=30)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name_plural = "stocknews"
+    
+    @property
+    def frequency(ticker):
+        stocks = StockNews.objects.all().values_list('ticker')
+        return frequencyInList(stocks, ticker)
+
+    @property
+    def top_mentioned():
+        top = {}
+        stocks = StockNews.objects.all().values_list('ticker')
+        for stock in stocks:
+            top['ticker'] = stock
+            top['frequency'] = frequencyInList(stocks, stock)
+
+        sorted_results = sorted(top, key=lambda i: i['frequency'], reverse=True)
+        return sorted_results
 
 class Reddit(models.Model):
     id = models.AutoField(primary_key=True)

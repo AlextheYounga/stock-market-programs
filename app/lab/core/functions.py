@@ -184,3 +184,78 @@ def zipfolder(path, filename):
 def unzip_folder(directory, filepath):
     with zipfile.ZipFile(filepath, 'r') as zip_ref:
         zip_ref.extractall(directory)
+
+
+def readTxtFile(path, fmt=list):
+    txtfile = open(path, "r")
+    
+    if os.path.exists(path):
+        if (fmt == list):
+            items = []
+            txtfile = open(path, "r")
+            for line in txtfile:                
+                stripped_line = line.strip()
+                line_list = stripped_line.split()
+                items.append(str(line_list[0]))
+
+            return list(dict.fromkeys(items))
+
+        if (fmt == str):
+            txtfile = open(path, "r")            
+            return txtfile.read()
+
+        if (fmt == dict):
+            txtfile = open(path, "r")
+            return json.loads(txtfile.read())
+    print('Error: Path does not exist')
+    return False
+
+def writeTxtFile(path, data, append=False):
+    # Appending function
+    fmt = type(data)
+    if (append):
+        checked = readTxtFile(path, fmt)
+        if (checked):
+            if (fmt == list):
+                lst = list(dict.fromkeys(checked + data))
+            if (fmt == dict):
+                data = checked.update(data)
+            if (fmt == str):
+                data = checked + "\n" + data
+
+    with open(path, 'w') as f:        
+        if (fmt == list):
+            for item in lst:
+                f.write("%s\n" % item)
+        if (fmt == str):
+            f.write(data)
+        if (fmt == dict):
+            f.write(json.dumps(data))
+
+    return True
+
+
+
+def deleteFromTxTFile(path, data, fmt=list):
+    read = readTxtFile(path, fmt)
+    if (read):
+        if (fmt == list):
+            for l in data:
+                read.remove(l)
+
+            os.remove(path)
+            with open(path, 'w') as f:
+                for item in read:
+                    f.write("%s\n" % item)
+        if (fmt == dict):
+            del read[data]
+            with open(path, "w") as jsonfile:
+                jsonfile.write(json.dumps(read))
+        if (fmt == str):
+            read.replace(data, '')
+            with open(path, "w") as txtfile:
+                txtfile.write(read)
+
+        
+
+        
