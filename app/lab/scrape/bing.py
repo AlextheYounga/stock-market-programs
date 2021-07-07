@@ -1,6 +1,4 @@
-from ..cache.cache import Cache
-from ..variables import DOMAIN, KEYWORDS, USED_KEYWORDS, LINKS
-from serpapi import GoogleSearch
+from ..cache.easy_cache import EasyCache
 import time
 import requests
 from bs4 import BeautifulSoup

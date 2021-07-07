@@ -1,5 +1,9 @@
+from app.database.models import StockNews
+import django
+from django.apps import apps
 import requests
 from bs4 import BeautifulSoup
+from requests import api
 from .functions import *
 from ..core.api.batch import batchQuote
 from ..core.functions import chunks, readTxtFile
@@ -10,8 +14,20 @@ import time
 import sys
 import json
 import os
+django.setup()
 
 EXCHANGES = 'app/lab/news/data/exchanges.txt'
+
+
+def save(results):
+    # TODO: Get saving
+    News = apps.get_model('database', 'News')
+    Stock = apps.get_model('database', 'Stock')
+    StockNews = apps.get_model('database', 'StockNews')
+    for r in results:
+        print(r)
+        sys.exit()
+
 
 def scanHeap(heap):
     """
@@ -31,12 +47,13 @@ def scanHeap(heap):
     """
     blacklist = blacklistWords()
     exchanges = readTxtFile(EXCHANGES)
-    possible = []
-    keyedByStock = {}
-    stockfound = []
-    results = []
+    plausible = [] # A temporary vehicle to store strings that are likely tickers.
+    stockfound = [] # A collection of all confirmed stocks.
+    apiResults = {}
 
     for h in heap:
+        # Finding all strings that look like stocks.
+        h['stocks'] = []
         exchange_tickers = []
         # Find all capital letter strings, ranging from 1 to 5 characters, with optional dollar
         # signs preceded and followed by space.
@@ -46,28 +63,23 @@ def scanHeap(heap):
                 r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h['soup']))
             if (len(exchangelike) > 0):
                 exchange_tickers = exchange_tickers + exchangelike
+        
+        del h['soup'] # Done with the soup.
+        possible = tickerlike + exchange_tickers
 
-        tickers = tickerlike + exchange_tickers
-
-        target_strings = []
-        for tick in tickers:
+        # Cleaning up strings that look like stocks.
+        for tick in possible:
             if (type(tick) != list):
                 if (':' in tick):
                     tick = cleanExchangeTicker(tick)
+                cleaned = removeBadCharacters(tick)
 
-                target_strings.append(removeBadCharacters(tick))
-
-        for string in target_strings:
-            if ((string) and (string not in blacklist)):
-                possible.append(string)
-                if (string in keyedByStock):
-                    keyedByStock[string].append(h['url'])
-                    continue
-                keyedByStock[string] = [h['url']]
-
-    unique_possibles = list(dict.fromkeys(possible))
-    chunked_strings = chunks(unique_possibles, 100)
-
+                # Collecting strings that look like stocks.
+                if ((cleaned) and (cleaned not in blacklist)):
+                    plausible.append(cleaned)
+                    h['stocks'].append(cleaned)
+                
+    # Specifying what I want from API
     apiOnly = [
         'symbol',
         'companyName',
@@ -77,107 +89,72 @@ def scanHeap(heap):
         'volume'
     ]
 
-    print(stylize("{} possibilities".format(
-        len(unique_possibles)), colored.fg("yellow")))
+    unique_plausible = list(dict.fromkeys(plausible))
+    chunked_plausible = chunks(unique_plausible, 100)
 
-    for i, chunk in enumerate(chunked_strings):
+    print(stylize("{} possibilities".format(len(unique_plausible)), colored.fg("yellow")))
 
+    for i, chunk in enumerate(chunked_plausible):
         print(stylize("Sending heap to API", colored.fg("yellow")))
         batch = batchQuote(chunk)
         time.sleep(1)
 
         for ticker, stockinfo in batch.items():
-            if (stockinfo.get('quote', False)):
-                stockfound.append(ticker)
-
-                result = {
-                    'ticker': ticker,
-                    'urls': keyedByStock[ticker],
-                }
-
+            if (stockinfo.get('quote', False)):                
                 print(stylize("{} stock found".format(ticker), colored.fg("green")))
 
-                filteredinfo = {
-                    key: stockinfo['quote'][key] for key in apiOnly}
-                result.update(filteredinfo)
-                results.append(result)
+                stockfound.append(ticker)
+                filteredinfo = {key: stockinfo['quote'][key] for key in apiOnly}
+                apiResults[ticker] = filteredinfo
 
     # Updating blacklist
-    for un in unique_possibles:
+    for un in unique_plausible:
         if (un not in stockfound):
             blacklist.append(un)
 
+    # Updating main heap, removing bad tickers
+    for h in heap:
+        if (h['stocks']):
+            for stock in h['stocks']:
+                if (stock not in stockfound):
+                    h['stocks'].remove(stock)                    
+
     updateBlacklist(blacklist)
+    return heap
+
+
+def top_news():
+    heap = []
+    queries = ['Finance']
+    # queries = ['Top', 'Finance' 'Business', 'World']
+    for q in queries:        
+        url = f"https://www.bing.com/news/search?q={q}"
+        response = bingSearch(url)
+        time.sleep(3)
+
+        if (response.status_code == 200):
+            soup = BeautifulSoup(response.text, 'html.parser')
+            links = soup.find_all("a", {"class": "title"})
+
+            # Begin traversing links
+            for link in cleanLinks(links):
+                print(stylize("Searching... " +
+                      link['href'], colored.fg("yellow")))
+                page = bingSearch(link['href'])
+
+                if (page and page.status_code == 200):
+                    soup = BeautifulSoup(page.text, 'html.parser')
+
+                    result = {
+                        'url': link['href'],
+                        'headline': link.contents,
+                        'source': link.attrs.get('data-author', None),
+                        'soup': soup,
+                    }
+                    heap.append(result)
+                    time.sleep(1)
+
+    results = scanHeap(heap)
+    save(results)
     return results
 
-# TODO: Figure out how to make this change work
-def business_search():
-    url = "https://www.bing.com/news/search?q=Business"
-    response = bingSearch(url)
-    heap = []
-    if (response.status_code == 200):
-        soup = BeautifulSoup(response.text, 'html.parser')
-        links = soup.find_all("a", {"class": "title"})
-
-        for link in links:
-            print(stylize("Searching... "+link['href'], colored.fg("yellow")))
-            page = bingSearch(link['href'])
-
-            if (page and page.status_code == 200):
-                soup = BeautifulSoup(page.text, 'html.parser')
-                result = {
-                    'url': link['href'],
-                    'headline': link['text'],
-                }
-                heap.append(result)
-                time.sleep(1)
-
-
-
-
-# def scrape_news(query):
-#     print(stylize("Searching {}".format(query), colored.fg("green")))
-#     headers = {
-#         'dnt': '1',
-#         'upgrade-insecure-requests': '1',
-#         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36',
-#         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-#         'sec-fetch-site': 'none',
-#         'sec-fetch-mode': 'navigate',
-#         'sec-fetch-user': '?1',
-#         'sec-fetch-dest': 'document',
-#         'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
-#     }
-#     heap = []
-
-#     try:
-#         url = 'https://www.bing.com/news/search?q={}'.format(query)
-#         response = requests.get(url, headers=headers, timeout=5)
-#     except:
-#         print(stylize("Unexpected error:", colored.fg("red")))
-#         print(stylize(sys.exc_info()[0], colored.fg("red")))
-
-#     if (response.status_code == 200):
-#         soup = BeautifulSoup(response.text, 'html.parser')
-#         links = soup.find_all("a", {"class": "title"})
-
-#         # Begin traversing links
-#         for link in cleanLinks(links):
-#             print(stylize("Searching... "+link, colored.fg("yellow")))
-#             try:
-#                 page = requests.get(link, headers=headers, timeout=5)
-#             except:
-#                 print(stylize("Unexpected error:", colored.fg("red")))
-#                 print(stylize(sys.exc_info()[0], colored.fg("red")))
-
-#             if (page and page.status_code == 200):
-#                 soup = BeautifulSoup(page.text, 'html.parser')
-#                 heapMap = {
-#                     'url': link,
-#                     'soup': soup.text,
-#                 }
-#                 heap.append(heapMap)
-#                 time.sleep(1)
-
-#     results = scanHeap(heap)
-#     return results

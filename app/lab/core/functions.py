@@ -193,10 +193,8 @@ def readTxtFile(path, fmt=list):
         if (fmt == list):
             items = []
             txtfile = open(path, "r")
-            for line in txtfile:                
-                stripped_line = line.strip()
-                line_list = stripped_line.split()
-                items.append(str(line_list[0]))
+            for line in txtfile:            
+                items.append(str(line.strip()))
 
             return list(dict.fromkeys(items))
 

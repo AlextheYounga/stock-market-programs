@@ -206,6 +206,9 @@ def news_controller(subroutine, args=[]):
             query=params['query'] if ('query' in params) else opt['query']['default'],
         ))
         return
+    if (subroutine == 'top'):
+        from app.lab.news.scrape_headlines import top_news
+        print(top_news())
 
     command_error()
 

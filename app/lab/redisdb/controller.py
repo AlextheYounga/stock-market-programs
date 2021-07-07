@@ -6,10 +6,6 @@ import sys
 import os
 
 
-class Rdb():
-    
-
-
 def allowed_key(typecast, key):
     """
     A way of standardizing keys and preventing bad inserts.

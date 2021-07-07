@@ -52,6 +52,7 @@ class News(models.Model):
     url = models.TextField(unique=True)
     headline = models.CharField(null=True, max_length=2000)
     author = models.CharField(null=True, max_length=200)
+    source = models.CharField(null=True, max_length=200)
     stocks = JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
