@@ -1,1 +1,0 @@
-{"bing_position": 110077, "test.data.chain": {"symbol": "SPY", "status": "SUCCESS", "underlying": null, "strategy": "SINGLE", "interval": 0, "isDelayed": true, "isIndex": false, "interestRate": 0.1, "underlyingPrice": 388.245, "volatility": 29, "daysToExpiration": 0, "numberOfContracts": 4502}}
