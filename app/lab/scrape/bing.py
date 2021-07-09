@@ -1,5 +1,5 @@
-from ..cache.easy_cache import EasyCache
 import time
+import redis
 import requests
 from bs4 import BeautifulSoup
 import colored
@@ -92,7 +92,8 @@ def keywordSearch(keywords, domains, end=500):
 
 def infiniteSearch(keyword, domain):
     query = f"{keyword}%20site%3A{domain}"
-    position = Cache.get('bing_position') if Cache.get('bing_position') else 0
+    r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+    position = r.get('bing_position') if r.get('bing_position') else 0
     links = []
     end = 100000000
     current_page = 0 if position == 0 else int(position / 11)
@@ -108,7 +109,7 @@ def infiniteSearch(keyword, domain):
             time.sleep(5)
 
         # Cache the position
-        Cache.put('bing_position', position)
+        r.put('bing_position', position)
 
         # Request page from pagination
         response = bingSearch(url)

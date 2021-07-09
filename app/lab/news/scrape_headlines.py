@@ -1,4 +1,3 @@
-from app.database.models import StockNews
 import django
 from django.apps import apps
 import requests
@@ -24,9 +23,37 @@ def save(results):
     News = apps.get_model('database', 'News')
     Stock = apps.get_model('database', 'Stock')
     StockNews = apps.get_model('database', 'StockNews')
+
+
+
     for r in results:
-        print(r)
-        sys.exit()
+        article = News.objects.create(
+            url=r['url'],
+            headline = r.get('headline', None),
+            author = r.get('author', None),
+            source = r.get('source', None),
+        )
+        # TODO: MAKe this work
+        if (r.get('stockinfo', False)):
+            for item in r['stockinfo'].items():
+                stock = Stock.objects.update_or_create(
+                    ticker=item['ticker'],
+                    defaults={
+                        'name': item.get('companyName', None),
+                        'lastPrice': item.get('latestPrice', None),
+                        'changePercent': item.get('changePercent', None),
+                        'ytdChange': item.get('ytdChange', None),
+                        'volume': item.get('volume', None),
+                        }
+                    )
+                
+                StockNews.objects.create(
+                    article = article,
+                    stock = stock,
+                    ticker = item['ticker'],
+                    companyName = item.get('companyName', None),
+                )
+
 
 
 def scanHeap(heap):
@@ -47,8 +74,9 @@ def scanHeap(heap):
     """
     blacklist = blacklistWords()
     exchanges = readTxtFile(EXCHANGES)
-    plausible = [] # A temporary vehicle to store strings that are likely tickers.
-    stockfound = [] # A collection of all confirmed stocks.
+    # A temporary vehicle to store strings that are likely tickers.
+    plausible = []
+ # A collection of all confirmed stocks.
     apiResults = {}
 
     for h in heap:
@@ -63,8 +91,8 @@ def scanHeap(heap):
                 r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h['soup']))
             if (len(exchangelike) > 0):
                 exchange_tickers = exchange_tickers + exchangelike
-        
-        del h['soup'] # Done with the soup.
+
+        del h['soup']  # Done with the soup.
         possible = tickerlike + exchange_tickers
 
         # Cleaning up strings that look like stocks.
@@ -78,7 +106,7 @@ def scanHeap(heap):
                 if ((cleaned) and (cleaned not in blacklist)):
                     plausible.append(cleaned)
                     h['stocks'].append(cleaned)
-                
+
     # Specifying what I want from API
     apiOnly = [
         'symbol',
@@ -92,7 +120,8 @@ def scanHeap(heap):
     unique_plausible = list(dict.fromkeys(plausible))
     chunked_plausible = chunks(unique_plausible, 100)
 
-    print(stylize("{} possibilities".format(len(unique_plausible)), colored.fg("yellow")))
+    print(stylize("{} possibilities".format(
+        len(unique_plausible)), colored.fg("yellow")))
 
     for i, chunk in enumerate(chunked_plausible):
         print(stylize("Sending heap to API", colored.fg("yellow")))
@@ -100,34 +129,37 @@ def scanHeap(heap):
         time.sleep(1)
 
         for ticker, stockinfo in batch.items():
-            if (stockinfo.get('quote', False)):                
+            if (stockinfo.get('quote', False)):
                 print(stylize("{} stock found".format(ticker), colored.fg("green")))
 
-                stockfound.append(ticker)
-                filteredinfo = {key: stockinfo['quote'][key] for key in apiOnly}
+                filteredinfo = {
+                    key: stockinfo['quote'][key] for key in apiOnly
+                    }
                 apiResults[ticker] = filteredinfo
 
     # Updating blacklist
     for un in unique_plausible:
-        if (un not in stockfound):
+        if (un not in apiResults.keys()):
             blacklist.append(un)
 
     # Updating main heap, removing bad tickers
     for h in heap:
+        h['stockinfo'] = {}
         if (h['stocks']):
             for stock in h['stocks']:
-                if (stock not in stockfound):
-                    h['stocks'].remove(stock)                    
+                if (stock not in apiResults.keys()):
+                    h['stocks'].remove(stock)
+                h['stockinfo'][stock] = apiResults[stock]
+                
 
     updateBlacklist(blacklist)
     return heap
 
 
 def top_news():
-    heap = []
-    queries = ['Finance']
-    # queries = ['Top', 'Finance' 'Business', 'World']
-    for q in queries:        
+    heap = []    
+    queries = ['Finance' 'Business', 'World']
+    for q in queries:
         url = f"https://www.bing.com/news/search?q={q}"
         response = bingSearch(url)
         time.sleep(3)
@@ -157,4 +189,3 @@ def top_news():
     results = scanHeap(heap)
     save(results)
     return results
-

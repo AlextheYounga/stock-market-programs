@@ -53,7 +53,6 @@ class News(models.Model):
     headline = models.CharField(null=True, max_length=2000)
     author = models.CharField(null=True, max_length=200)
     source = models.CharField(null=True, max_length=200)
-    stocks = JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
@@ -62,8 +61,9 @@ class News(models.Model):
 
 class StockNews(models.Model):
     id = models.AutoField(primary_key=True)
-    url = models.ForeignKey(News, on_delete=CASCADE)
+    article = models.ForeignKey(News, on_delete=CASCADE)
     stock = models.ForeignKey(Stock, on_delete=CASCADE)
+    companyName = models.CharField(max_length=500, null=True)
     ticker = models.CharField(db_index=True, max_length=30)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

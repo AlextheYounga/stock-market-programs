@@ -3,7 +3,6 @@ from tabulate import tabulate
 from .api.batch import quoteStatsBatchRequest
 from .functions import dataSanityCheck
 from datetime import date
-from ..redisdb.controller import rdb_save_output
 import colored
 from colored import stylize
 import sys

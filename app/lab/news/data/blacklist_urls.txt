@@ -6,3 +6,5 @@ yahoo.com
 sfgate.com
 freep.com
 nba.com
+nfl.com
+espn.com
