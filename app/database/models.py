@@ -46,13 +46,14 @@ class Vix(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         verbose_name_plural = "vix"
-
+# TODO: Migrate News
 class News(models.Model):
     id = models.AutoField(primary_key=True)
     url = models.TextField(unique=True)
     headline = models.CharField(null=True, max_length=2000)
     author = models.CharField(null=True, max_length=200)
     source = models.CharField(null=True, max_length=200)
+    pubDate = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:

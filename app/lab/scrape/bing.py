@@ -1,7 +1,6 @@
+from app.lab.scrape.scraper import Scraper
 import time
 import redis
-import requests
-from bs4 import BeautifulSoup
 import colored
 from colored import stylize
 import time
@@ -10,47 +9,13 @@ import json
 import os
 
 
-
-def bingSearch(url):
-    headers = {
-        'dnt': '1',
-        'upgrade-insecure-requests': '1',
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36',
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'sec-fetch-site': 'none',
-        'sec-fetch-mode': 'navigate',
-        'sec-fetch-user': '?1',
-        'sec-fetch-dest': 'document',
-        'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
-    }
-
-    try:
-        response = requests.get(url, headers=headers, timeout=5)
-    except:
-        print(stylize("Unexpected error:", colored.fg("red")))
-        print(stylize(sys.exc_info()[0], colored.fg("red")))
-        return False
-
-    if (response.status_code == 200):
-        time.sleep(1.3)
-        return response
-    return response.status_code
-
-
-def formatLink(link):
-    if ('?' in link):
-        link = link.split('?')[0]
-    if ('&' in link):
-        link = link.split('&')[0]
-    return link
-
-
 def keywordSearch(keywords, domains, end=500):
     """
     Searches based on specific keywords and specific domains.
     Returns a list of links from search results matching the keywords and domains
     """
     links = []
+    scrape = Scraper()
     for k in keywords:
         for domain in domains:
             print("\n")
@@ -71,8 +36,8 @@ def keywordSearch(keywords, domains, end=500):
                     time.sleep(5)
 
                 # Request page from pagination
-                response = bingSearch(url)
-                soup = BeautifulSoup(response.text, 'html.parser')
+                response = scrape.search(url)
+                soup = scrape.parseHTML(response)
                 if (not soup):
                     break
 
@@ -84,16 +49,17 @@ def keywordSearch(keywords, domains, end=500):
                 for h in hrefs:
                     if hasattr(h, 'href'):
                         if (f"https://{domain}/" in h['href']):
-                            link = formatLink(h['href'])
+                            link = scrape.stripParams(h['href'])
                             links.append(link)
         return links
 
 
 
 def infiniteSearch(keyword, domain):
+    scrape = Scraper()
     query = f"{keyword}%20site%3A{domain}"
     r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
-    position = r.get('bing_position') if r.get('bing_position') else 0
+    position = r.get('bing_position') if r.get('bing_position') else 0    
     links = []
     end = 100000000
     current_page = 0 if position == 0 else int(position / 11)
@@ -112,8 +78,8 @@ def infiniteSearch(keyword, domain):
         r.put('bing_position', position)
 
         # Request page from pagination
-        response = bingSearch(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
+        response = scrape.search(url)
+        soup = scrape.parseHTML(response)
         if (not soup):
             break
 
@@ -125,7 +91,7 @@ def infiniteSearch(keyword, domain):
         for h in hrefs:
             if hasattr(h, 'href'):
                 if (f"https://{domain}/" in h['href']):
-                    link = formatLink(h['href'])
+                    link = scrape.stripParams(h['href'])
                     links.append(link)
     return links
     

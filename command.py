@@ -195,20 +195,10 @@ def macro_controller(subroutine, args=[]):
 
 
 def news_controller(subroutine, args=[]):
-    if (subroutine == 'scrape'):
-        opt = {'query': {'type': str, 'default': 'best+stocks+to+buy+right+now'}, }
-
-        from app.lab.news.scrape_headlines import scrape_news
-
-        params = parse_args(args, opt=opt)
-
-        print(scrape_news(
-            query=params['query'] if ('query' in params) else opt['query']['default'],
-        ))
-        return
     if (subroutine == 'top'):
-        from app.lab.news.scrape_headlines import top_news
-        print(top_news())
+        from app.lab.news.newsfeed import NewsFeed
+        nf = NewsFeed()
+        print(nf.top())
 
     command_error()
 
@@ -296,17 +286,6 @@ def reddit_controller(subroutine, args):
         print(scrapeWSB(
             sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
         ))
-
-
-def output_controller(subroutine, args):
-    if (subroutine == 'last'):
-        from app.lab.redisdb.controller import fetch_last_output
-
-        results = fetch_last_output()
-        printFullTable(results, struct='dictlist')
-        return
-
-    command_error()
 
 
 def trend_controller(subroutine, args):
