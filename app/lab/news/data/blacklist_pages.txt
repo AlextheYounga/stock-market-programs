@@ -1,0 +1,5 @@
+/video/
+/lifestyle/
+/sports/
+soccer
+football

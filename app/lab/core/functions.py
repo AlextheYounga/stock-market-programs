@@ -4,9 +4,9 @@ import math
 import json
 import pandas as pd
 import numpy as np
-import operator
 import os
 import zipfile
+from dateutil.parser import parse
 
 
 def extract_data_pd(data, key):
@@ -256,4 +256,16 @@ def deleteFromTxTFile(path, data, fmt=list):
 
         
 
-        
+def is_date(string, fuzzy=False):
+    """
+    Return whether the string can be interpreted as a date.
+
+    :param string: str, string to check for date
+    :param fuzzy: bool, ignore unknown tokens in string if True
+    """
+    try: 
+        parse(string, fuzzy=fuzzy)
+        return True
+
+    except ValueError:
+        return False

@@ -1,7 +1,9 @@
 
 from app.lab.scrape.scraper import Scraper
 from ..core.api.batch import batchQuote
-from ..core.functions import chunks, readTxtFile
+from ..core.functions import chunks, readTxtFile, is_date
+import datetime
+from dateutil.parser import parse
 import re
 import colored
 from colored import stylize
@@ -11,123 +13,139 @@ import json
 import os
 
 EXCHANGES = 'app/lab/news/data/exchanges.txt'
+BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
+BLACKLISTPAGES = 'app/lab/news/data/blacklist_words.txt'
+DOMAINS = 'app/lab/news/data/whitelist_domains.txt'
+
+class NewsFeed():
 
 
-class NewsFeed():    
-    # TODO: FInish switching to RSS
-    def top():
+    def feed():
+        sys.exit()
+
+    def top(self):
         heap = []
         scrape = Scraper()
-        queries = ['Finance' 'Business', 'World']
-        for q in queries:
-            url = f"https://www.bing.com/news/search?q={q}&format=rss"
-            response = scrape.search(url)                        
-            time.sleep(3)
-
+        domains = readTxtFile(DOMAINS)
+        for domain in domains:            
+            url = f"https://www.bing.com/news/search?q=site%3A{domain}"            
+            response = scrape.search(url)
+            print(stylize(f"Grabbing links {url}", colored.fg("yellow")))
+            time.sleep(1)
             if (response.status_code == 200):
-                news_items = scrape.parseXML(response, findtree='channel->item')
+                soup = scrape.parseHTML(response)
+                print(soup)
+                link_soup = soup.find_all('div', attrs={'class': 'newsitem'})
 
-                for item in news_items():
-                    link = item.attrib('link')
-                    page = scrape.search(link)
-                    if (page and page.status_code == 200):
-                        soup = scrape.parseHTML(page)
-                        result = {
-                            'url': link,
-                            'headline': item.attrib('title'),
-                            'description': item.attrib('description'),
-                            'pubDate': item.attrib('pubDate'),
-                            'source': item.attrib('News:Source'),
-                            'source': link.attrs.get('data-author', None),
-                            'soup': soup,
-                        }
-                        heap.append(result)
-                        time.sleep(1)
+                for item in link_soup:
+                    title = item.find("a", {'class': 'title'})
+                    link = title.attrs.get('href')
+                    if (checkLink(link)):
+                        headline = title.text
+                        description = item.find("div", {'class': 'snippet'}).text
+                        source = title.attrs.get('data-author', None)
 
+                        print(stylize(f"Searching {scrape.stripParams(link)}", colored.fg("yellow")))
+                        page = scrape.search(link)
+                        if (page and page.status_code == 200):
+                            page_soup = scrape.parseHTML(page)
+                            result = {
+                                'url': link,
+                                'headline': headline,
+                                'description': description,
+                                'pubDate': findPubDate(page_soup),
+                                'source': source,
+                                'author': findAuthor(page_soup),
+                                'soup': page_soup,
+                            }
+                            sys.exit()
+                            heap.append(result)
+                            time.sleep(1)
+            else: 
+                print(stylize(f"Response {response.status_code}", colored.fg("red")))
 
-        results = scanHeap(heap)
-        save(results)
+        results = findStocks(heap)
+        self.save(results)
         return results
 
 
-    # def top():
-    #     heap = []
-    #     scrape = Scraper()
-    #     queries = ['Finance' 'Business', 'World']
-    #     for q in queries:
-    #         url = f"https://www.bing.com/news/search?q={q}"
-    #         response = scrape.search(url)
-    #         time.sleep(3)
+    def save(self, results):
+        import django
+        from django.apps import apps
+        django.setup()
 
-    #         if (response.status_code == 200):
-    #             soup = BeautifulSoup(response.text, 'html.parser')
-    #             links = soup.find_all("a", {"class": "title"})
+        News = apps.get_model('database', 'News')
+        Stock = apps.get_model('database', 'Stock')
+        StockNews = apps.get_model('database', 'StockNews')
 
-    #             # Begin traversing links
-    #             for link in cleanLinks(links):
-    #                 print(stylize("Searching... " +
-    #                       link['href'], colored.fg("yellow")))
-    #                 page = scrape.search(link['href'])
-
-    #                 if (page and page.status_code == 200):
-    #                     soup = BeautifulSoup(page.text, 'html.parser')
-
-    #                     result = {
-    #                         'url': link['href'],
-    #                         'headline': link.contents,
-    #                         'source': link.attrs.get('data-author', None),
-    #                         'soup': soup,
-    #                     }
-    #                     heap.append(result)
-    #                     time.sleep(1)
-
-    #     results = scanHeap(heap)
-    #     save(results)
-    #     return results
-
-
-                    
-def save(results):
-    import django
-    from django.apps import apps
-    django.setup()
-
-    # TODO: Get saving
-    News = apps.get_model('database', 'News')
-    Stock = apps.get_model('database', 'Stock')
-    StockNews = apps.get_model('database', 'StockNews')
-
-    for r in results:
-        article = News.objects.create(
-            url=r['url'],
-            headline=r.get('headline', None),
-            author=r.get('author', None),
-            source=r.get('source', None),
-        )
-        # TODO: MAKe this work
-        if (r.get('stockinfo', False)):
-            for item in r['stockinfo'].items():
-                print(item)
-                sys.exit()
-                stock = Stock.objects.update_or_create(
-                    ticker=item['ticker'],
-                    defaults={
-                        'name': item.get('companyName', None),
-                        'lastPrice': item.get('latestPrice', None),
-                        'changePercent': item.get('changePercent', None),
-                        'ytdChange': item.get('ytdChange', None),
-                        'volume': item.get('volume', None),
-                    }
-                )
-
-                StockNews.objects.create(
-                    article=article,
-                    stock=stock,
-                    ticker=item['ticker'],
-                    companyName=item.get('companyName', None),
+        for r in results:
+            article = News.objects.update_or_create(
+                url=r['url'],
+                defaults = {
+                'headline': r.get('headline', None),
+                'author': r.get('author', None),
+                'source': r.get('source', None),
+                'description': r.get('description', None),
+                'pubDate': r.get('pubDate', None)}
+            )
+            print(stylize(f"Saved {r.get('source', '[Unsourced]')} article", colored.fg("green")))
+            if (r.get('stockinfo', False)):
+                for item in r['stockinfo'].items():
+                    print(item)
+                    sys.exit()
+                    stock = Stock.objects.update_or_create(
+                        ticker=item['ticker'],
+                        defaults={
+                            'name': item.get('companyName', None),
+                            'lastPrice': item.get('latestPrice', None),
+                            'changePercent': item.get('changePercent', None),
+                            'ytdChange': item.get('ytdChange', None),
+                            'volume': item.get('volume', None),
+                        }
                     )
 
-def scanHeap(heap):
+                    StockNews.objects.update_or_create(
+                        article=article,
+                        defaults = {
+                            'stock': stock,
+                            'ticker': item['ticker'],
+                            'companyName': item.get('companyName', None),
+                        }
+                    )
+                    print(stylize(f"Saved {item['ticker']} from article.", colored.fg("green")))
+
+
+
+def findAuthor(soup):
+    print(soup)
+    for meta in soup.head.find_all('meta'):
+        print(meta)
+        for prop in ['property', 'name']:
+            print(str(meta.attrs.get(prop)))
+            if ('author' in str(meta.attrs.get(prop))):
+                author = meta.attrs.get('content')
+                return author
+    for tag in soup.body.find_all(['span', 'div', 'a', 'p']):
+        classes = tag.attrs.get('class')
+        if (classes):  
+            for clas in list(classes):
+                if ('author' in clas):      
+                    return tag.text
+    return None
+
+
+
+def findPubDate(soup):
+    for meta in soup.head.find_all('meta'):
+        for prop in ['property', 'name']:
+            if ('publish' in str(meta.attrs.get(prop))):
+                metaDate = meta.attrs.get('content')
+                if (is_date(metaDate)):
+                    pubDate = re.search(r'\d{4}-\d{2}-\d{2}([\s]\d{2}:\d{2}:\d{2})?', metaDate).group(0)
+                    return pubDate
+
+
+def findStocks(heap):
     """
     This function takes a list of text blobs and scans all words for potential stocks based on a regex formula. 
     The function will cross-reference every potential stock with IEX to determine whether or not it is an actual stock.
@@ -157,7 +175,8 @@ def scanHeap(heap):
         # signs preceded and followed by space.
         tickerlike = re.findall(r'[\S][$][A-Z]{1,5}[\S]*', str(h['soup']))
         for exchange in exchanges:
-            exchangelike = re.findall(r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h['soup']))
+            exchangelike = re.findall(
+                r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h['soup']))
             if (len(exchangelike) > 0):
                 exchange_tickers = exchange_tickers + exchangelike
 
@@ -189,8 +208,7 @@ def scanHeap(heap):
     unique_plausible = list(dict.fromkeys(plausible))
     chunked_plausible = chunks(unique_plausible, 100)
 
-    print(stylize("{} possibilities".format(
-        len(unique_plausible)), colored.fg("yellow")))
+    print(stylize("{} possibilities".format(len(unique_plausible)), colored.fg("yellow")))
 
     for i, chunk in enumerate(chunked_plausible):
         print(stylize("Sending heap to API", colored.fg("yellow")))
@@ -218,6 +236,7 @@ def scanHeap(heap):
             for stock in h['stocks']:
                 if (stock not in apiResults.keys()):
                     h['stocks'].remove(stock)
+                    continue
                 h['stockinfo'][stock] = apiResults[stock]
 
     updateBlacklist(blacklist)
@@ -233,7 +252,7 @@ def cleanExchangeTicker(exchange):
 
 
 def blacklistWords():
-    txtfile = open("app/lab/news/data/blacklist_words.txt", "r")
+    txtfile = open(BLACKLISTWORDS, "r")
 
     blacklist = []
     for line in txtfile:
@@ -245,34 +264,15 @@ def blacklistWords():
 
     return list(dict.fromkeys(blacklist))
 
-
-
-def cleanLinks(links):
-    whitelist = []
-    blacklist_sites = readTxtFile('app/lab/news/data/blacklist_sites.txt', fmt=list)
-    blacklist_urls = readTxtFile('app/lab/news/data/blacklist_urls.txt', fmt=list)
-
-    for link in links:
-        link_attrs = link.attrs
-        if (link_attrs.get('href', False)):
-            keep = True
-            if (blacklist_urls):
-                for bu in blacklist_urls:
-                    if (bu in link_attrs['href']):
-                        keep = False
-            if (blacklist_sites):
-                for bs in blacklist_sites:
-                    if (link_attrs.get('data-author', False) and (bs in link_attrs['data-author'])):
-                        
-                        keep = False
-            if (keep == True):
-                whitelist.append(link)
-
-    return whitelist
-
+def checkLink(link):
+    blacklist_pgs = readTxtFile(BLACKLISTPAGES)
+    for pg in blacklist_pgs:
+        if (pg in link):
+            return False
+    return link
 
 def updateBlacklist(lst):
-    txtfile = "app/lab/news/data/blacklist_words.txt"
+    txtfile = BLACKLISTWORDS
     os.remove(txtfile)
     with open(txtfile, 'w') as f:
         for item in lst:
@@ -293,3 +293,5 @@ def removeBadCharacters(word):
         return False
 
     return word
+
+
