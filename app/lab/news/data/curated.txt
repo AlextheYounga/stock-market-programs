@@ -1,0 +1,5 @@
+reuters.com
+cnbc.com
+marketwatch.com
+zerohedge.com
+forbes.com

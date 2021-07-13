@@ -24,7 +24,6 @@ class Scraper():
             'content-type': 'text/plain;charset=UTF-8',
             'origin': 'https://www.bing.com',
             'referer': 'https://www.bing.com/news/search?q=site%3Abloomberg.com&qs=n&form=QBNT&sp=-1&pq=site%3Abloomberg.&sc=0-15&sk=&cvid=E89FF9CF027441C19A8B7138BA2A486A',            
-            
             'sec-ch-ua-arch': "x86",
             'sec-ch-ua-full-version': "91.0.4472.124",
             'sec-ch-ua-mobile': '?0',
@@ -42,12 +41,12 @@ class Scraper():
         }
 
     def search(self, url):
-        # try:
-        response = requests.get(url, headers=self.headers, timeout=self.timeout)
-        # except:
-        #     print(stylize("Unexpected error:", colored.fg("red")))
-        #     print(stylize(sys.exc_info()[0], colored.fg("red")))
-        #     return False
+        try:
+            response = requests.get(url, headers=self.headers, timeout=self.timeout)
+        except:
+            print(stylize("Unexpected error:", colored.fg("red")))
+            print(stylize(sys.exc_info()[0], colored.fg("red")))
+            return False
 
         if (response.status_code == 200):
             time.sleep(1.3)
