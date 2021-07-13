@@ -20,24 +20,33 @@ PAYWALLED = 'app/lab/news/data/paywalled.txt'
 
 class NewsFeed():
 
+    def feed(self):
+        self.organicTop()
+        self.searchDomains(CURATED)
+        self.searchDomains(PAYWALLED, search_stocks=False)
+        
 
     def organicTop(self):
-        queries = ['Fianance', 'Stocks', 'Business']
+        queries = ['Finance', 'Stocks', 'Business']
+
+        link_soup = []
         for query in queries:
             url = f"https://www.bing.com/news/search?q={query}"
-            link_soup = self.collectLinks(url)
+            link_soup = link_soup + self.collectLinks(url)
         heap = self.scanLinks(link_soup)
         results = self.findStocks(heap)
         self.save(results)
         return results
 
-    def searchDomains(self, domains):
-        domains = readTxtFile(CURATED)
+    def searchDomains(self, lst_path, search_stocks=True):
+        domains = readTxtFile(lst_path)
+        link_soup = []
         for domain in domains:
             url = f"https://www.bing.com/news/search?q=site%3A{domain}"
-            link_soup = self.collectLinks(url)
-        heap = self.scanLinks(link_soup)
-        results = self.findStocks(heap)
+            link_soup = link_soup + self.collectLinks(url)
+        results = self.scanLinks(link_soup)
+        if (search_stocks):
+            results = self.findStocks(results)
         self.save(results)
         return results
 
@@ -67,13 +76,13 @@ class NewsFeed():
                 if (page and page.status_code == 200):
                     page_soup = scrape.parseHTML(page)
                     result = {
-                        'url': link,
+                        'url': scrape.stripParams(link),
                         'headline': headline,
                         'description': description,
                         'pubDate': self.findPubDate(page_soup),
                         'source': source,
                         'author': self.findAuthor(page_soup),
-                        'soup': page_soup,
+                        'soup': page_soup
                     }
                     heap.append(result)
                     time.sleep(1)
@@ -272,24 +281,24 @@ class NewsFeed():
             )
             print(stylize(f"Saved {r.get('source', '[Unsourced]')} article", colored.fg("green")))
             if (r.get('stockinfo', False)):
-                for item in r['stockinfo'].items():
+                for ticker, info in r['stockinfo'].items():
                     stock = Stock.objects.update_or_create(
-                        ticker=item['ticker'],
+                        ticker=ticker,
                         defaults={
-                            'name': item.get('companyName', None),
-                            'lastPrice': item.get('latestPrice', None),
-                            'changePercent': item.get('changePercent', None),
-                            'ytdChange': item.get('ytdChange', None),
-                            'volume': item.get('volume', None),
+                            'name': info.get('companyName', None),
+                            'lastPrice': info.get('latestPrice', None),
+                            'changePercent': info.get('changePercent', None),
+                            'ytdChange': info.get('ytdChange', None),
+                            'volume': info.get('volume', None),
                         }
                     )
 
                     StockNews.objects.update_or_create(
-                        article=article,
+                        article=article[0],
                         defaults = {
-                            'stock': stock,
-                            'ticker': item['ticker'],
-                            'companyName': item.get('companyName', None),
+                            'stock': stock[0],
+                            'ticker': ticker,
+                            'companyName': info.get('companyName', None),
                         }
                     )
-                    print(stylize(f"Saved {item['ticker']} from article.", colored.fg("green")))
+                    print(stylize(f"Saved {ticker} from article.", colored.fg("green")))

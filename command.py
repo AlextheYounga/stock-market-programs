@@ -195,10 +195,10 @@ def macro_controller(subroutine, args=[]):
 
 
 def news_controller(subroutine, args=[]):
-    if (subroutine == 'top'):
+    if (subroutine == 'feed'):
         from app.lab.news.newsfeed import NewsFeed
         nf = NewsFeed()
-        print(nf.top())
+        print(nf.feed())
 
     command_error()
 
