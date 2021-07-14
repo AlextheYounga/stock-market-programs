@@ -34,7 +34,7 @@ class Scraper():
             return False
 
         if (response.status_code == 200):
-            time.sleep(1.3)
+            time.sleep(2.3)
             return response
         return response.status_code
 

@@ -17,12 +17,30 @@ django.setup()
 
 EXCHANGES = 'app/lab/news/data/exchanges.txt'
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
-BLACKLISTPAGES = 'app/lab/news/data/blacklist_words.txt'
+BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated.txt'
 PAYWALLED = 'app/lab/news/data/paywalled.txt'
-
+AGGREGATOR_INDEX = {
+    'bing': {
+        'url': 'https://www.bing.com/news/',
+        'card': ('div', {'class': 'newsitem'}),
+        'linkObj': ("a", {'class': 'linkTag'}),
+        'sourceTag': ("div", {'class': 'source'}),
+        'sourceAttr': 'data-author',
+        'description': ("div", {'class': 'snippet'}),
+    },
+    'google': {
+        'url': 'https://news.google.com/',
+        'card': 'article',
+        'linkObj': 'a',
+        'source': 'div',
+        'description': None,
+    },
+}
 class NewsFeed():
-    
+    def __init__(self, aggregator='bing'):
+        self.aggregator = aggregator
+        
     def latestNews(self):
         News = apps.get_model('database', 'News')
         latest_news = News.objects.all().order_by('created_at')[:40]
@@ -46,23 +64,24 @@ class NewsFeed():
 
     def organicTop(self):
         queries = ['Finance', 'Stocks', 'Business']
-
-        link_soup = []
+        aggregator = AGGREGATOR_INDEX[self.aggregator]['url']
+        card_soup = []
         for query in queries:
-            url = f"https://www.bing.com/news/search?q={query}"
-            link_soup = link_soup + self.collectLinks(url)
-        heap = self.scanLinks(link_soup)
+            url = f"{aggregator}search?q={query}"
+            card_soup = card_soup + self.collectNewsCards(url)
+        heap = self.scanLinks(card_soup)
         results = self.findStocks(heap)
         self.save(results)
         return results
 
     def searchDomains(self, lst_path, search_stocks=True):
         domains = readTxtFile(lst_path)
-        link_soup = []
+        aggregator = AGGREGATOR_INDEX[self.aggregator]['url']
+        card_soup = []
         for domain in domains:
-            url = f"https://www.bing.com/news/search?q=site%3A{domain}"
-            link_soup = link_soup + self.collectLinks(url)
-        results = self.scanLinks(link_soup)
+            url = f"{aggregator}search?q=site%3A{domain}"
+            card_soup = card_soup + self.collectNewsCards(url)
+        results = self.scanLinks(card_soup)
         if (search_stocks):
             results = self.findStocks(results)
         self.save(results)
@@ -72,26 +91,36 @@ class NewsFeed():
         # TODO Figure api search
         sys.exit()
 
-    def collectLinks(self, url):
+    def collectNewsCards(self, url):
         scrape = Scraper()                              
-        response = scrape.search(url)
+        response = scrape.search(url)        
+        cardTag = AGGREGATOR_INDEX[self.aggregator]['card']
         print(stylize(f"Grabbing links {url}", colored.fg("yellow")))
         time.sleep(1)
         if (response.status_code == 200):
             soup = scrape.parseHTML(response)
-            link_soup = soup.find_all('div', attrs={'class': 'newsitem'})
-            return link_soup
+            card_soup = soup.find_all(cardTag)
+            print(stylize(f"{len(card_soup)} articles found.", colored.fg("yellow")))
+            return card_soup
 
-    def scanLinks(self, link_soup):
+    def scanLinks(self, card_soup):
         heap = []
         scrape = Scraper()
-        for item in link_soup:
-            title = item.find("a", {'class': 'title'})
-            link = title.attrs.get('href')
-            if (self.checkLink(link)):
-                headline = title.text
-                description = item.find("div", {'class': 'snippet'}).text
-                source = title.attrs.get('data-author', None)
+        linkTag = AGGREGATOR_INDEX[self.aggregator]['linkObj']
+        descripTag = AGGREGATOR_INDEX[self.aggregator].get('description', False)
+        sourceTag = AGGREGATOR_INDEX[self.aggregator].get('source', False)
+        sourceAttr = AGGREGATOR_INDEX[self.aggregator].get('sourceAttr', False)
+        for card in card_soup:
+            linkObj = card.find(linkTag)
+            link = self.checkLink(linkObj.attrs.get('href'))
+            
+            if (link):
+                headline = linkObj.text
+                description = card.find(descripTag).text if (descripTag) else None
+                if (sourceTag):
+                    source = card.find(sourceTag).text
+                else: 
+                    source = linkObj.attrs.get(sourceAttr, None) if (sourceAttr) else None              
 
                 print(stylize(f"Searching {scrape.stripParams(link)}", colored.fg("yellow")))
                 page = scrape.search(link)
@@ -101,7 +130,7 @@ class NewsFeed():
                         'url': scrape.stripParams(link),
                         'headline': headline,
                         'description': description,
-                        'pubDate': self.findPubDate(page_soup),
+                        'pubDate': self.findPubDate(card, page_soup),
                         'source': source,
                         'author': self.findAuthor(page_soup),
                         'soup': page_soup
@@ -133,16 +162,21 @@ class NewsFeed():
         return None
 
     
-    def findPubDate(self, soup):
-        for meta in soup.head.find_all('meta'):
-            for prop in ['property', 'name']:
-                if ('publish' in str(meta.attrs.get(prop))):
-                    metaDate = meta.attrs.get('content')
-                    if (is_date(metaDate)):
-                        # pubDate = re.search(r'\d{4}-\d{2}-\d{2}([\s]\d{2}:\d{2}:\d{2})?', metaDate)
-                        if (metaDate):
-                            # return pubDate.group(0)
-                            return metaDate
+    def findPubDate(self, card=None, soup=None):
+        if (card):
+            for tag in card.find_all(['span', 'div', 'a', 'p']):
+                if (tag.attrs.get('datetime', False)):
+                    return tag.attrs.get('datetime', None)
+        if (soup):
+            for meta in soup.head.find_all('meta'):
+                for prop in ['property', 'name']:
+                    if ('publish' in str(meta.attrs.get(prop))):
+                        metaDate = meta.attrs.get('content')
+                        if (is_date(metaDate)):
+                            # pubDate = re.search(r'\d{4}-\d{2}-\d{2}([\s]\d{2}:\d{2}:\d{2})?', metaDate)
+                            if (metaDate):
+                                # return pubDate.group(0)
+                                return metaDate
         return None
     
     def cleanExchangeTicker(self, exchange):
@@ -167,10 +201,13 @@ class NewsFeed():
         return list(dict.fromkeys(blacklist))
 
     def checkLink(self, link):
+        aggregator = AGGREGATOR_INDEX[self.aggregator]['url']
         blacklist_pgs = readTxtFile(BLACKLISTPAGES)
         for pg in blacklist_pgs:
             if (pg in link):
                 return False
+        if (link[0] == '.'):
+            return f"{aggregator}{link.split('.')[1]}"
         return link
 
     def updateBlacklist(self, lst):
