@@ -386,7 +386,7 @@ def vix_controller(args):
         command_error(required, opt)
         return
 
-    from app.lab.vix.equation import vix_equation
+    from app.lab.vix.vix import vix_equation
 
     params = parse_args(args, required, opt)
 

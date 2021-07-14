@@ -30,7 +30,7 @@ def collectOptionChain(ticker, dummyData):
 
     if (dummyData):
         # Test Data
-        JSON = 'app/lab/vix/sample_response/response.json'
+        JSON = 'lab/vix/sample_response/response.json'
         with open(JSON) as jsonfile:
             chain = json.loads(jsonfile.read())
             return chain
@@ -55,28 +55,32 @@ def selectOptionExpirations(chain):
 
         """ Step 2: Finding this month's and next month's closest option expiration dates. """
         for optionSide in ['callExpDateMap', 'putExpDateMap']:
-            for expir, strikes in chain[optionSide].items():  # Looping each side of the option chain
+            if (optionSide in chain):
+                for expir, strikes in chain[optionSide].items():  # Looping each side of the option chain
 
-                if (optionSide not in options):
-                    options[optionSide] = {}
+                    if (optionSide not in options):
+                        options[optionSide] = {}
 
-                expDate = datetime.datetime.strptime(expir.split(':')[0], '%Y-%m-%d')  # Option expiration date object
-                # Just grabbing the first strike row in the chain because TD has specific information on
-                # this nested level of the dict. I can get the precise expiration from any strike.
-                firstStrike = next(iter(strikes.values()))[0]
-                daysToExpiration = int(firstStrike['daysToExpiration'])
-                preciseExpiration = int(firstStrike['expirationDate'])  # Getting precise expiration
+                    expDate = datetime.datetime.strptime(expir.split(':')[0], '%Y-%m-%d')  # Option expiration date object
+                    # Just grabbing the first strike row in the chain because TD has specific information on
+                    # this nested level of the dict. I can get the precise expiration from any strike.
+                    firstStrike = next(iter(strikes.values()))[0]
+                    daysToExpiration = int(firstStrike['daysToExpiration'])
+                    preciseExpiration = int(firstStrike['expirationDate'])  # Getting precise expiration
 
-                if (daysToExpiration > 7):  # Must be at least 7 days from expiration.
-                    options[optionSide][preciseExpiration] = {
-                        'dateInfo': {
-                            'expDate': expDate,
-                            'month': expDate.month,
-                            'preciseExpiration': preciseExpiration,
-                            'daysToExpiration': daysToExpiration,
-                        },                        
-                        'strikes': strikes
-                    }
+                    if (daysToExpiration > 7):  # Must be at least 7 days from expiration.
+                        options[optionSide][preciseExpiration] = {
+                            'dateInfo': {
+                                'expDate': expDate,
+                                'month': expDate.month,
+                                'preciseExpiration': preciseExpiration,
+                                'daysToExpiration': daysToExpiration,
+                            },                        
+                            'strikes': strikes
+                        }
+            else:
+                print(stylize("Not enough option data for ticker to make a useful measurement.", colored.fg("red")))
+                return False
 
         """
         Step 3: Calculating the nearest option of each group of options, 
@@ -129,33 +133,36 @@ def selectOptionExpirations(chain):
                     return {'nearTerm': nearTermExp, 'nextTerm': nextTermExp }
 
             # If not enough option data, end program. We can go no further.
-            return "Not enough option data for ticker to make a useful measurement."
+            print(stylize("Not enough option data for ticker to make a useful measurement.", colored.fg("red")))
+            return False
 
         properExpir = vixExpirationRules(options)
+        if (properExpir):
 
-        selectedChain = {}
-        for term in ['nearTerm', 'nextTerm']:
-            # Selecting the proper calls and puts from option dictionary.
-            selectedChain[term] = {
-                'call': options['callExpDateMap'][properExpir[term]],
-                'put': options['putExpDateMap'][properExpir[term]],
-            }
+            selectedChain = {}
+            for term in ['nearTerm', 'nextTerm']:
+                # Selecting the proper calls and puts from option dictionary.
+                selectedChain[term] = {
+                    'call': options['callExpDateMap'][properExpir[term]],
+                    'put': options['putExpDateMap'][properExpir[term]],
+                }
 
-        # Date timezone manipulation; doing here because we'll need these later.
-        for term, side in selectedChain.items():
-            for k, data in side.items():       
-                t = data['dateInfo']['preciseExpiration']
-                dateT = datetime.datetime.fromtimestamp(float(t / 1000))  # Windows workaround
-                # The previous division by 1000 is simply a workaround for Windows. Windows doesn't seem to play nice
-                # with timestamps in miliseconds.
-                dateObj = timezone('US/Central').localize(dateT)  # Converting to timezone
-                dateStr = dateObj.strftime('%Y-%m-%d')
+            # Date timezone manipulation; doing here because we'll need these later.
+            for term, side in selectedChain.items():
+                for k, data in side.items():       
+                    t = data['dateInfo']['preciseExpiration']
+                    dateT = datetime.datetime.fromtimestamp(float(t / 1000))  # Windows workaround
+                    # The previous division by 1000 is simply a workaround for Windows. Windows doesn't seem to play nice
+                    # with timestamps in miliseconds.
+                    dateObj = timezone('US/Central').localize(dateT)  # Converting to timezone
+                    dateStr = dateObj.strftime('%Y-%m-%d')
 
-                selectedChain[term][k]['dateInfo']['dateTzObj'] = dateObj
-                selectedChain[term][k]['dateInfo']['dateStr'] = dateStr
-        
+                    selectedChain[term][k]['dateInfo']['dateTzObj'] = dateObj
+                    selectedChain[term][k]['dateInfo']['dateStr'] = dateStr
+            
 
-        return selectedChain
+            return selectedChain
+        return False
 
 
 def calculateForwardLevel(selectedChain):
@@ -335,10 +342,10 @@ def calculateVol(f, t, r, selectedChain):
             vixChain = []
             for side, strikes in ks.items():
                 for strike, data in strikes.items():
-                    if (side == 'call'):
+                    if ((side == 'call') and ('call' in bounds)):
                         if ((strike < k0) or (strike > bounds['call'])):
                             continue
-                    if (side == 'put'):
+                    if ((side == 'put') and ('put' in bounds)):
                         if ((strike > k0) or (strike < bounds['put'])):
                             continue
                     ki = {

@@ -5,24 +5,28 @@
 {% block content %}
 <div class="dashboard">
     <div class="py-10">
-        <div class="mx-auto sm:px-6 lg:max-w-7xl lg:px-8 lg:grid lg:grid-cols-12 lg:gap-8">
-            <main class="lg:col-span-9 xl:col-span-6">
-                <div>
-                    <h1 class="sr-only">Recent questions</h1>
-                    <ul class="space-y-4">
-                        <li class="bg-gray-200 px-4 py-6 shadow sm:p-6 sm:rounded-lg">
-                            <article aria-labelledby="question-title-81614">
-                                <div>
-                                    <div class="flex space-x-3">
-                                        
-                                    </div>
+        <h1 class="text-gray-100 mb-3">Recent News</h1>
+        <div class="w-full flex">
+            <main class="w-3/4 px-4">
+                <div class="item-news bg-dark-opacity rounded w-full h-full text-gray-100 overflow-y-scroll overflow-hidden" style="height: 80vh;">
+                    <div class="rounded alternating-row">
+                        {% for article in news %}
+                        <div class="row-item py-3 px-2">
+                            <a href="{{ article.url }}" rel="nofollow" target="_blank">
+                                <div class="flex justify-between">
+                                    <p class="source opacity-50 text-xs text-gold rounded p-1 italic"> {{ article.source }}</p>
+                                    <p class="date opacity-50 text-xs text-gold rounded p-1 italic">{{ article.pubDate }} </p>
                                 </div>
-                            </article>
-                        </li>
-                    </ul>
+                                <p class="headline text-gray-100 text-xs whitespace-no-wrap overflow-hidden px-1">
+                                    {{ article.headline }}
+                                </p>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </main>
-            <aside class="hidden xl:block xl:col-span-4">
+            <aside class="hidden xl:block w-1/4">
                 <div class="sticky top-4 space-y-4">
                     <section aria-labelledby="who-to-follow-heading">
                         <div class="bg-gray-200 rounded-lg shadow">

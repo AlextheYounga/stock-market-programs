@@ -6,3 +6,18 @@ body, h1, h2, h3, h4, h5, p, a, span {
 #chart {
   height: 80vh;
 }
+
+.sidebar-icon {
+  fill: #f2d024;
+  color: #f2d024;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  background-color: black;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dae1e7;
+  border-radius: 5px;
+}

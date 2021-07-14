@@ -1,13 +1,21 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
-from ..lab.vix.equation import vix_equation
 from django.template import RequestContext
+from app.lab.vix.vix import Vix
+from app.lab.news.newsfeed import NewsFeed
 
 # Create your views here.
 
 def dashboard(request):
-    context = {}    
+    nf = NewsFeed()
+    news = nf.latestNews()
+    stocks = nf.mentionedStocks()
+
+    context = {
+        'news': news,
+        'stocks': stocks
+        }    
     return render(request, 'dashboard.html', context)
 
 

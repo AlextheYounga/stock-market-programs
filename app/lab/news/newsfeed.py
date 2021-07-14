@@ -11,6 +11,9 @@ import time
 import sys
 import json
 import os
+import django
+from django.apps import apps
+django.setup()
 
 EXCHANGES = 'app/lab/news/data/exchanges.txt'
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
@@ -19,12 +22,27 @@ CURATED = 'app/lab/news/data/curated.txt'
 PAYWALLED = 'app/lab/news/data/paywalled.txt'
 
 class NewsFeed():
+    
+    def latestNews(self):
+        News = apps.get_model('database', 'News')
+        latest_news = News.objects.all().order_by('created_at')[:40]
+        
+
+        return latest_news
+    
+    def mentionedStocks(self):
+        StockNews = apps.get_model('database', 'StockNews')
+        recent_stocks = StockNews.objects.all().order_by('created_at')[:10]
+
+        return recent_stocks
+
 
     def feed(self):
         self.organicTop()
         self.searchDomains(CURATED)
         self.searchDomains(PAYWALLED, search_stocks=False)
         
+        return
 
     def organicTop(self):
         queries = ['Finance', 'Stocks', 'Business']
@@ -49,6 +67,10 @@ class NewsFeed():
             results = self.findStocks(results)
         self.save(results)
         return results
+
+    def apiSearch(self):
+        # TODO Figure api search
+        sys.exit()
 
     def collectLinks(self, url):
         scrape = Scraper()                              
@@ -89,17 +111,25 @@ class NewsFeed():
         return heap
     
     def findAuthor(self, soup):
+
+        def checkAuthor(author):
+            badCharacters = ['facebook', '.']
+            for bc in badCharacters:
+                if (bc in author):
+                    return None
+            return author
+
         for meta in soup.head.find_all('meta'):
             for prop in ['property', 'name']:
                 if ('author' in str(meta.attrs.get(prop))):
                     author = meta.attrs.get('content')
-                    return author
+                    return checkAuthor(author)
         for tag in soup.body.find_all(['span', 'div', 'a', 'p']):
             classes = tag.attrs.get('class')
             if (classes):  
                 for clas in list(classes):
                     if ('author' in clas):      
-                        return tag.text
+                        return checkAuthor(tag.text)
         return None
 
     
@@ -109,8 +139,11 @@ class NewsFeed():
                 if ('publish' in str(meta.attrs.get(prop))):
                     metaDate = meta.attrs.get('content')
                     if (is_date(metaDate)):
-                        pubDate = re.search(r'\d{4}-\d{2}-\d{2}([\s]\d{2}:\d{2}:\d{2})?', metaDate).group(0)
-                        return pubDate
+                        # pubDate = re.search(r'\d{4}-\d{2}-\d{2}([\s]\d{2}:\d{2}:\d{2})?', metaDate)
+                        if (metaDate):
+                            # return pubDate.group(0)
+                            return metaDate
+        return None
     
     def cleanExchangeTicker(self, exchange):
         if (exchange != ''):
@@ -191,16 +224,16 @@ class NewsFeed():
             exchange_tickers = []
             # Find all capital letter strings, ranging from 1 to 5 characters, with optional dollar
             # signs preceded and followed by space.
-            tickerlike = re.findall(r'[\S][$][A-Z]{1,5}[\S]*', str(h['soup']))
+            tickerlike = re.findall(r'[\S][$][A-Z]{1,5}[\S]*', str(h['soup'].text))
             for exchange in exchanges:
-                exchangelike = re.findall(
-                    r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h['soup']))
+                # exchangelike = re.findall(r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h['soup'].text))
+                exchangelike = re.findall('(?<='+exchange+'[?:])[A-Z]{1,7}', str(h['soup'].text))
                 if (len(exchangelike) > 0):
                     exchange_tickers = exchange_tickers + exchangelike
 
             del h['soup']  # Done with the soup.
             possible = tickerlike + exchange_tickers
-
+            
             # Cleaning up strings that look like stocks.
             for tick in possible:
                 if (type(tick) != list):
@@ -211,7 +244,7 @@ class NewsFeed():
                     # Collecting strings that look like stocks.
                     if ((cleaned) and (cleaned not in blacklist)):
                         plausible.append(cleaned)
-                        h['stocks'].append(cleaned)
+                        h['stocks'].append(list(dict.fromkeys(cleaned)))
 
         # Specifying what I want from API
         apiOnly = [
@@ -261,10 +294,6 @@ class NewsFeed():
         return heap
 
     def save(self, results):
-        import django
-        from django.apps import apps
-        django.setup()
-
         News = apps.get_model('database', 'News')
         Stock = apps.get_model('database', 'Stock')
         StockNews = apps.get_model('database', 'StockNews')
