@@ -1,4 +1,3 @@
-
 from app.lab.scrape.scraper import Scraper
 from app.lab.core.functions import readTxtFile, is_date
 import datetime
@@ -16,10 +15,13 @@ PAYWALLED = 'app/lab/news/data/paywalled.txt'
 URL = 'https://www.bing.com/news/'
 
 class BingNews():
-    def collectNewsCards(self, url):
+    def __init__(self, url=URL):
+        self.url = url
+
+    def collectNewsCards(self, searchq):
         scrape = Scraper()                              
-        response = scrape.search(url)        
-        print(stylize(f"Grabbing links {url}", colored.fg("yellow")))
+        response = scrape.search(searchq)        
+        print(stylize(f"Grabbing links {searchq}", colored.fg("yellow")))
         time.sleep(1)
         if (response.status_code == 200):
             soup = scrape.parseHTML(response)

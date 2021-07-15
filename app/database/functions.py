@@ -11,8 +11,6 @@ def uniqueField(model, table, field):
 
     return rows
 
-
-
 def dynamicUpdateCreate(data, find):
     """ 
     Parameters

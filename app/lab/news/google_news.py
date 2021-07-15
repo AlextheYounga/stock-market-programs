@@ -1,4 +1,3 @@
-
 from app.lab.scrape.scraper import Scraper
 from app.lab.core.functions import readTxtFile, is_date
 import datetime
@@ -16,10 +15,13 @@ PAYWALLED = 'app/lab/news/data/paywalled.txt'
 URL = 'https://news.google.com/'
 
 class GoogleNews():
-    def collectNewsCards(self, url):
+    def __init__(self, url=URL):
+        self.url = url
+
+    def collectNewsCards(self, searchq):
         scrape = Scraper()                              
-        response = scrape.search(url)        
-        print(stylize(f"Grabbing links {url}", colored.fg("yellow")))
+        response = scrape.search(searchq)        
+        print(stylize(f"Grabbing links {searchq}", colored.fg("yellow")))
         time.sleep(1)
         if (response.status_code == 200):
             soup = scrape.parseHTML(response)
@@ -31,46 +33,44 @@ class GoogleNews():
         heap = []
         scrape = Scraper()
         for card in card_soup:
-            link = card.find('a').attrs.get('href')
-            if (self.checkLink(link)):
+            link = self.checkLink(card.find('a').attrs.get('href'))
+            if (link):
                 headline = card.find('h3').text
-                source = self.findSource(card)
+                source = card.find_all('a')[2].text if (card.find_all('a')) else None
+                pubDate = self.findPubDate(card)
     
                 print(stylize(f"Searching {scrape.stripParams(link)}", colored.fg("yellow")))
                 page = scrape.search(link)
                 if (page and page.status_code == 200):
                     page_soup = scrape.parseHTML(page)
+                    #TODO: Find how to get redirect URL
+                    print(page)
+                    sys.exit()
                     result = {
-                        'url': scrape.stripParams(link),
+                        'url': page.url,
                         'headline': headline,
-                        'pubDate': self.findPubDate(card, page_soup),
+                        'pubDate': pubDate,
                         'source': source,
                         'author': self.findAuthor(page_soup),
                         'soup': page_soup
                     }
+                    print(result)
+                    sys.exit()
                     heap.append(result)
                     time.sleep(1)
         return heap
 
     
     def checkLink(self, link):
-        blacklist_pgs = readTxtFile(BLACKLISTPAGES)
-        for pg in blacklist_pgs:
-            if (pg in link):
-                return False
-        if (link[0] == '.'):
-            return f"{URL}{link.split('./')[1]}"
-
-    
-    def findSource(self, card):
-        print(card.find_all('div'))
-        sys.exit()
+        if (link):
+            if (link[0] == '.'):
+                return f"{self.url}{link.split('./')[1]}"
+        return False
      
 
     def findAuthor(self, soup):
-
+        
         def checkAuthor(author):
-            # print(f"Author: {author}")
             badCharacters = ['facebook', '.']
             for bc in badCharacters:
                 if (bc in author):
@@ -91,9 +91,8 @@ class GoogleNews():
         return None
 
     
-    def findPubDate(self, card=None):
+    def findPubDate(self, card):
         if (card):
-            for tag in card.find_all(['span', 'div', 'a', 'p']):
-                if (tag.attrs.get('datetime', False)):
-                    return tag.attrs.get('datetime', None)
-        return None
+            tag = card.find('time')
+            if (tag and tag.attrs.get('datetime', False)):
+                return tag.attrs.get('datetime', None)

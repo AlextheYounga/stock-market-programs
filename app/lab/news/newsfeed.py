@@ -1,5 +1,3 @@
-
-from app.lab.scrape.scraper import Scraper
 from app.lab.news.bing_news import BingNews
 from app.lab.news.google_news import GoogleNews
 from app.lab.core.api.batch import batchQuote
@@ -26,7 +24,14 @@ PAYWALLED = 'app/lab/news/data/paywalled.txt'
 class NewsFeed():
     def __init__(self, aggregator='bing'):
         self.aggregator = aggregator
-        
+        self.engine = self.callModule()
+
+    def callModule(self):
+        if (self.aggregator == 'bing'):
+            return BingNews()
+        if (self.aggregator == 'google'):
+            return GoogleNews()
+
     def latestNews(self):
         News = apps.get_model('database', 'News')
         latest_news = News.objects.filter(pubDate__isnull=False).order_by('pubDate')[:40]
@@ -42,8 +47,8 @@ class NewsFeed():
 
     def feed(self):
         self.organicTop()
-        self.searchDomains(CURATED)
-        self.searchDomains(PAYWALLED, search_stocks=False)
+        # self.searchDomains(CURATED)
+        # self.searchDomains(PAYWALLED, search_stocks=False)
         
         return
 
@@ -52,9 +57,9 @@ class NewsFeed():
 
         card_soup = []
         for query in queries:
-            url = f"{aggregator}search?q={query}"
-            card_soup = card_soup + self.collectNewsCards(url)
-        heap = self.scanLinks(card_soup)
+            searchq = f"{self.engine.url}search?q={query}"
+            card_soup = card_soup + self.engine.collectNewsCards(searchq)
+        heap = self.engine.scanLinks(card_soup)
         results = self.findStocks(heap)
         self.save(results)
         return results
@@ -64,9 +69,9 @@ class NewsFeed():
 
         card_soup = []
         for domain in domains:
-            url = f"{aggregator}search?q=site%3A{domain}"
-            card_soup = card_soup + self.collectNewsCards(url)
-        results = self.scanLinks(card_soup)
+            url = f"{self.engine.url}search?q=site%3A{domain}"
+            card_soup = card_soup + self.engine.collectNewsCards(url)
+        results = self.engine.scanLinks(card_soup)
         if (search_stocks):
             results = self.findStocks(results)
         self.save(results)
