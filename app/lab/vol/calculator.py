@@ -5,8 +5,8 @@ import matplotlib.dates as mdates
 from matplotlib import pylab
 import numpy as np
 from scipy import stats
-from ..core.api.historical import getHistoricalData
-from ..core.functions import chunks, extract_data
+from app.lab.core.api.historical import getHistoricalData
+from app.lab.core.functions import chunks, extract_data
 import math
 from .functions import *
 

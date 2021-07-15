@@ -4,8 +4,8 @@ import sys
 import math
 import colored
 from colored import stylize
-from ..core.scrape.bonds import scrape3mTreasury
-from ..fintwit.tweet import send_tweet
+from app.lab.core.scrape.bonds import scrape3mTreasury
+from app.lab.fintwit.tweet import send_tweet
 from .vix_functions import *
 
 class Vix:

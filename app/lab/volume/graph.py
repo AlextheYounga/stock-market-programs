@@ -5,9 +5,9 @@ import redis
 import time
 from datetime import date
 from ..redisdb.controller import rdb_save_stock
-from ..core.functions import extract_data
-from ..core.api.historical import getHistoricalData
-from ..core.output import printFullTable, writeCSV
+from app.lab.core.functions import extract_data
+from app.lab.core.api.historical import getHistoricalData
+from app.lab.core.output import printFullTable, writeCSV
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates

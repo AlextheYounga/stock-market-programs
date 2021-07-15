@@ -2,8 +2,8 @@ import statistics
 import json
 import sys
 from .functions import *
-from ...core.functions import extract_data
-from ...core.api.historical import getHistoricalData
+from app.lab.core.functions import extract_data
+from app.lab.core.api.historical import getHistoricalData
 import numpy as np
 from tabulate import tabulate
 

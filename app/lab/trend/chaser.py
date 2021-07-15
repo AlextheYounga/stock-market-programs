@@ -8,11 +8,11 @@ from datetime import date
 import time
 import redis
 from ..redisdb.controller import rdb_save_stock
-from ..core.functions import chunks, dataSanityCheck
-from ..core.api.stats import getPriceTarget
-from ..core.api.batch import quoteStatsBatchRequest
-from ..core.output import printTable, printFullTable, writeCSV
-from ..fintwit.tweet import send_tweet
+from app.lab.core.functions import chunks, dataSanityCheck
+from app.lab.core.api.stats import getPriceTarget
+from app.lab.core.api.batch import quoteStatsBatchRequest
+from app.lab.core.output import printTable, printFullTable, writeCSV
+from app.lab.fintwit.tweet import send_tweet
 load_dotenv()
 django.setup()
 

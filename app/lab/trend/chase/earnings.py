@@ -9,11 +9,11 @@ import progressbar
 from datetime import date
 from ..functions import *
 from ...redisdb.controller import rdb_save_stock
-from ...core.functions import chunks, dataSanityCheck
-from ...core.api.historical import getHistoricalEarnings
-from ...core.api.batch import quoteStatsBatchRequest
-from ...core.api.stats import getPriceTarget
-from ...core.output import printFullTable, writeCSV
+from app.lab.core.functions import chunks, dataSanityCheck
+from app.lab.core.api.historical import getHistoricalEarnings
+from app.lab.core.api.batch import quoteStatsBatchRequest
+from app.lab.core.api.stats import getPriceTarget
+from app.lab.core.output import printFullTable, writeCSV
 from ...fintwit.tweet import send_tweet
 load_dotenv()
 django.setup()

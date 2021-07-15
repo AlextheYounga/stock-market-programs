@@ -1,5 +1,5 @@
-from ..core.api.stats import getCashFlow, getFinancials, getKeyStats, getAdvancedStats, getCurrentPrice
-from ..core.functions import dataSanityCheck
+from app.lab.core.api.stats import getCashFlow, getFinancials, getKeyStats, getAdvancedStats, getCurrentPrice
+from app.lab.core.functions import dataSanityCheck
 from ..redisdb.controller import rdb_save_stock
 import colored
 from colored import stylize

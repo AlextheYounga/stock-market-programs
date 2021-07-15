@@ -2,9 +2,9 @@ import praw
 from praw.models import MoreComments
 import colored
 from colored import stylize
-from ..core.functions import frequencyInList, chunks
-from ..core.output import printFullTable
-from ..core.api.batch import batchQuote
+from app.lab.core.functions import frequencyInList, chunks
+from app.lab.core.output import printFullTable
+from app.lab.core.api.batch import batchQuote
 from .functions import *
 import time
 import datetime
@@ -13,7 +13,7 @@ import sys
 import json
 import os
 import pprint
-from ..fintwit.tweet import send_tweet, translate_data
+from app.lab.fintwit.tweet import send_tweet, translate_data
 from dotenv import load_dotenv
 load_dotenv()
 

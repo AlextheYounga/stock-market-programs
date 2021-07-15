@@ -8,10 +8,10 @@ import json
 import sys
 from datetime import date
 from ..redisdb.controller import update_prices
-from ..core.functions import chunks
-from ..core.api.gold import syncGoldPrices
-from ..core.api.batch import quoteStatsBatchRequest
-from ..core.output import printFullTable, writeCSV
+from app.lab.core.functions import chunks
+from app.lab.core.api.gold import syncGoldPrices
+from app.lab.core.api.batch import quoteStatsBatchRequest
+from app.lab.core.output import printFullTable, writeCSV
 load_dotenv()
 
 

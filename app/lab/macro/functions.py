@@ -3,7 +3,7 @@ from django.apps import apps
 import json
 import sys
 from dotenv import load_dotenv
-from ..fintwit.tweet import send_tweet
+from app.lab.fintwit.tweet import send_tweet
 load_dotenv()
 django.setup()
 

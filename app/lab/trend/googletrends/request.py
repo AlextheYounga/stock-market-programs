@@ -1,7 +1,7 @@
 from pytrends.request import TrendReq
 from datetime import datetime
 from ..functions import getPennyStocks
-from ...core.output import printStockResults
+from app.lab.core.output import printStockResults
 import colored
 from colored import stylize
 import time

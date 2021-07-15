@@ -10,11 +10,9 @@ from app.lab.news.newsfeed import NewsFeed
 def dashboard(request):
     nf = NewsFeed()
     news = nf.latestNews()
-    stocks = nf.mentionedStocks()
 
     context = {
         'news': news,
-        'stocks': stocks
         }    
     return render(request, 'dashboard.html', context)
 

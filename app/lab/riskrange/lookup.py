@@ -3,8 +3,8 @@ import math
 import json
 import sys
 from .methodology import rangeRules
-from ..core.output import printTable
-from ..fintwit.tweet import send_tweet
+from app.lab.core.output import printTable
+from app.lab.fintwit.tweet import send_tweet
 
 
 def rangeLookup(ticker, sendtweet=False):

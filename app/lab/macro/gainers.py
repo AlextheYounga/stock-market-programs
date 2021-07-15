@@ -1,9 +1,9 @@
 from dotenv import load_dotenv
 from .functions import getETFs
-from ..fintwit.tweet import send_tweet
-from ..core.functions import chunks
-from ..core.api.batch import quoteStatsBatchRequest
-from ..core.output import printFullTable
+from app.lab.fintwit.tweet import send_tweet
+from app.lab.core.functions import chunks
+from app.lab.core.api.batch import quoteStatsBatchRequest
+from app.lab.core.output import printFullTable
 from ..redisdb.controller import rdb_save_stock
 from ..redisdb.controller import rdb_save_output
 import progressbar

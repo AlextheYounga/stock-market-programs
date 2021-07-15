@@ -1,12 +1,12 @@
 import json
 import sys
-from ..core.functions import extract_data
+from app.lab.core.functions import extract_data
 from ..redisdb.controller import rdb_save_output
-from ..core.api.historical import getHistoricalData
-from ..core.api.stats import getCurrentPrice
+from app.lab.core.api.historical import getHistoricalData
+from app.lab.core.api.stats import getCurrentPrice
 from .export import exportDonchian
-from ..core.output import printTabs
-from ..fintwit.tweet import send_tweet, translate_data
+from app.lab.core.output import printTabs
+from app.lab.fintwit.tweet import send_tweet, translate_data
 
 
 def calculate(ticker, days=30, sendtweet=False):

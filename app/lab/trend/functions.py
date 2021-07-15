@@ -1,7 +1,7 @@
 import django
 from django.apps import apps
-from ..core.api.stats import getCurrentPrice
-from ..core.api.sync import syncPrices
+from app.lab.core.api.stats import getCurrentPrice
+from app.lab.core.api.sync import syncPrices
 import colored
 from colored import stylize
 import redis

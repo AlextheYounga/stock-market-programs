@@ -3,7 +3,7 @@ import os
 import sys
 import colored
 from colored import stylize
-from ..core.functions import prompt_yes_no
+from app.lab.core.functions import prompt_yes_no
 from dotenv import load_dotenv
 import twitter
 import texttable

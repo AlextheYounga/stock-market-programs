@@ -1,6 +1,6 @@
 from iexfinance.stocks import get_market_gainers
 from dotenv import load_dotenv
-from ..core.output import printTable
+from app.lab.core.output import printTable
 from ..database.functions import dynamicUpdateCreate
 import requests
 import json

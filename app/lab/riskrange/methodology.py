@@ -2,9 +2,9 @@ import statistics
 import sys
 import math
 import json
-from ..core.functions import extract_data, removeZeroes
-from ..core.api.historical import getHistoricalData
-from ..core.api.stats import getCurrentPrice
+from app.lab.core.functions import extract_data, removeZeroes
+from app.lab.core.api.historical import getHistoricalData
+from app.lab.core.api.stats import getCurrentPrice
 from datetime import datetime
 
 

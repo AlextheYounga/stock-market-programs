@@ -5,10 +5,10 @@ import progressbar
 import time
 from datetime import date
 from ..database.functions import dynamicUpdateCreate
-from ..core.functions import chunks, dataSanityCheck
-from ..core.api.historical import batchHistoricalData
-from ..core.output import printFullTable, writeCSV
-from ..fintwit.tweet import send_tweet
+from app.lab.core.functions import chunks, dataSanityCheck
+from app.lab.core.api.historical import batchHistoricalData
+from app.lab.core.output import printFullTable, writeCSV
+from app.lab.fintwit.tweet import send_tweet
 load_dotenv()
 django.setup()
 

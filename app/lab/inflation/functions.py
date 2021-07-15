@@ -2,7 +2,7 @@ import json
 import sys
 import redis
 from .methodology import sectors
-from ..core.output import printTabs
+from app.lab.core.output import printTabs
 from ..database.hp.update_prices import batch_refresh_prices
 
 

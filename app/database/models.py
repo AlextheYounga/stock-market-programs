@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.deletion import CASCADE, DO_NOTHING
 from jsonfield import JSONField
-from ..lab.core.functions import frequencyInList
+from app.lab.core.functions import frequencyInList
 
 
 # Create your models here.
