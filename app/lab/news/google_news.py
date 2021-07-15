@@ -7,6 +7,9 @@ from colored import stylize
 import time
 import sys
 import json
+import django
+from django.apps import apps
+
 
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
@@ -23,7 +26,7 @@ class GoogleNews():
         response = scrape.search(searchq)        
         print(stylize(f"Grabbing links {searchq}", colored.fg("yellow")))
         time.sleep(1)
-        if (response.status_code == 200):
+        if (response.ok):
             soup = scrape.parseHTML(response)
             card_soup = soup.find_all('article')
             print(stylize(f"{len(card_soup)} articles found.", colored.fg("yellow")))
@@ -33,20 +36,19 @@ class GoogleNews():
         heap = []
         scrape = Scraper()
         for card in card_soup:
-            link = self.checkLink(card.find('a').attrs.get('href'))
+            link = card.find('a').attrs.get('href', False)
             if (link):
                 headline = card.find('h3').text
                 source = card.find_all('a')[2].text if (card.find_all('a')) else None
-                pubDate = self.findPubDate(card)
-    
-                print(stylize(f"Searching {scrape.stripParams(link)}", colored.fg("yellow")))
-                page = scrape.search(link)
-                if (page and page.status_code == 200):
+                pubDate = self.findPubDate(card)                    
+                google_url = f"{self.url}{link.split('./')[1]}"
+                
+                page = scrape.search(google_url, useHeaders=False)
+                if (page and (page.ok) and (self.checkLink(page.url))):
+                    print(stylize(f"Searching {google_url}", colored.fg("yellow")))
                     page_soup = scrape.parseHTML(page)
-                    #TODO: Find how to get redirect URL
-                    print(page)
-                    sys.exit()
-                    result = {
+
+                    newsitem = {
                         'url': page.url,
                         'headline': headline,
                         'pubDate': pubDate,
@@ -54,18 +56,18 @@ class GoogleNews():
                         'author': self.findAuthor(page_soup),
                         'soup': page_soup
                     }
-                    print(result)
-                    sys.exit()
-                    heap.append(result)
+                    self.save(newsitem)
+                    heap.append(newsitem)
                     time.sleep(1)
         return heap
 
     
-    def checkLink(self, link):
-        if (link):
-            if (link[0] == '.'):
-                return f"{self.url}{link.split('./')[1]}"
-        return False
+    def checkLink(self, link):        
+        blacklist_pgs = readTxtFile(BLACKLISTPAGES)
+        for pg in blacklist_pgs:
+            if (pg in link):
+                return False
+        return True
      
 
     def findAuthor(self, soup):
@@ -96,3 +98,16 @@ class GoogleNews():
             tag = card.find('time')
             if (tag and tag.attrs.get('datetime', False)):
                 return tag.attrs.get('datetime', None)
+
+    def save(self, newsitem):
+        News = apps.get_model('database', 'News')
+        News.objects.update_or_create(
+            url=newsitem['url'],
+            defaults = {
+            'headline': newsitem.get('headline', None),
+            'author': newsitem.get('author', None),
+            'source': newsitem.get('source', None),
+            'description': newsitem.get('description', None),
+            'pubDate': newsitem.get('pubDate', None)}
+        )
+        print(stylize(f"Saved {(newsitem.get('source', False) or 'unsourced')} article", colored.fg("green")))

@@ -7,6 +7,8 @@ from colored import stylize
 import time
 import sys
 import json
+import django
+from django.apps import apps
 
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
@@ -23,7 +25,7 @@ class BingNews():
         response = scrape.search(searchq)        
         print(stylize(f"Grabbing links {searchq}", colored.fg("yellow")))
         time.sleep(1)
-        if (response.status_code == 200):
+        if (response.ok):
             soup = scrape.parseHTML(response)
             card_soup = soup.find_all('div', {'class': 'newsitem'})
             print(stylize(f"{len(card_soup)} articles found.", colored.fg("yellow")))
@@ -43,7 +45,7 @@ class BingNews():
     
                 print(stylize(f"Searching {scrape.stripParams(link)}", colored.fg("yellow")))
                 page = scrape.search(link)
-                if (page and page.status_code == 200):
+                if (page and page.ok):
                     page_soup = scrape.parseHTML(page)
                     result = {
                         'url': scrape.stripParams(link),
@@ -100,3 +102,15 @@ class BingNews():
         for pg in blacklist_pgs:
             if (pg in link):
                 return False
+
+    def save(self, newsitem):
+        News = apps.get_model('database', 'News')
+        News.objects.update_or_create(
+            url=newsitem['url'],
+            defaults = {
+            'headline': newsitem.get('headline', None),
+            'author': newsitem.get('author', None),
+            'source': newsitem.get('source', None),            
+            'pubDate': newsitem.get('pubDate', None)}
+        )
+        print(stylize(f"Saved {(newsitem.get('source', False) or 'unsourced')} article", colored.fg("green")))

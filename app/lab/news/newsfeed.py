@@ -47,8 +47,8 @@ class NewsFeed():
 
     def feed(self):
         self.organicTop()
-        # self.searchDomains(CURATED)
-        # self.searchDomains(PAYWALLED, search_stocks=False)
+        self.searchDomains(CURATED)
+        self.searchDomains(PAYWALLED, search_stocks=False)
         
         return
 
@@ -222,23 +222,15 @@ class NewsFeed():
 
         self.updateBlacklist(blacklist)
         return heap
-
+        
+                
     def save(self, results):
         News = apps.get_model('database', 'News')
         Stock = apps.get_model('database', 'Stock')
         StockNews = apps.get_model('database', 'StockNews')
 
         for r in results:
-            article = News.objects.update_or_create(
-                url=r['url'],
-                defaults = {
-                'headline': r.get('headline', None),
-                'author': r.get('author', None),
-                'source': r.get('source', None),
-                'description': r.get('description', None),
-                'pubDate': r.get('pubDate', None)}
-            )
-            print(stylize(f"Saved {r.get('source', '[Unsourced]')} article", colored.fg("green")))
+            article = News.objects.filter(url=r['url'])
             if (r.get('stockinfo', False)):
                 for ticker, info in r['stockinfo'].items():
                     stock = Stock.objects.update_or_create(

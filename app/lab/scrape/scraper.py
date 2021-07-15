@@ -11,7 +11,7 @@ import sys
 class Scraper():
     def __init__(self):
         self.timeout = 5
-        self.storage = 'app/lab/scrape/storage'
+        self.storage = 'app/lab/scrape/storage'        
         self.headers = {
             'authority': 'www.bing.com',
             'dnt': '1',
@@ -25,15 +25,22 @@ class Scraper():
             'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
         }
 
-    def search(self, url):
+    def search(self, url, useHeaders=True):
+        params = {
+            'timeout': self.timeout,
+            'allow_redirects': True,
+        }
+        if (useHeaders):
+            params['headers'] = self.headers
+
         try:
-            response = requests.get(url, headers=self.headers, timeout=self.timeout)
+            response = requests.get(url, **params)
         except:
             print(stylize("Unexpected error:", colored.fg("red")))
             print(stylize(sys.exc_info()[0], colored.fg("red")))
             return False
 
-        if (response.status_code == 200):
+        if (response.ok):
             time.sleep(2.3)
             return response
         return response.status_code
