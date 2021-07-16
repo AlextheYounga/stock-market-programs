@@ -20,10 +20,10 @@ class BingNews():
     def __init__(self, url=URL):
         self.url = url
 
-    def collectNewsCards(self, searchq):
+    def collectNewsCards(self, search_query):
         scrape = Scraper()                              
-        response = scrape.search(searchq)        
-        print(stylize(f"Grabbing links {searchq}", colored.fg("yellow")))
+        response = scrape.search(search_query)        
+        print(stylize(f"Grabbing links {search_query}", colored.fg("yellow")))
         time.sleep(1)
         if (response.ok):
             soup = scrape.parseHTML(response)

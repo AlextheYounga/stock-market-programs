@@ -1,7 +1,6 @@
 from app.lab.scrape.scraper import Scraper
-from app.lab.core.functions import readTxtFile, is_date
-import datetime
-from dateutil.parser import parse
+from app.lab.core.functions import readTxtFile
+import requests
 import colored
 from colored import stylize
 import time
@@ -21,14 +20,14 @@ class GoogleNews():
     def __init__(self, url=URL):
         self.url = url
 
-    def collectNewsCards(self, searchq):
+    def collectNewsCards(self, search_query, limit):
         scrape = Scraper()                              
-        response = scrape.search(searchq)        
-        print(stylize(f"Grabbing links {searchq}", colored.fg("yellow")))
+        response = scrape.search(search_query)        
+        print(stylize(f"Grabbing links {search_query}", colored.fg("yellow")))
         time.sleep(1)
         if (response.ok):
             soup = scrape.parseHTML(response)
-            card_soup = soup.find_all('article')
+            card_soup = soup.find_all('article')[:limit]
             print(stylize(f"{len(card_soup)} articles found.", colored.fg("yellow")))
             return card_soup
 
@@ -37,15 +36,16 @@ class GoogleNews():
         scrape = Scraper()
         for card in card_soup:
             link = card.find('a').attrs.get('href', False)
-            if (link):
-                headline = card.find('h3').text
+            headline = self.findHeadline(card)
+            if (link and headline):
                 source = card.find_all('a')[2].text if (card.find_all('a')) else None
                 pubDate = self.findPubDate(card)                    
                 google_url = f"{self.url}{link.split('./')[1]}"
                 
+                print(stylize(f"Searching {google_url}", colored.fg("yellow")))
                 page = scrape.search(google_url, useHeaders=False)
-                if (page and (page.ok) and (self.checkLink(page.url))):
-                    print(stylize(f"Searching {google_url}", colored.fg("yellow")))
+                if (page and (isinstance(page, requests.models.Response)) and (page.ok) and (self.checkLink(page.url))):
+                    
                     page_soup = scrape.parseHTML(page)
 
                     newsitem = {
@@ -62,13 +62,24 @@ class GoogleNews():
         return heap
 
     
-    def checkLink(self, link):        
+    def checkLink(self, link):   
+        curated = readTxtFile(CURATED)     
         blacklist_pgs = readTxtFile(BLACKLISTPAGES)
         for pg in blacklist_pgs:
             if (pg in link):
                 return False
-        return True
+        for cur in curated:
+            if (cur in link):                
+                return True
+        return False
      
+    def findHeadline(self, card):
+        if (card.find('h3')):
+            return card.find('h3').text
+        if (card.find('h4')):
+            return card.find('h4').text
+        return False
+
 
     def findAuthor(self, soup):
         

@@ -34,7 +34,7 @@ class NewsFeed():
 
     def latestNews(self):
         News = apps.get_model('database', 'News')
-        latest_news = News.objects.filter(pubDate__isnull=False).order_by('pubDate')[:40]
+        latest_news = News.objects.filter(pubDate__isnull=False).order_by('-pubDate')[:40]
 
         return latest_news
     
@@ -44,6 +44,20 @@ class NewsFeed():
 
         return recent_stocks
 
+    def curated(self, limit=20):
+        self.searchDomains(CURATED, limit=limit)
+
+    def paywalled(self):
+        self.searchDomains(PAYWALLED, search_stocks=False)
+    
+    def trending(self, limit=20):
+        card_soup = []
+        search_query = f"{self.engine.url}"
+        card_soup = card_soup + self.engine.collectNewsCards(search_query, limit=limit)
+        heap = self.engine.scanLinks(card_soup)
+        results = self.findStocks(heap)
+        self.save(results)
+        return results
 
     def feed(self):
         self.organicTop()
@@ -52,25 +66,25 @@ class NewsFeed():
         
         return
 
-    def organicTop(self):
-        queries = ['Finance']
+    def organicTop(self, limit=20):
+        queries = ['Finance', 'Stocks', 'Business']
 
         card_soup = []
         for query in queries:
-            searchq = f"{self.engine.url}search?q={query}"
-            card_soup = card_soup + self.engine.collectNewsCards(searchq)
+            search_query = f"{self.engine.url}search?q={query}"
+            card_soup = card_soup + self.engine.collectNewsCards(search_query, limit=limit)
         heap = self.engine.scanLinks(card_soup)
         results = self.findStocks(heap)
         self.save(results)
         return results
 
-    def searchDomains(self, lst_path, search_stocks=True):
+    def searchDomains(self, lst_path, limit=20, search_stocks=True):
         domains = readTxtFile(lst_path)
 
         card_soup = []
         for domain in domains:
             url = f"{self.engine.url}search?q=site%3A{domain}"
-            card_soup = card_soup + self.engine.collectNewsCards(url)
+            card_soup = card_soup + self.engine.collectNewsCards(url, limit=limit)
         results = self.engine.scanLinks(card_soup)
         if (search_stocks):
             results = self.findStocks(results)

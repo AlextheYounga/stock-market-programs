@@ -46,6 +46,7 @@ class Vix(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         verbose_name_plural = "vix"
+# TODO: Add type field to news to separate where it came from.
 class News(models.Model):
     id = models.AutoField(primary_key=True)
     url = models.TextField(unique=True)
