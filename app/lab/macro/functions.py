@@ -3,7 +3,7 @@ from django.apps import apps
 import json
 import sys
 from dotenv import load_dotenv
-from app.lab.fintwit.tweet import send_tweet
+from app.lab.fintwit.fintwit import Fintwit
 load_dotenv()
 django.setup()
 
@@ -77,16 +77,18 @@ def queryNameEtfs(string):
 
 
 def top_performing_ytd_etf_tweet():
+    twit = Fintwit()
     tweet = ""
     for etf in getTopPerformingETFsYTD(5):
         txt = "${} +{}%\n".format(etf.ticker, round(etf.ytdChangePercent, 2))
         tweet = tweet + txt
-    send_tweet(tweet, True)
+    twit.send_tweet(tweet, True)
 
 
 def month_movers_etf_tweet():
+    twit = Fintwit()
     tweet = ""
     for etf in getMonthMovers(5):
         txt = "${} - {} +{}%\n".format(etf.ticker, etf.name, round(etf.month1ChangePercent, 2))
         tweet = tweet + txt
-    send_tweet(tweet, True)
+    twit.send_tweet(tweet, True)

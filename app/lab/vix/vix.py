@@ -5,7 +5,7 @@ import math
 import colored
 from colored import stylize
 from app.lab.core.scrape.bonds import scrape3mTreasury
-from app.lab.fintwit.tweet import send_tweet
+from app.lab.fintwit.fintwit import Fintwit
 from .vix_functions import *
 
 class Vix:
@@ -142,10 +142,11 @@ class Vix:
             return round(vix, 3)
 
 
-    def tweet(self, vix, ticker):        
+    def tweet(self, vix, ticker):     
+        twit = Fintwit()   
         headline = "${} VIX: ".format(ticker)
         tweet = headline + str(round(vix, 3))
-        send_tweet(tweet)
+        twit.send_tweet(tweet)
         
     def save(self, vix, ticker):
         import django

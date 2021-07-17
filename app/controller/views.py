@@ -4,12 +4,14 @@ from django.template import loader
 from django.template import RequestContext
 from app.lab.vix.vix import Vix
 from app.lab.news.newsfeed import NewsFeed
-
+from app.database.models import News
 # Create your views here.
 
 def dashboard(request):
-    nf = NewsFeed()
-    news = nf.latestNews()
+    # nf = NewsFeed()
+    # news = nf.latestNews()
+    n = News()
+    news = n.latestNews()
 
     context = {
         'news': news,

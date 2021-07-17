@@ -12,7 +12,7 @@ from django.apps import apps
 
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
-CURATED = 'app/lab/news/data/curated.txt'
+CURATED = 'app/lab/news/data/curated_domains.txt'
 PAYWALLED = 'app/lab/news/data/paywalled.txt'
 URL = 'https://www.bing.com/news/'
 
@@ -20,14 +20,14 @@ class BingNews():
     def __init__(self, url=URL):
         self.url = url
 
-    def collectNewsCards(self, search_query):
+    def collectNewsCards(self, search_query, limit):
         scrape = Scraper()                              
         response = scrape.search(search_query)        
         print(stylize(f"Grabbing links {search_query}", colored.fg("yellow")))
         time.sleep(1)
         if (response.ok):
             soup = scrape.parseHTML(response)
-            card_soup = soup.find_all('div', {'class': 'newsitem'})
+            card_soup = soup.find_all('div', {'class': 'newsitem'})[:limit] if (limit) else soup.find_all('div', {'class': 'newsitem'})
             print(stylize(f"{len(card_soup)} articles found.", colored.fg("yellow")))
             return card_soup
 
@@ -47,7 +47,7 @@ class BingNews():
                 page = scrape.search(link)
                 if (page and page.ok):
                     page_soup = scrape.parseHTML(page)
-                    result = {
+                    newsitem = {
                         'url': scrape.stripParams(link),
                         'headline': headline,
                         'description': description,
@@ -56,7 +56,8 @@ class BingNews():
                         'author': self.findAuthor(page_soup),
                         'soup': page_soup
                     }
-                    heap.append(result)
+                    self.save(newsitem)
+                    heap.append(newsitem)
                     time.sleep(1)
         return heap
     

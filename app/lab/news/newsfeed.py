@@ -32,25 +32,13 @@ class NewsFeed():
         if (self.aggregator == 'google'):
             return GoogleNews()
 
-    def latestNews(self):
-        News = apps.get_model('database', 'News')
-        latest_news = News.objects.filter(pubDate__isnull=False).order_by('-pubDate')[:40]
-
-        return latest_news
-    
-    def mentionedStocks(self):
-        StockNews = apps.get_model('database', 'StockNews')
-        recent_stocks = StockNews.objects.all().order_by('created_at')[:10]
-
-        return recent_stocks
-
-    def curated(self, limit=20):
+    def curated(self, limit=None):
         self.searchDomains(CURATED, limit=limit)
 
     def paywalled(self):
         self.searchDomains(PAYWALLED, search_stocks=False)
     
-    def trending(self, limit=20):
+    def trending(self, limit=None):
         card_soup = []
         search_query = f"{self.engine.url}"
         card_soup = card_soup + self.engine.collectNewsCards(search_query, limit=limit)
@@ -60,13 +48,13 @@ class NewsFeed():
         return results
 
     def feed(self):
+        self.trending()
         self.organicTop()
         self.searchDomains(CURATED)
-        self.searchDomains(PAYWALLED, search_stocks=False)
         
         return
 
-    def organicTop(self, limit=20):
+    def organicTop(self, limit=None):
         queries = ['Finance', 'Stocks', 'Business']
 
         card_soup = []
@@ -78,7 +66,7 @@ class NewsFeed():
         self.save(results)
         return results
 
-    def searchDomains(self, lst_path, limit=20, search_stocks=True):
+    def searchDomains(self, lst_path, limit=None, search_stocks=True):
         domains = readTxtFile(lst_path)
 
         card_soup = []
@@ -241,7 +229,6 @@ class NewsFeed():
     def save(self, results):
         News = apps.get_model('database', 'News')
         Stock = apps.get_model('database', 'Stock')
-        StockNews = apps.get_model('database', 'StockNews')
 
         for r in results:
             article = News.objects.filter(url=r['url'])
@@ -258,7 +245,7 @@ class NewsFeed():
                         }
                     )
 
-                    StockNews.objects.update_or_create(
+                    News.stocknews_set.update_or_create(
                         article=article[0],
                         defaults = {
                             'stock': stock[0],

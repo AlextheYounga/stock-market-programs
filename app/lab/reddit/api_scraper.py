@@ -13,7 +13,7 @@ import sys
 import json
 import os
 import pprint
-from app.lab.fintwit.tweet import send_tweet, translate_data
+from app.lab.fintwit.fintwit import Fintwit
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -164,12 +164,13 @@ def scrapeWSB(sendtweet=False):
     sorted_results = sorted(results, key=lambda i: i['frequency'], reverse=True)
 
     if (sendtweet):
+        twit = Fintwit()
         tweetdata = {}
         for r in sorted_results[:10]:
             tweetdata['$' + r['ticker']] = r['frequency']
 
         headline = "Top mentioned stocks on r/wallstreetbets and times mentioned:\n"
-        tweet = headline + translate_data(tweetdata)
-        send_tweet(tweet)
+        tweet = headline + twit.translate_data(tweetdata)
+        twit.send_tweet(tweet)
 
     return results

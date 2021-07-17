@@ -12,7 +12,7 @@ from django.apps import apps
 
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
-CURATED = 'app/lab/news/data/curated.txt'
+CURATED = 'app/lab/news/data/curated_sources.txt'
 PAYWALLED = 'app/lab/news/data/paywalled.txt'
 URL = 'https://news.google.com/'
 
@@ -27,7 +27,7 @@ class GoogleNews():
         time.sleep(1)
         if (response.ok):
             soup = scrape.parseHTML(response)
-            card_soup = soup.find_all('article')[:limit]
+            card_soup = soup.find_all('article')[:limit] if (limit) else soup.find_all('article')
             print(stylize(f"{len(card_soup)} articles found.", colored.fg("yellow")))
             return card_soup
 

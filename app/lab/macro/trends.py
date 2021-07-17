@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import json
 import sys
 from datetime import date
-from app.lab.fintwit.tweet import send_tweet
+from app.lab.fintwit.fintwit import Fintwit
 from .functions import getETFs
 from app.lab.core.functions import chunks
 from app.lab.core.api.batch import quoteStatsBatchRequest
@@ -93,9 +93,9 @@ def calculate_trends(timeframe='1m', gain=20):
 
     if results:
         printFullTable(results, struct='dictlist')
-
+        twit = Fintwit()
         tweet = ""
         for etf in results:
             txt = "${} +{}%\n".format(etf['ticker'], round(etf['changeToday'], 2))
             tweet = tweet + txt
-        send_tweet(tweet, True)
+        twit.send_tweet(tweet, True)

@@ -46,7 +46,7 @@ class Vix(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         verbose_name_plural = "vix"
-# TODO: Add type field to news to separate where it came from.
+
 class News(models.Model):
     id = models.AutoField(primary_key=True)
     url = models.TextField(unique=True)
@@ -60,6 +60,11 @@ class News(models.Model):
     class Meta:
         verbose_name_plural = "news"
 
+    def latestNews(self):
+        latest_news = News.objects.filter(pubDate__isnull=False).all().order_by('-pubDate')[:40]
+        return latest_news
+
+
 
 class StockNews(models.Model):
     id = models.AutoField(primary_key=True)
@@ -72,13 +77,11 @@ class StockNews(models.Model):
     class Meta:
         verbose_name_plural = "stocknews"
     
-    @property
-    def frequency(ticker):
+    def frequency(self, ticker):
         stocks = StockNews.objects.all().values_list('ticker')
         return frequencyInList(stocks, ticker)
 
-    @property
-    def top_mentioned():
+    def top_mentioned(self):
         top = {}
         stocks = StockNews.objects.all().values_list('ticker')
         for stock in stocks:

@@ -7,12 +7,11 @@ import progressbar
 from datetime import date
 import time
 import redis
-from ..redisdb.controller import rdb_save_stock
 from app.lab.core.functions import chunks, dataSanityCheck
 from app.lab.core.api.stats import getPriceTarget
 from app.lab.core.api.batch import quoteStatsBatchRequest
 from app.lab.core.output import printTable, printFullTable, writeCSV
-from app.lab.fintwit.tweet import send_tweet
+from app.lab.fintwit.fintwit import Fintwit
 load_dotenv()
 django.setup()
 
@@ -79,7 +78,6 @@ def chase_trends(pennies=False):
 
                         if (rdb == True):
                             try:
-                                rdb_save_stock(ticker, keyStats)
                                 stocksaved += 1
                             except redis.exceptions.ConnectionError:
                                 rdb = False
@@ -103,9 +101,6 @@ def chase_trends(pennies=False):
                                             'highPriceTarget': highPriceTarget,
                                             'fromPriceTarget': fromPriceTarget,
                                         }
-
-                                        if (rdb == True):
-                                            rdb_save_stock(ticker, trend_data)
 
                                         keyStats.update({
                                             'highPriceTarget': highPriceTarget,
@@ -147,6 +142,7 @@ def chase_trends(pennies=False):
         printFullTable(results, struct='dictlist')
 
         # Tweet
+        twit = Fintwit()
         tweet = ""
         for i, data in enumerate(results):
             ticker = '${}'.format(data['ticker'])
@@ -154,4 +150,4 @@ def chase_trends(pennies=False):
             tweet_data = "{} +{}% \n".format(ticker, changeToday)
             tweet = tweet + tweet_data
 
-        send_tweet(tweet, True)
+        twit.send_tweet(tweet, True)

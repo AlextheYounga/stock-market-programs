@@ -1,11 +1,9 @@
 from dotenv import load_dotenv
 from .functions import getETFs
-from app.lab.fintwit.tweet import send_tweet
+from app.lab.fintwit.fintwit import Fintwit
 from app.lab.core.functions import chunks
 from app.lab.core.api.batch import quoteStatsBatchRequest
 from app.lab.core.output import printFullTable
-from ..redisdb.controller import rdb_save_stock
-from ..redisdb.controller import rdb_save_output
 import progressbar
 import json
 import time
@@ -78,7 +76,6 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
                             }
                             
                             try:
-                                rdb_save_stock(ticker, keyStats)
                                 saved = (saved + 1)
                             except:
                                 failed = (failed + 1)
@@ -96,11 +93,10 @@ if results:
     print('Saved: '+str(saved))
     print('Did not Save: '+str(failed))
     today = date.today().strftime('%m-%d')
-    rdb_save_output(results)
     printFullTable(results, struct='dictlist')
-
+    twit = Fintwit()
     tweet = ""
     for etf in results:
         txt = "${} +{}%\n".format(etf['ticker'], round(etf['changeToday'], 2))
         tweet = tweet + txt
-    send_tweet(tweet, True)
+    twit.send_tweet(tweet, True)

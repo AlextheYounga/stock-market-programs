@@ -114,287 +114,287 @@ def parse_args(args, required=[], opt=[]):
     return params
 
 
-def donchian_controller(args):
-    required = {'ticker': {'pos': 0, 'type': str}}
-    opt = {
-        'days': {'type': int, 'default': 30},
-        '--tweet': {'type': bool, 'default': False}
-    }
+# def donchian_controller(args):
+#     required = {'ticker': {'pos': 0, 'type': str}}
+#     opt = {
+#         'days': {'type': int, 'default': 30},
+#         '--tweet': {'type': bool, 'default': False}
+#     }
 
-    if (not args):
-        command_error(required, opt)
-        return
+#     if (not args):
+#         command_error(required, opt)
+#         return
 
-    params = parse_args(args, required, opt)
+#     params = parse_args(args, required, opt)
 
-    from app.lab.donchian.range import calculate
-    print(calculate(
-        params['ticker'],
-        days=params['days'] if 'days' in params else opt['days']['default'],
-        sendtweet=True if ('tweet' in params) else opt['--tweet']['default']
-    ))
+#     from app.lab.donchian.range import calculate
+#     print(calculate(
+#         params['ticker'],
+#         days=params['days'] if 'days' in params else opt['days']['default'],
+#         sendtweet=True if ('tweet' in params) else opt['--tweet']['default']
+#     ))
 
 
-def inflation_controller(subroutine, args=[]):
-    if (subroutine == 'graph'):
-        opt = {'--update': {'type': bool, 'default': False}}
-        params = parse_args(args, opt=opt)
+# def inflation_controller(subroutine, args=[]):
+#     if (subroutine == 'graph'):
+#         opt = {'--update': {'type': bool, 'default': False}}
+#         params = parse_args(args, opt=opt)
 
-        from app.lab.inflation.measure import graph
-        print(graph(
-            update=params['update'] if ('update' in params) else opt['--update']['default']
-        ))
-        return
-
-    if (subroutine == 'calculate'):
-        opt = {'--update': {'type': bool, 'default': False}}
-        params = parse_args(args, opt=opt)
+#         from app.lab.inflation.measure import graph
+#         print(graph(
+#             update=params['update'] if ('update' in params) else opt['--update']['default']
+#         ))
+#         return
+
+#     if (subroutine == 'calculate'):
+#         opt = {'--update': {'type': bool, 'default': False}}
+#         params = parse_args(args, opt=opt)
 
-        from app.lab.inflation.measure import annual
-
-        print(annual(
-            update=params['update'] if ('update' in params) else opt['--update']['default']
-        ))
-        return
+#         from app.lab.inflation.measure import annual
+
+#         print(annual(
+#             update=params['update'] if ('update' in params) else opt['--update']['default']
+#         ))
+#         return
 
-    command_error()
+#     command_error()
 
 
-def financials_controller(args):
-    required = {'string': 'ticker'}
+# def financials_controller(args):
+#     required = {'string': 'ticker'}
 
-    if (not args):
-        command_error(required)
-        return
+#     if (not args):
+#         command_error(required)
+#         return
 
-    ticker = args[0]
-    from app.lab.financials.lookup import lookupFinancials
-    print(lookupFinancials(ticker))
+#     ticker = args[0]
+#     from app.lab.financials.lookup import lookupFinancials
+#     print(lookupFinancials(ticker))
 
 
-def macro_controller(subroutine, args=[]):
-    if (subroutine == 'trends'):
-        opt = {
-            'timeframe': {'type': str, 'default': '1m'},
-            'gain': {'type': int, 'default': 20}
-        }
-        params = parse_args(args, opt=opt)
-        from app.lab.macro.trends import calculate_trends
+# def macro_controller(subroutine, args=[]):
+#     if (subroutine == 'trends'):
+#         opt = {
+#             'timeframe': {'type': str, 'default': '1m'},
+#             'gain': {'type': int, 'default': 20}
+#         }
+#         params = parse_args(args, opt=opt)
+#         from app.lab.macro.trends import calculate_trends
 
-        print(calculate_trends(
-            timeframe=params['timeframe'] if ('timeframe' in params) else opt['timeframe']['default'],
-            gain=params['gain'] if ('gain' in params) else opt['gain']['default'],
-        ))
-        return
+#         print(calculate_trends(
+#             timeframe=params['timeframe'] if ('timeframe' in params) else opt['timeframe']['default'],
+#             gain=params['gain'] if ('gain' in params) else opt['gain']['default'],
+#         ))
+#         return
 
-    if (subroutine == 'gainers'):
-        import app.lab.macro.gainers
-        return
+#     if (subroutine == 'gainers'):
+#         import app.lab.macro.gainers
+#         return
 
-    command_error()
+#     command_error()
 
 
-def news_controller(subroutine, args=[]):
-    if (subroutine == 'feed'):
-        from app.lab.news.newsfeed import NewsFeed
-        nf = NewsFeed()
-        print(nf.feed())
+# def news_controller(subroutine, args=[]):
+#     if (subroutine == 'feed'):
+#         from app.lab.news.newsfeed import NewsFeed
+#         nf = NewsFeed()
+#         print(nf.feed())
 
-    command_error()
+#     command_error()
 
 
-def pricedingold_controller(args):
-    from app.lab.pricedingold.compare import price_in_gold
-    required = {'ticker': {'pos': 0, 'type': str}}
-    opt = {
-        'timeframe': {'type': str, 'default': '5y'},
-        'sandbox': {'type': bool, 'default': False}
-    }
+# def pricedingold_controller(args):
+#     from app.lab.pricedingold.compare import price_in_gold
+#     required = {'ticker': {'pos': 0, 'type': str}}
+#     opt = {
+#         'timeframe': {'type': str, 'default': '5y'},
+#         'sandbox': {'type': bool, 'default': False}
+#     }
 
-    if (not args):
-        command_error(required, opt)
-        return
+#     if (not args):
+#         command_error(required, opt)
+#         return
 
-    params = parse_args(args, required, opt)
+#     params = parse_args(args, required, opt)
 
-    print(price_in_gold(
-        ticker=params['ticker'],
-        timeframe=params['timeframe'] if ('timeframe' in params) else opt['timeframe']['default'],
-        sandbox=params['sandbox'] if ('sandbox' in params) else opt['sandbox']['default'],
-    ))
+#     print(price_in_gold(
+#         ticker=params['ticker'],
+#         timeframe=params['timeframe'] if ('timeframe' in params) else opt['timeframe']['default'],
+#         sandbox=params['sandbox'] if ('sandbox' in params) else opt['sandbox']['default'],
+#     ))
 
 
-def hurst_controller(args):
-    required = {'ticker': {'pos': 0, 'type': str}}
-    opt = {
-        'timeframe': {'type': str, 'default': '1y'},
-        'output': {'type': str, 'default': 'table'},
-        '--tweet': {'type': bool, 'default': False}
-    }
+# def hurst_controller(args):
+#     required = {'ticker': {'pos': 0, 'type': str}}
+#     opt = {
+#         'timeframe': {'type': str, 'default': '1y'},
+#         'output': {'type': str, 'default': 'table'},
+#         '--tweet': {'type': bool, 'default': False}
+#     }
 
-    if (not args):
-        command_error(required, opt)
-        return
+#     if (not args):
+#         command_error(required, opt)
+#         return
 
-    from app.lab.hurst.fractal_calculator import fractal_calculator
-    params = parse_args(args, required, opt)
+#     from app.lab.hurst.fractal_calculator import fractal_calculator
+#     params = parse_args(args, required, opt)
 
-    print(fractal_calculator(
-        ticker=params['ticker'],
-        output=params['output'] if ('output' in params) else opt['output']['default'],
-        timeframe=params['timeframe'] if ('timeframe' in params) else opt['timeframe']['default'],
-        sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
-    ))
+#     print(fractal_calculator(
+#         ticker=params['ticker'],
+#         output=params['output'] if ('output' in params) else opt['output']['default'],
+#         timeframe=params['timeframe'] if ('timeframe' in params) else opt['timeframe']['default'],
+#         sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
+#     ))
 
 
-def rdb_controller(subroutine, args=[]):
-    if (subroutine == 'export'):
-        from app.lab.redisdb.export import export_rdb
-        export_rdb()
-    if (subroutine == 'import'):
-        from app.lab.redisdb.imports import import_rdb
-        import_rdb()
+# def rdb_controller(subroutine, args=[]):
+#     if (subroutine == 'export'):
+#         from app.lab.redisdb.export import export_rdb
+#         export_rdb()
+#     if (subroutine == 'import'):
+#         from app.lab.redisdb.imports import import_rdb
+#         import_rdb()
 
 
-def range_controller(args):
+# def range_controller(args):
 
-    required = {'ticker': {'pos': 0, 'type': str}}
-    opt = {'--tweet': {'type': bool, 'default': False}}
+#     required = {'ticker': {'pos': 0, 'type': str}}
+#     opt = {'--tweet': {'type': bool, 'default': False}}
 
-    if (not args):
-        command_error(required, opt)
-        return
+#     if (not args):
+#         command_error(required, opt)
+#         return
 
-    from app.lab.riskrange.lookup import rangeLookup
+#     from app.lab.riskrange.lookup import rangeLookup
 
-    params = parse_args(args, required, opt)
+#     params = parse_args(args, required, opt)
 
-    print(rangeLookup(
-        ticker=params['ticker'],
-        sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
-    ))
+#     print(rangeLookup(
+#         ticker=params['ticker'],
+#         sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
+#     ))
 
 
-def reddit_controller(subroutine, args):
-    if (subroutine == 'scrape'):
-        opt = {'--tweet': {'type': bool, 'default': False}}
+# def reddit_controller(subroutine, args):
+#     if (subroutine == 'scrape'):
+#         opt = {'--tweet': {'type': bool, 'default': False}}
 
-        from app.lab.reddit.api_scraper import scrapeWSB
+#         from app.lab.reddit.api_scraper import scrapeWSB
 
-        params = parse_args(args, required=[], opt=opt)
+#         params = parse_args(args, required=[], opt=opt)
 
-        print(scrapeWSB(
-            sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
-        ))
+#         print(scrapeWSB(
+#             sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
+#         ))
 
 
-def trend_controller(subroutine, args):
+# def trend_controller(subroutine, args):
 
-    if (subroutine == 'streak'):
-        required = {'ticker': {'pos': 0, 'type': str}}
-        if (not args):
-            command_error(required)
-            return
+#     if (subroutine == 'streak'):
+#         required = {'ticker': {'pos': 0, 'type': str}}
+#         if (not args):
+#             command_error(required)
+#             return
 
-        from app.lab.trend.streak.count import count_streak
-        print(count_streak(args[0]))
-        return
+#         from app.lab.trend.streak.count import count_streak
+#         print(count_streak(args[0]))
+#         return
 
-    if (subroutine == 'search'):
-        required = {'query': {'pos': 0, 'type': str}}
+#     if (subroutine == 'search'):
+#         required = {'query': {'pos': 0, 'type': str}}
 
-        if (not args):
-            command_error(required)
-            return
+#         if (not args):
+#             command_error(required)
+#             return
 
-        from app.lab.trend.chase.search import search
-        params = parse_args(args, required)
+#         from app.lab.trend.chase.search import search
+#         params = parse_args(args, required)
 
-        print(search(params['query']))
-        return
+#         print(search(params['query']))
+#         return
 
-    if (subroutine == 'chase'):
-        from app.lab.trend.chaser import chase_trends
-        opt = {'pennies': {'type': bool, 'default': False}}
-        params = parse_args(args, opt=opt)
-        print(chase_trends(
-            pennies=params['pennies'] if ('pennies' in params) else opt['pennies']['default']
-        ))
-        return
+#     if (subroutine == 'chase'):
+#         from app.lab.trend.chaser import chase_trends
+#         opt = {'pennies': {'type': bool, 'default': False}}
+#         params = parse_args(args, opt=opt)
+#         print(chase_trends(
+#             pennies=params['pennies'] if ('pennies' in params) else opt['pennies']['default']
+#         ))
+#         return
 
-    if (subroutine == 'earnings'):
-        import app.lab.trend.chase.earnings
-        return
+#     if (subroutine == 'earnings'):
+#         import app.lab.trend.chase.earnings
+#         return
 
-    if (subroutine == 'gainers'):
-        import app.lab.trend.gainers
-        return
-    if (subroutine == 'google'):
-        from app.lab.trend.googletrends.request import stock_search_trends
-        print(stock_search_trends())
-        return
+#     if (subroutine == 'gainers'):
+#         import app.lab.trend.gainers
+#         return
+#     if (subroutine == 'google'):
+#         from app.lab.trend.googletrends.request import stock_search_trends
+#         print(stock_search_trends())
+#         return
 
-    command_error()
+#     command_error()
 
 
-def vol_controller(subroutine, args):
-    required = {'ticker': {'pos': 0, 'type': str}}
-    opt = {'ndays': {'type': int, 'default': 30}}
+# def vol_controller(subroutine, args):
+#     required = {'ticker': {'pos': 0, 'type': str}}
+#     opt = {'ndays': {'type': int, 'default': 30}}
 
-    if (not args):
-        command_error(required, opt)
-        return
+#     if (not args):
+#         command_error(required, opt)
+#         return
 
-    if (subroutine == 'graph'):
-        from app.lab.vol.calculator import graphVol
+#     if (subroutine == 'graph'):
+#         from app.lab.vol.calculator import graphVol
 
-        params = parse_args(args, required, opt=opt)
+#         params = parse_args(args, required, opt=opt)
 
-        print(graphVol(
-            params['ticker'],
-            ndays=params['ndays'] if ('ndays' in params) else opt['ndays']['default']
-        ))
+#         print(graphVol(
+#             params['ticker'],
+#             ndays=params['ndays'] if ('ndays' in params) else opt['ndays']['default']
+#         ))
 
 
-def volume_controller(subroutine, args):
-    if (subroutine == 'graph'):
-        required = {'ticker': {'pos': 0, 'type': str}}
+# def volume_controller(subroutine, args):
+#     if (subroutine == 'graph'):
+#         required = {'ticker': {'pos': 0, 'type': str}}
 
-        if (not args):
-            command_error(required)
-            return
+#         if (not args):
+#             command_error(required)
+#             return
 
-        from app.lab.volume.graph import graph_volume
-        print(graph_volume(args[0]))
+#         from app.lab.volume.graph import graph_volume
+#         print(graph_volume(args[0]))
 
-    if (subroutine == 'chase'):
-        import app.lab.volume.chase
+#     if (subroutine == 'chase'):
+#         import app.lab.volume.chase
 
-    if (subroutine == 'anomaly'):
-        import app.lab.volume.anomaly
+#     if (subroutine == 'anomaly'):
+#         import app.lab.volume.anomaly
 
 
-def vix_controller(args):
-    required = {'ticker': {'pos': 0, 'type': str}}
-    opt = {
-        '--debug': {'type': bool, 'default': False},
-        '--dummy-data': {'type': bool, 'default': False},
-        '--tweet': {'type': bool, 'default': False},
-    }
+# def vix_controller(args):
+#     required = {'ticker': {'pos': 0, 'type': str}}
+#     opt = {
+#         '--debug': {'type': bool, 'default': False},
+#         '--dummy-data': {'type': bool, 'default': False},
+#         '--tweet': {'type': bool, 'default': False},
+#     }
 
-    if (not args):
-        command_error(required, opt)
-        return
+#     if (not args):
+#         command_error(required, opt)
+#         return
 
-    from app.lab.vix.vix import vix_equation
+#     from app.lab.vix.vix import vix_equation
 
-    params = parse_args(args, required, opt)
+#     params = parse_args(args, required, opt)
 
-    print(vix_equation(
-        params['ticker'],
-        sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
-        debug=params['debug'] if ('debug' in params) else opt['--debug']['default']
-    ))
+#     print(vix_equation(
+#         params['ticker'],
+#         sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
+#         debug=params['debug'] if ('debug' in params) else opt['--debug']['default']
+#     ))
 
 
 def main():
