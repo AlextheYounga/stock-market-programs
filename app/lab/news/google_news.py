@@ -11,7 +11,6 @@ from django.apps import apps
 
 
 CURATED_SRCS = 'app/lab/news/data/curated_sources.txt'
-PAYWALLED = 'app/lab/news/data/paywalled.txt'
 URL = 'https://news.google.com/'
 r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
 
@@ -28,6 +27,7 @@ class GoogleNews():
         soup = scrape.parseHTML(response)
         # Grab news cards
         cards = soup.find_all('article')[:limit] if (limit) else soup.find_all('article')
+        print(stylize(f"{len(cards)} articles found.", colored.fg("yellow")))
         # Scan cards
         for card in cards:
             link = card.find('a').attrs.get('href', False)
@@ -112,5 +112,5 @@ class GoogleNews():
         )
         # Caching the soup
         r.set('news-soup-'+str(article[0].id), str(newsitem['soup']), 86400)
-        print(stylize(f"Saved {(newsitem.get('source', False) or 'unsourced')} article", colored.fg("green")))
+        print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
         return article[0]
