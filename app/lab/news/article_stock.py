@@ -138,27 +138,26 @@ class ArticleStock():
             articlestocks = cached_stocks.split(',') if cached_stocks else False
             if (articlestocks):
                 for ticker in articlestocks:
-                    stockinfo = apiResults[ticker]                    
-                    stock = self.stock.objects.update_or_create(
-                        ticker=ticker,
-                        defaults={
-                            'name': stockinfo.get('companyName', None),
-                            'lastPrice': stockinfo.get('latestPrice', None),
-                            'changePercent': stockinfo.get('changePercent', None),
-                            'ytdChange': stockinfo.get('ytdChange', None),
-                            'volume': stockinfo.get('volume', None),
-                        }
-                    )
-
-                    self.stocknews.objects.update_or_create(
-                        article=article,
-                        defaults = {
-                            'stock': stock[0],
-                            'ticker': stockinfo['symbol'],
-                            'companyName': stockinfo.get('companyName', None),
-                        }
-                    )
-                    print(stylize(f"Saved {stockinfo['symbol']} from article.", colored.fg("green")))
+                    if (ticker in apiResults.keys()):
+                        stockinfo = apiResults[ticker]                                   
+                        stock, created = self.stock.objects.update_or_create(
+                            ticker=ticker,
+                            defaults={
+                                'name': stockinfo.get('companyName', None),
+                                'lastPrice': stockinfo.get('latestPrice', None),
+                                'changePercent': stockinfo.get('changePercent', None),
+                                'ytdChange': stockinfo.get('ytdChange', None),
+                                'volume': stockinfo.get('volume', None),
+                            }
+                        )
+                        newsstock, created = article.stocknews_set.update_or_create(
+                            article=article, stock=stock,
+                            defaults={
+                                'ticker': stockinfo['symbol'],
+                                'companyName': stockinfo.get('companyName', None),
+                            }
+                        )
+                        print(stylize(f"Saved {stockinfo['symbol']} from article.", colored.fg("green")))
 
     
     def blacklistWords(self):

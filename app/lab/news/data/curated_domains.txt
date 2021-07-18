@@ -9,3 +9,4 @@ seekingalpha.com
 wsj.com
 nytimes.com
 businessinsider.com
+fool.com

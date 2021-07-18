@@ -2,6 +2,7 @@ from app.lab.scrape.scraper import Scraper
 from app.lab.core.functions import readTxtFile, is_date
 import colored
 from colored import stylize
+import dateutil.parser as parser
 import redis
 import sys
 import json
@@ -79,6 +80,7 @@ class BingNews():
 
     
     def findPubDate(self, page):
+        # TODO: Figure out how to get date from Bing searches. This doesn't work.
         if (page):
             for meta in page.head.find_all('meta'):
                 for prop in ['property', 'name']:
@@ -99,7 +101,7 @@ class BingNews():
 
     def save(self, newsitem):        
         News = apps.get_model('database', 'News')
-        article = News.objects.update_or_create(
+        article, created = News.objects.update_or_create(
             url=newsitem['url'],
             defaults = {
             'headline': newsitem.get('headline', None),
@@ -109,6 +111,6 @@ class BingNews():
             'pubDate': newsitem.get('pubDate', None)}
         )
         # Caching the soup
-        r.set('news-soup-'+str(article[0].id), str(newsitem['soup']), 86400)
+        r.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400)
         print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
-        return article[0]
+        return article

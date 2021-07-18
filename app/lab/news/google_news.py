@@ -1,9 +1,11 @@
 from app.lab.scrape.scraper import Scraper
-from app.lab.core.functions import readTxtFile
+from app.lab.core.functions import readTxtFile, is_date
 import requests
 import redis
 import colored
 from colored import stylize
+from datetime import datetime
+import dateutil.parser as parser
 import time
 import sys
 import json
@@ -17,6 +19,7 @@ r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_respo
 class GoogleNews():
     def __init__(self, url=URL):
         self.url = url
+        self.news = apps.get_model('database', 'News')
 
     def scrapeNews(self, search_query, limit):
         scrape = Scraper()        
@@ -33,32 +36,47 @@ class GoogleNews():
             link = card.find('a').attrs.get('href', False)
             source = card.find_all('a')[2].text if (card.find_all('a')) else None
             #Check if newsitem is from a source we like
-            if (link and self.checkSource(source)):
+            if (link and self.checkLinkCache(link) and self.checkSource(source)):                
                 headline = self.findHeadline(card)
-                pubDate = self.findPubDate(card)                    
-                google_url = f"{self.url}{link.split('./')[1]}"
-                
-                print(stylize(f"Searching {google_url}", colored.fg("yellow")))
-                page = scrape.search(google_url, useHeaders=False)
-                if (page and (isinstance(page, requests.models.Response)) and (page.ok)):                    
-                    page_soup = scrape.parseHTML(page)
-                    newsitem = {
-                        'url': page.url, # Get redirect link, not Google's fake link
-                        'headline': headline,
-                        'pubDate': pubDate,
-                        'source': source,
-                        'author': self.findAuthor(page_soup),
-                        'soup': page_soup
-                    }
-                    article = self.save(newsitem)
-                    articles.append(article)
+                pubDate = self.findPubDate(card)                          
+                if (pubDate): # Do not capture articles more than a day old.       
+                    self.cacheLink(link) # Cache this link, we don't need to be here again.   
+                    google_url = f"{self.url}{link.split('./')[1]}"
+                    
+                    print(stylize(f"Searching {google_url}", colored.fg("yellow")))
+                    page = scrape.search(google_url, useHeaders=False)
+                    if (page and (isinstance(page, requests.models.Response)) and (page.ok)):       
+                        if (self.news.objects.filter(url=link).exists() == False):                                 
+                            page_soup = scrape.parseHTML(page)
+                            newsitem = {
+                                'url': page.url, # Get redirect link, not Google's fake link
+                                'headline': headline,
+                                'pubDate': pubDate,
+                                'source': source,
+                                'author': self.findAuthor(page_soup),
+                                'soup': page_soup
+                            }
+                            article = self.save(newsitem)
+                            articles.append(article)
 
         return articles
 
+    def checkLinkCache(self, link):
+        key = Scraper().stripParams(link).split('articles/')[1]
+        checkCache = r.get('googlenews-'+key)
+        if (checkCache and checkCache == link):
+            return False #We've been here before.
+        return True
+
+    def cacheLink(self, link):        
+        key = Scraper().stripParams(link).split('articles/')[1]
+        r.set('googlenews-'+key, link, 86400)
+        
+
     def checkSource(self, source):
         curated_srcs = readTxtFile(CURATED_SRCS)     
-        for src in curated_srcs:
-            if ((src in source) or (src == source)):                
+        for src in curated_srcs:            
+            if (src in source):
                 return True
         return False
      
@@ -94,14 +112,22 @@ class GoogleNews():
 
     
     def findPubDate(self, card):
+        now = datetime.now()
         if (card):
             tag = card.find('time')
             if (tag and tag.attrs.get('datetime', False)):
-                return tag.attrs.get('datetime', None)
+                pubDate = tag.attrs.get('datetime', None)
+                if(is_date(pubDate)):
+                    if (('T' in pubDate) or ('Z' in pubDate)):                        
+                        pubDateObj = parser.parse(pubDate).replace(tzinfo=None)
+                    else:
+                        pubDateObj = parser.parse(pubDate)
+                    if ((now - pubDateObj).days == 0):
+                        return pubDate                
+        return False
 
     def save(self, newsitem):        
-        News = apps.get_model('database', 'News')
-        article = News.objects.update_or_create(
+        article, created = self.news.objects.update_or_create(
             url=newsitem['url'],
             defaults = {
             'headline': newsitem.get('headline', None),
@@ -111,6 +137,6 @@ class GoogleNews():
             'pubDate': newsitem.get('pubDate', None)}
         )
         # Caching the soup
-        r.set('news-soup-'+str(article[0].id), str(newsitem['soup']), 86400)
+        r.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400)
         print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
-        return article[0]
+        return article
