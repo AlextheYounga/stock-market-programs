@@ -1,8 +1,7 @@
 from app.lab.news.bing_news import BingNews
 from app.lab.news.google_news import GoogleNews
-from app.lab.core.api.batch import batchQuote
-from app.lab.core.functions import chunks, readTxtFile, is_date
-import redis
+from app.lab.news.article_stock import ArticleStock
+from app.lab.core.functions import readTxtFile
 import re
 import colored
 from colored import stylize
@@ -10,16 +9,12 @@ import time
 import sys
 import json
 import os
-import django
-from django.apps import apps
-django.setup()
 
 EXCHANGES = 'app/lab/news/data/exchanges.txt'
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
 PAYWALLED = 'app/lab/news/data/paywalled.txt'
-r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
 
 class NewsFeed():
     def __init__(self, aggregator='bing'):
@@ -31,20 +26,7 @@ class NewsFeed():
             return BingNews()
         if (self.aggregator == 'google'):
             return GoogleNews()
-
-    def curated(self, limit=None):
-        self.searchDomains(CURATED, limit=limit)
-
-    def paywalled(self):
-        self.searchDomains(PAYWALLED, search_stocks=False)
     
-    def trending(self, limit=None):
-        search_query = f"{self.engine.url}"
-        articles = self.engine.scrapeNews(search_query, limit=limit)
-        results = self.findStocks(heap)
-        self.save(results)
-        return articles
-
     def feed(self):
         self.trending()
         self.organicTop()
@@ -52,30 +34,32 @@ class NewsFeed():
         
         return
 
+    def curated(self, limit=None):
+        self.searchDomains(CURATED, limit=limit)
+    
+
+    def trending(self, limit=None):
+        search_query = f"{self.engine.url}"
+        articles = self.engine.scrapeNews(search_query, limit=limit)
+        ArticleStock(articles).find()
+        return
+
+
     def organicTop(self, limit=None):
         queries = ['Finance', 'Stocks', 'Business']
-
-        card_soup = []
         for query in queries:
             search_query = f"{self.engine.url}search?q={query}"
-            card_soup = card_soup + self.engine.collectNewsCards(search_query, limit=limit)
-        heap = self.engine.scanLinks(card_soup)
-        results = self.findStocks(heap)
-        self.save(results)
-        return results
+            articles = self.engine.scrapeNews(search_query, limit=limit)
+            ArticleStock(articles).find()
+
 
     def searchDomains(self, lst_path, limit=None, search_stocks=True):
         domains = readTxtFile(lst_path)
-
-        card_soup = []
         for domain in domains:
             url = f"{self.engine.url}search?q=site%3A{domain}"
-            card_soup = card_soup + self.engine.collectNewsCards(url, limit=limit)
-        results = self.engine.scanLinks(card_soup)
-        if (search_stocks):
-            results = self.findStocks(results)
-        self.save(results)
-        return results
+            articles = self.engine.scrapeNews(url, limit=limit)
+            ArticleStock(articles).find()
+
 
     def apiSearch(self):
         # TODO Figure api search
@@ -87,29 +71,6 @@ class NewsFeed():
                 ticker = exchange.split(':')[1]
                 return ticker.strip()
             return False
-
-
-    def blacklistWords(self):
-        txtfile = open(BLACKLISTWORDS, "r")
-
-        blacklist = []
-        for line in txtfile:
-            stripped_line = line.strip()
-            line_list = stripped_line.split()
-            blacklist.append(str(line_list[0]))
-
-        txtfile.close()
-
-        return list(dict.fromkeys(blacklist))
-
-
-    def updateBlacklist(self, lst):
-        txtfile = BLACKLISTWORDS
-        os.remove(txtfile)
-        with open(txtfile, 'w') as f:
-            for item in lst:
-                f.write("%s\n" % item)
-
 
     def removeBadCharacters(self, word):
         if (isinstance(word, list)):
@@ -125,134 +86,4 @@ class NewsFeed():
             return False
 
         return word
-    
-    def findStocks(self, articles):
-        """
-        This function takes a list of text blobs and scans all words for potential stocks based on a regex formula. 
-        The function will cross-reference every potential stock with IEX to determine whether or not it is an actual stock.
-        Strings that do not pass the test will be sent to the blacklist to prevent future lookups.
 
-        Parameters
-        ----------
-        heap     : list
-                list of text blobs taken from reddit
-
-        Returns
-        -------
-        dict
-            list of results confirmed to be stocks
-        """
-        # Specifying what I want from API
-        apiOnly = [
-            'symbol',
-            'companyName',
-            'latestPrice',
-            'changePercent',
-            'ytdChange',
-            'volume'
-        ]
-        blacklist = self.blacklistWords()
-        exchanges = readTxtFile(EXCHANGES)
-        # A temporary vehicle to store strings that are likely tickers.
-        plausible = []
-
-        for article in articles:
-            # Finding all strings that look like stocks.
-            article_stocks = []
-            exchange_tickers = []
-            soup = r.get('news-soup-'+article.id)
-            # Find all capital letter strings, ranging from 1 to 5 characters, with optional dollar
-            # signs preceded and followed by space.
-            tickerlike = re.findall(r'[\S][$][A-Z]{1,5}[\S]*', str(soup.text))
-            for exchange in exchanges:
-                # exchangelike = re.findall(r''+exchange+'(?:\S+\s+)[A-Z]{1,5}', str(h['soup'].text))
-                exchangelike = re.findall('(?<='+exchange+'[?:])[A-Z]{1,7}', str(soup.text))
-                if (len(exchangelike) > 0):
-                    exchange_tickers = exchange_tickers + exchangelike
-
-            possible = tickerlike + exchange_tickers
-            
-            # Cleaning up strings that look like stocks.
-            for tick in possible:
-                if (type(tick) != list):
-                    if (':' in tick):
-                        tick = self.cleanExchangeTicker(tick)
-                    cleaned = self.removeBadCharacters(tick)
-
-                    # Collecting strings that look like stocks.
-                    if ((cleaned) and (cleaned not in blacklist)):
-                        plausible.append(cleaned)
-                        article_stocks.append(cleaned)
-                        
-            r.set('stocknews-plausible-'+article.id, article_stocks, 600)
-
-        apiResults = {}
-        unique_plausible = list(dict.fromkeys(plausible))
-        chunked_plausible = chunks(unique_plausible, 100)
-
-        print(stylize("{} possibilities".format(len(unique_plausible)), colored.fg("yellow")))
-
-        for i, chunk in enumerate(chunked_plausible):
-            print(stylize("Sending heap to API", colored.fg("yellow")))
-            batch = batchQuote(chunk)
-            time.sleep(1)
-
-            for ticker, stockinfo in batch.items():
-                if (stockinfo.get('quote', False)):
-                    print(stylize("{} stock found".format(ticker), colored.fg("green")))
-
-                    filteredinfo = {
-                        key: stockinfo['quote'][key] for key in apiOnly
-                    }
-                    apiResults[ticker] = filteredinfo
-
-        # TODO: Figure out elegant solution to this.
-        # Updating blacklist
-        for un in unique_plausible:
-            if (un not in apiResults.keys()):
-                blacklist.append(un)
-
-        # Updating main heap, removing bad tickers
-        # for h in heap:
-        #     h['stockinfo'] = {}
-        #     if (h['stocks']):
-        #         for stock in h['stocks']:
-        #             print(stock)
-        #             print(apiResults.keys())
-        #             if (stock not in apiResults.keys()):
-        #                 h['stocks'].remove(stock)
-        #                 continue
-        #             h['stockinfo'][stock] = apiResults[stock]
-
-        self.updateBlacklist(blacklist)
-        return heap
-        
-                
-    def save(self, results):
-        News = apps.get_model('database', 'News')
-        Stock = apps.get_model('database', 'Stock')
-
-        for r in results:
-            article = News.objects.filter(url=r['url'])
-            if (r.get('stockinfo', False)):
-                for ticker, info in r['stockinfo'].items():
-                    stock = Stock.objects.update_or_create(
-                        ticker=ticker,
-                        defaults={
-                            'name': info.get('companyName', None),
-                            'lastPrice': info.get('latestPrice', None),
-                            'changePercent': info.get('changePercent', None),
-                            'ytdChange': info.get('ytdChange', None),
-                            'volume': info.get('volume', None),
-                        }
-                    )
-
-                    News.stocknews_set.update_or_create(
-                        article=article[0],
-                        defaults = {
-                            'stock': stock[0],
-                            'ticker': ticker,
-                            'companyName': info.get('companyName', None),
-                        }
-                    )
-                    print(stylize(f"Saved {ticker} from article.", colored.fg("green")))

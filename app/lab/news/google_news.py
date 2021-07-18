@@ -111,6 +111,6 @@ class GoogleNews():
             'pubDate': newsitem.get('pubDate', None)}
         )
         # Caching the soup
-        r.set('news-soup-'+article[0].id, str(newsitem['soup']))
+        r.set('news-soup-'+str(article[0].id), str(newsitem['soup']), 1200)
         print(stylize(f"Saved {(newsitem.get('source', False) or 'unsourced')} article", colored.fg("green")))
         return article[0]

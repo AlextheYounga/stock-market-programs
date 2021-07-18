@@ -1,10 +1,7 @@
 from app.lab.scrape.scraper import Scraper
 from app.lab.core.functions import readTxtFile, is_date
-import datetime
-from dateutil.parser import parse
 import colored
 from colored import stylize
-import time
 import sys
 import json
 import django
