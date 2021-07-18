@@ -65,25 +65,7 @@ class NewsFeed():
         # TODO Figure api search
         sys.exit()
     
-    def cleanExchangeTicker(self, exchange):
-        if (exchange != ''):
-            if (':' in exchange):
-                ticker = exchange.split(':')[1]
-                return ticker.strip()
-            return False
 
-    def removeBadCharacters(self, word):
-        if (isinstance(word, list)):
-            word = str(word[0])
 
-        regex = re.compile('[^A-Z]')
-        word = regex.sub('', word)
 
-        if (len(word) > 7):
-            return False
-
-        if any(c for c in word if c.islower()):
-            return False
-
-        return word
 

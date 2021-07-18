@@ -75,8 +75,9 @@ class ArticleStock():
                         # Collecting strings that look like stocks.
                         if ((cleaned) and (cleaned not in blacklist)):
                             plausible.append(cleaned)
-                            article_stocks.append(cleaned)                            
-                r.set('stocknews-plausible-'+str(article.id), article_stocks, 600)
+                            article_stocks.append(cleaned)  
+                list_string = ','.join(article_stocks)                        
+                r.set('stocknews-plausible-'+str(article.id), list_string, 600)
 
         return plausible
 
@@ -133,29 +134,31 @@ class ArticleStock():
                 
     def save(self, apiResults):
         for article in self.articles: 
-            articlestocks = r.get('stocknews-plausible-'+str(article.id))
-            for ticker in articlestocks:
-                stockinfo = apiResults[ticker]                    
-                stock = self.stock.objects.update_or_create(
-                    ticker=ticker,
-                    defaults={
-                        'name': stockinfo.get('companyName', None),
-                        'lastPrice': stockinfo.get('latestPrice', None),
-                        'changePercent': stockinfo.get('changePercent', None),
-                        'ytdChange': stockinfo.get('ytdChange', None),
-                        'volume': stockinfo.get('volume', None),
-                    }
-                )
+            cached_stocks = r.get('stocknews-plausible-'+str(article.id))
+            articlestocks = cached_stocks.split(',') if cached_stocks else False
+            if (articlestocks):
+                for ticker in articlestocks:
+                    stockinfo = apiResults[ticker]                    
+                    stock = self.stock.objects.update_or_create(
+                        ticker=ticker,
+                        defaults={
+                            'name': stockinfo.get('companyName', None),
+                            'lastPrice': stockinfo.get('latestPrice', None),
+                            'changePercent': stockinfo.get('changePercent', None),
+                            'ytdChange': stockinfo.get('ytdChange', None),
+                            'volume': stockinfo.get('volume', None),
+                        }
+                    )
 
-                article.stocknews_set.update(
-                    article=article,
-                    defaults = {
-                        'stock': stock[0],
-                        'ticker': stockinfo['symbol'],
-                        'companyName': stockinfo.get('companyName', None),
-                    }
-                )
-                print(stylize(f"Saved {stockinfo['symbol']} from article.", colored.fg("green")))
+                    self.stocknews.objects.update_or_create(
+                        article=article,
+                        defaults = {
+                            'stock': stock[0],
+                            'ticker': stockinfo['symbol'],
+                            'companyName': stockinfo.get('companyName', None),
+                        }
+                    )
+                    print(stylize(f"Saved {stockinfo['symbol']} from article.", colored.fg("green")))
 
     
     def blacklistWords(self):
@@ -178,3 +181,25 @@ class ArticleStock():
         with open(txtfile, 'w') as f:
             for item in lst:
                 f.write("%s\n" % item)
+
+    def removeBadCharacters(self, word):
+        if (isinstance(word, list)):
+            word = str(word[0])
+
+        regex = re.compile('[^A-Z]')
+        word = regex.sub('', word)
+
+        if (len(word) > 7):
+            return False
+
+        if any(c for c in word if c.islower()):
+            return False
+
+        return word
+
+    def cleanExchangeTicker(self, exchange):
+        if (exchange != ''):
+            if (':' in exchange):
+                ticker = exchange.split(':')[1]
+                return ticker.strip()
+            return False
