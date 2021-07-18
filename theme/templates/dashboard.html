@@ -15,13 +15,15 @@
                   <span class="headline text-gray-100 text-sm whitespace-no-wrap overflow-hidden px-1">
                     {{ article.headline }}
                   </span>
-                  {% if article.stocknews_set %}
+                  {% if article.stocknews %}
                     <span class="stocknews text-xs text-gold rounded p-1 italic">
                     Stocks mentioned: 
                     </span>
-                    {% comment %} <span class="headline text-gray-100 text-sm whitespace-no-wrap overflow-hidden px-1">
-                        {{ article.headline }}
-                    </span> {% endcomment %}
+                    {% for stock in article.stocknews %}
+                        <span class="stock text-xs text-gold rounded p-1 italic">
+                        {{ stock }} 
+                        </span>
+                    {% endfor %}
                   {% endif %}
                   <div class="flex justify-between">
                     <p class="source text-xs text-gold rounded p-1 italic">

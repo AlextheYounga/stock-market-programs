@@ -1,7 +1,8 @@
 from django.db import models
-from django.db.models.deletion import CASCADE, DO_NOTHING
+from django.db.models.deletion import CASCADE
 from jsonfield import JSONField
 from app.lab.core.functions import frequencyInList
+from django.forms.models import model_to_dict
 
 
 # Create your models here.
@@ -61,7 +62,12 @@ class News(models.Model):
         verbose_name_plural = "news"
 
     def latestNews(self):
-        latest_news = News.objects.filter(pubDate__isnull=False).all().order_by('-pubDate')[:40]
+        latest_news = []
+        model_set = News.objects.filter(pubDate__isnull=False).all().order_by('-pubDate')[:40]
+        for m in model_set:
+            dct = model_to_dict(m)
+            dct['stocknews'] = m.stocknews_set.all() or []
+            latest_news.append(dct)
         return latest_news
 
 

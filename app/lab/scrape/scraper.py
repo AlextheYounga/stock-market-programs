@@ -24,6 +24,7 @@ class Scraper():
             'sec-fetch-dest': 'document',
             'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
         }
+        
 
     def search(self, url, useHeaders=True):
         params = {
@@ -33,6 +34,8 @@ class Scraper():
         if (useHeaders):
             params['headers'] = self.headers
 
+        time.sleep(2.3) # Slow is smooth and smooth is fast.
+
         try:
             response = requests.get(url, **params)
         except:
@@ -40,8 +43,7 @@ class Scraper():
             print(stylize(sys.exc_info()[0], colored.fg("red")))
             return False
 
-        if (response.ok):
-            time.sleep(2.3)
+        if (response.ok):            
             return response
         return response.status_code
 

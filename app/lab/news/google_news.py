@@ -1,75 +1,64 @@
 from app.lab.scrape.scraper import Scraper
 from app.lab.core.functions import readTxtFile
 import requests
+import redis
 import colored
 from colored import stylize
 import time
 import sys
 import json
-import django
 from django.apps import apps
 
 
-BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
-BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
-CURATED = 'app/lab/news/data/curated_sources.txt'
+CURATED_SRCS = 'app/lab/news/data/curated_sources.txt'
 PAYWALLED = 'app/lab/news/data/paywalled.txt'
 URL = 'https://news.google.com/'
+r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
 
 class GoogleNews():
     def __init__(self, url=URL):
         self.url = url
 
-    def collectNewsCards(self, search_query, limit):
-        scrape = Scraper()                              
-        response = scrape.search(search_query)        
+    def scrapeNews(self, search_query, limit):
+        scrape = Scraper()        
+        articles = []            
+        # Google News search 
+        response = scrape.search(search_query) 
         print(stylize(f"Grabbing links {search_query}", colored.fg("yellow")))
-        time.sleep(1)
-        if (response.ok):
-            soup = scrape.parseHTML(response)
-            card_soup = soup.find_all('article')[:limit] if (limit) else soup.find_all('article')
-            print(stylize(f"{len(card_soup)} articles found.", colored.fg("yellow")))
-            return card_soup
-
-    def scanLinks(self, card_soup):
-        heap = []
-        scrape = Scraper()
-        for card in card_soup:
+        soup = scrape.parseHTML(response)
+        # Grab news cards
+        cards = soup.find_all('article')[:limit] if (limit) else soup.find_all('article')
+        # Scan cards
+        for card in cards:
             link = card.find('a').attrs.get('href', False)
-            headline = self.findHeadline(card)
-            if (link and headline):
-                source = card.find_all('a')[2].text if (card.find_all('a')) else None
+            source = card.find_all('a')[2].text if (card.find_all('a')) else None
+            #Check if newsitem is from a source we like
+            if (link and self.checkSource(source)):
+                headline = self.findHeadline(card)
                 pubDate = self.findPubDate(card)                    
                 google_url = f"{self.url}{link.split('./')[1]}"
                 
                 print(stylize(f"Searching {google_url}", colored.fg("yellow")))
                 page = scrape.search(google_url, useHeaders=False)
-                if (page and (isinstance(page, requests.models.Response)) and (page.ok) and (self.checkLink(page.url))):
-                    
+                if (page and (isinstance(page, requests.models.Response)) and (page.ok)):                    
                     page_soup = scrape.parseHTML(page)
-
                     newsitem = {
-                        'url': page.url,
+                        'url': page.url, # Get redirect link, not Google's fake link
                         'headline': headline,
                         'pubDate': pubDate,
                         'source': source,
                         'author': self.findAuthor(page_soup),
                         'soup': page_soup
                     }
-                    self.save(newsitem)
-                    heap.append(newsitem)
-                    time.sleep(1)
-        return heap
+                    article = self.save(newsitem)
+                    articles.append(article)
 
-    
-    def checkLink(self, link):   
-        curated = readTxtFile(CURATED)     
-        blacklist_pgs = readTxtFile(BLACKLISTPAGES)
-        for pg in blacklist_pgs:
-            if (pg in link):
-                return False
-        for cur in curated:
-            if (cur in link):                
+        return articles
+
+    def checkSource(self, source):
+        curated_srcs = readTxtFile(CURATED_SRCS)     
+        for src in curated_srcs:
+            if ((src in source) or (src == source)):                
                 return True
         return False
      
@@ -110,9 +99,9 @@ class GoogleNews():
             if (tag and tag.attrs.get('datetime', False)):
                 return tag.attrs.get('datetime', None)
 
-    def save(self, newsitem):
+    def save(self, newsitem):        
         News = apps.get_model('database', 'News')
-        News.objects.update_or_create(
+        article = News.objects.update_or_create(
             url=newsitem['url'],
             defaults = {
             'headline': newsitem.get('headline', None),
@@ -121,4 +110,7 @@ class GoogleNews():
             'description': newsitem.get('description', None),
             'pubDate': newsitem.get('pubDate', None)}
         )
+        # Caching the soup
+        r.set('news-soup-'+article[0].id, str(newsitem['soup']))
         print(stylize(f"Saved {(newsitem.get('source', False) or 'unsourced')} article", colored.fg("green")))
+        return article[0]

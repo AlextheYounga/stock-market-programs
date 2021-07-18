@@ -10,7 +10,6 @@ import json
 import django
 from django.apps import apps
 
-BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
 PAYWALLED = 'app/lab/news/data/paywalled.txt'
@@ -24,7 +23,6 @@ class BingNews():
         scrape = Scraper()                              
         response = scrape.search(search_query)        
         print(stylize(f"Grabbing links {search_query}", colored.fg("yellow")))
-        time.sleep(1)
         if (response.ok):
             soup = scrape.parseHTML(response)
             card_soup = soup.find_all('div', {'class': 'newsitem'})[:limit] if (limit) else soup.find_all('div', {'class': 'newsitem'})
@@ -58,7 +56,6 @@ class BingNews():
                     }
                     self.save(newsitem)
                     heap.append(newsitem)
-                    time.sleep(1)
         return heap
     
 

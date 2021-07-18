@@ -12,3 +12,4 @@ Wall Street Journal
 The New York Times
 Business Insider
 Markets Insider
+Yahoo Finance
