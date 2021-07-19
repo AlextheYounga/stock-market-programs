@@ -1,4 +1,4 @@
-from app.lab.vix.vix import Vix
+from app.lab.vix.vixvol import VixVol
 from app.lab.news.newsfeed import NewsFeed
 
 vix = Vix(saveResults=True)

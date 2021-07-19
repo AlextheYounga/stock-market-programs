@@ -6,8 +6,7 @@ import dateutil.parser as parser
 import redis
 import sys
 import json
-import django
-from django.apps import apps
+
 
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
@@ -17,8 +16,10 @@ r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_respo
 class BingNews():
     def __init__(self, url=URL):
         self.url = url
+        
     
     def scrapeNews(self, search_query, limit):
+        from app.database.models import News
         scrape = Scraper()        
         articles = []            
         # Bing News search 
@@ -51,8 +52,10 @@ class BingNews():
                     'author': self.findAuthor(page_soup),
                     'soup': page_soup
                 }
-                article = self.save(newsitem)
+                article, created = News().store(newsitem)                            
+                r.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400) # Caching the soup
                 articles.append(article)
+                print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
 
         return articles
     
@@ -98,19 +101,3 @@ class BingNews():
         for pg in blacklist_pgs:
             if (pg in link):
                 return False
-
-    def save(self, newsitem):        
-        News = apps.get_model('database', 'News')
-        article, created = News.objects.update_or_create(
-            url=newsitem['url'],
-            defaults = {
-            'headline': newsitem.get('headline', None),
-            'author': newsitem.get('author', None),
-            'source': newsitem.get('source', None),
-            'description': newsitem.get('description', None),
-            'pubDate': newsitem.get('pubDate', None)}
-        )
-        # Caching the soup
-        r.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400)
-        print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
-        return article

@@ -203,21 +203,25 @@ def calculateForwardLevel(selectedChain):
                     priceDiffs[term][diff] = strprice
 
     # Select the smallest price difference out of the bunch.
-    nearTermStrike = priceDiffs['nearTerm'][min(priceDiffs['nearTerm'].keys())]
-    nextTermStrike = priceDiffs['nextTerm'][min(priceDiffs['nextTerm'].keys())]
+    if (priceDiffs['nearTerm'].keys() and priceDiffs['nextTerm'].keys()):
+        nearTermStrike = priceDiffs['nearTerm'][min(priceDiffs['nearTerm'].keys())]
+        nextTermStrike = priceDiffs['nextTerm'][min(priceDiffs['nextTerm'].keys())]
 
-    forwardLevel = {
-        'nearTerm': [
-            selectedChain['nearTerm']['call']['strikes'][nearTermStrike][0],
-            selectedChain['nearTerm']['put']['strikes'][nearTermStrike][0],
-        ],
-        'nextTerm': [
-            selectedChain['nextTerm']['call']['strikes'][nextTermStrike][0],
-            selectedChain['nextTerm']['put']['strikes'][nextTermStrike][0],
-        ]
-    }
+        forwardLevel = {
+            'nearTerm': [
+                selectedChain['nearTerm']['call']['strikes'][nearTermStrike][0],
+                selectedChain['nearTerm']['put']['strikes'][nearTermStrike][0],
+            ],
+            'nextTerm': [
+                selectedChain['nextTerm']['call']['strikes'][nextTermStrike][0],
+                selectedChain['nextTerm']['put']['strikes'][nextTermStrike][0],
+            ]
+        }
 
-    return forwardLevel
+        return forwardLevel
+    # If not enough option data, end program. We can go no further.
+    print(stylize("Not enough option data for ticker to make a useful measurement.", colored.fg("red")))
+    return False
 
 
 def calculateT(selectedChain):

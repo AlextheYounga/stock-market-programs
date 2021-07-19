@@ -1,20 +1,19 @@
-from app.lab.news.bing_news import BingNews
-from app.lab.news.google_news import GoogleNews
+from app.lab.news.engines.bing_news import BingNews
+from app.lab.news.engines.google_news import GoogleNews
 from app.lab.news.article_stock import ArticleStock
 from app.lab.core.functions import readTxtFile
-import re
-import colored
-from colored import stylize
-import time
 import sys
 import json
 import os
+import django
+from django.apps import apps
+django.setup()
+
 
 EXCHANGES = 'app/lab/news/data/exchanges.txt'
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
-PAYWALLED = 'app/lab/news/data/paywalled.txt'
 
 class NewsFeed():
     def __init__(self, aggregator='bing'):

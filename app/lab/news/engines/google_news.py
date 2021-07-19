@@ -9,7 +9,6 @@ import dateutil.parser as parser
 import time
 import sys
 import json
-from django.apps import apps
 
 
 CURATED_SRCS = 'app/lab/news/data/curated_sources.txt'
@@ -19,9 +18,9 @@ r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_respo
 class GoogleNews():
     def __init__(self, url=URL):
         self.url = url
-        self.news = apps.get_model('database', 'News')
 
     def scrapeNews(self, search_query, limit):
+        from app.database.models import News
         scrape = Scraper()        
         articles = []            
         # Google News search 
@@ -46,7 +45,7 @@ class GoogleNews():
                     print(stylize(f"Searching {google_url}", colored.fg("yellow")))
                     page = scrape.search(google_url, useHeaders=False)
                     if (page and (isinstance(page, requests.models.Response)) and (page.ok)):       
-                        if (self.news.objects.filter(url=link).exists() == False):                                 
+                        if (News.objects.filter(url=link).exists() == False):                                 
                             page_soup = scrape.parseHTML(page)
                             newsitem = {
                                 'url': page.url, # Get redirect link, not Google's fake link
@@ -56,8 +55,10 @@ class GoogleNews():
                                 'author': self.findAuthor(page_soup),
                                 'soup': page_soup
                             }
-                            article = self.save(newsitem)
+                            article, created = News().store(newsitem)                            
+                            r.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400) # Caching the soup
                             articles.append(article)
+                            print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
 
         return articles
 
@@ -89,7 +90,7 @@ class GoogleNews():
 
 
     def findAuthor(self, soup):
-        
+        # Correcting any anomalies.
         def checkAuthor(author):
             badCharacters = ['facebook', '.']
             for bc in badCharacters:
@@ -125,18 +126,3 @@ class GoogleNews():
                     if ((now - pubDateObj).days == 0):
                         return pubDate                
         return False
-
-    def save(self, newsitem):        
-        article, created = self.news.objects.update_or_create(
-            url=newsitem['url'],
-            defaults = {
-            'headline': newsitem.get('headline', None),
-            'author': newsitem.get('author', None),
-            'source': newsitem.get('source', None),
-            'description': newsitem.get('description', None),
-            'pubDate': newsitem.get('pubDate', None)}
-        )
-        # Caching the soup
-        r.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400)
-        print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
-        return article

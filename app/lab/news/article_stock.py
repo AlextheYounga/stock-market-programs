@@ -9,23 +9,16 @@ import time
 import sys
 import json
 import os
-import django
-from django.apps import apps
-django.setup()
 
 EXCHANGES = 'app/lab/news/data/exchanges.txt'
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
-PAYWALLED = 'app/lab/news/data/paywalled.txt'
 r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
 
 class ArticleStock():
     def __init__(self, articles):
         self.articles = articles
-        self.news = apps.get_model('database', 'News')
-        self.stock = apps.get_model('database', 'Stock')
-        self.stocknews = apps.get_model('database', 'StockNews')
     
     def find(self):
         plausible = self.stockRegex()
@@ -44,7 +37,7 @@ class ArticleStock():
         """
         plausible = [] # A temporary vehicle to store strings that are likely tickers.
         exchanges = readTxtFile(EXCHANGES) 
-        blacklist = self.blacklistWords()
+        blacklist = readTxtFile(BLACKLISTWORDS)
 
         for article in self.articles:
             # Finding all strings that look like stocks.
@@ -103,7 +96,7 @@ class ArticleStock():
         ]
         
         apiResults = {}
-        blacklist = self.blacklistWords()
+        blacklist = readTxtFile(BLACKLISTWORDS)
         unique_plausible = list(dict.fromkeys(plausible))
         chunked_plausible = chunks(unique_plausible, 100)
 
@@ -133,45 +126,18 @@ class ArticleStock():
 
                 
     def save(self, apiResults):
+        from app.database.models import Stock, StockNews
         for article in self.articles: 
             cached_stocks = r.get('stocknews-plausible-'+str(article.id))
             articlestocks = cached_stocks.split(',') if cached_stocks else False
             if (articlestocks):
                 for ticker in articlestocks:
                     if (ticker in apiResults.keys()):
-                        stockinfo = apiResults[ticker]                                   
-                        stock, created = self.stock.objects.update_or_create(
-                            ticker=ticker,
-                            defaults={
-                                'name': stockinfo.get('companyName', None),
-                                'lastPrice': stockinfo.get('latestPrice', None),
-                                'changePercent': stockinfo.get('changePercent', None),
-                                'ytdChange': stockinfo.get('ytdChange', None),
-                                'volume': stockinfo.get('volume', None),
-                            }
-                        )
-                        newsstock, created = article.stocknews_set.update_or_create(
-                            article=article, stock=stock,
-                            defaults={
-                                'ticker': stockinfo['symbol'],
-                                'companyName': stockinfo.get('companyName', None),
-                            }
-                        )
-                        print(stylize(f"Saved {stockinfo['symbol']} from article.", colored.fg("green")))
-
-    
-    def blacklistWords(self):
-        txtfile = open(BLACKLISTWORDS, "r")
-
-        blacklist = []
-        for line in txtfile:
-            stripped_line = line.strip()
-            line_list = stripped_line.split()
-            blacklist.append(str(line_list[0]))
-
-        txtfile.close()
-
-        return list(dict.fromkeys(blacklist))
+                        stockinfo = apiResults[ticker]     
+                        if (ticker and stockinfo.get('companyName', False)):       
+                            stock, created = Stock().store(stockinfo, ticker=ticker)
+                            StockNews().store(article, stock, stockinfo, save_vix=True)
+                            print(stylize(f"Saved {stockinfo['symbol']} from article.", colored.fg("green")))
 
 
     def updateBlacklist(self, lst):
