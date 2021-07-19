@@ -98,15 +98,18 @@ class Vix(models.Model):
     def get(self, ticker):
         if (Vix.objects.filter(ticker=ticker).exists()):
             return Vix.objects.get(ticker=ticker).value
-        return False 
+        return None 
     
     def lookup(self, ticker):
         vix = self.get(ticker)
         if (vix):
             return vix
             
-        VixVol(saveResults=True).equation(ticker)
-        return self.get(ticker)
+        vixvol = VixVol().equation(ticker)
+        if (vixvol):
+            Vix().store(ticker, vixvol)
+            return self.get(ticker)
+        return None
         
 
 class News(models.Model):
@@ -153,8 +156,8 @@ class News(models.Model):
                     dct = {
                         'ticker': stock.ticker,
                         'name': stock.name,
-                        'price': stock.stock.lastPrice,
-                        'changeToday': stock.stock.changePercent,
+                        'lastPrice': stock.stock.lastPrice,
+                        'changePercent': round((stock.stock.changePercent or 0) * 100, 2),                        
                     }
                     stocks.append(dct)
         return stocks

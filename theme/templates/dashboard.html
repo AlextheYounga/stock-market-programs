@@ -52,11 +52,15 @@
               {% for stock in stocks_mentioned %}
                 <div class="hover:bg-dark-mode-blue px-3 py-3 row-item">
                   <div class="flex justify-between text-sm">
-                      <p class="text-gray-100">{{ stock.name }}</p>
-                      <p class="text-gold">${{ stock.ticker }}</p>
+                    <p class="text-gray-100">{{ stock.name }}</p>
+                    <p class="text-gold">${{ stock.ticker }}</p>
                   </div>
                   <div class="flex justify-between">
-
+                    <span class="text-gray-100 text-xs">${{ stock.lastPrice }}</span>
+                    <span class="text-gray-100 text-xs">{{ stock.changePercent }}</span>
+                    <span class="text-gray-100 text-xs">VIX:
+                      {{ stock.vix }}
+                    </span>
                   </div>
                 </div>
               {% endfor %}

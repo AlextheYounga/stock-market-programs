@@ -8,14 +8,12 @@ from colored import stylize
 from app.lab.core.scrape.bonds import scrape3mTreasury
 from app.lab.fintwit.fintwit import Fintwit
 from .vix_functions import *
-from app.database.models import Vix
 
 class VixVol:
-    def __init__(self, sendtweet=False, debug=False, dummyData=False, saveResults=False, setTimer=False):
+    def __init__(self, sendtweet=False, debug=False, dummyData=False, setTimer=False):
         self.sendtweet = sendtweet
         self.debug = debug
         self.dummyData = dummyData
-        self.saveResults = saveResults
         self.setTimer = setTimer
 
 
@@ -135,19 +133,17 @@ class VixVol:
                     )
                 except ValueError:
                     print(stylize(sys.exc_info()[0], colored.fg("red")))
+                    print(stylize("Not enough option data for ticker to make a useful measurement.", colored.fg("red")))
+                    return False
 
-                if (self.sendtweet):
-                    self.tweet(vix, ticker)
+                if (vix):
+                    if (self.sendtweet):
+                        self.tweet(vix, ticker)
 
-                # TODO: Figure this out
-                if (self.saveResults and vix):
-                    Vix().store(ticker, vix)
-                    print('saved {} vix'.format(ticker))
-
-                if (self.setTimer):
-                    time.sleep(1.2)
-                
-                return round(vix, 3)
+                    if (self.setTimer):
+                        time.sleep(1.2)
+                    
+                    return round(vix, 3)
 
 
     def tweet(self, vix, ticker):     

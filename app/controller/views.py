@@ -11,11 +11,14 @@ def dashboard(request):
     news = News()
     stocks_mentioned = news.latest_stocks_mentioned()
     for stock in stocks_mentioned:
-        stock['vix'] = Vix().get(stock['ticker'])
+        stock['vix'] = Vix().get(stock['ticker']) or 'NA'
+        # TODO: Make color work
+        stock['changeColor'] = 'green' if (stock.get('changePercent', False) and stock['changePercent'] > 0) else 'red'
+        print(stock)
 
     context = {
         'news': news.latest_news(),
-        'stocks_mentioned': news.latest_stocks_mentioned()
+        'stocks_mentioned': stocks_mentioned
         }    
     return render(request, 'dashboard.html', context)
 

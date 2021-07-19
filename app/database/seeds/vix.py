@@ -1,11 +1,11 @@
 from app.lab.vix.vixvol import VixVol
 from app.lab.news.newsfeed import NewsFeed
 
-vix = Vix(saveResults=True)
+vixvol = VixVol()
 nf = NewsFeed()
 stocks = nf.mentionedStocks()
 
 for stock in stocks:
     print(stock.ticker)
-    vix.equation(stock.ticker)
+    vixvol.equation(stock.ticker)
 
