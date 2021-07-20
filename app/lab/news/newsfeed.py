@@ -27,12 +27,12 @@ class NewsFeed():
             return GoogleNews()
     
     def feed(self):
-        self.trending()
-        self.organicTop()
-        self.searchDomains(CURATED)
-        
-        return
-
+        while True:
+            self.trending()
+            self.organicTop()
+            self.searchDomains(CURATED)
+    
+    
     def curated(self, limit=None):
         self.searchDomains(CURATED, limit=limit)
     

@@ -114,6 +114,13 @@ def parse_args(args, required=[], opt=[]):
     return params
 
 
+def news_controller(subroutine, args=[]):
+    if (subroutine == 'feed'):
+        from app.lab.news.newsfeed import NewsFeed
+        NewsFeed(aggregator='google').feed()
+
+    command_error()
+
 # def donchian_controller(args):
 #     required = {'ticker': {'pos': 0, 'type': str}}
 #     opt = {

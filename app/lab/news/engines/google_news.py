@@ -24,7 +24,8 @@ class GoogleNews():
         scrape = Scraper()        
         articles = []            
         # Google News search 
-        response = scrape.search(search_query) 
+        response = scrape.search(search_query)
+        time.sleep(10)
         print(stylize(f"Grabbing links {search_query}", colored.fg("yellow")))
         soup = scrape.parseHTML(response)
         # Grab news cards
@@ -44,6 +45,7 @@ class GoogleNews():
                     
                     print(stylize(f"Searching {google_url}", colored.fg("yellow")))
                     page = scrape.search(google_url, useHeaders=False)
+                    time.sleep(3)
                     if (page and (isinstance(page, requests.models.Response)) and (page.ok)):       
                         if (News.objects.filter(url=link).exists() == False):                                 
                             page_soup = scrape.parseHTML(page)
