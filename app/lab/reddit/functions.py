@@ -1,7 +1,7 @@
 import re
 import sys
 import os
-from app.lab.core.functions import frequencyInList, wordVariator
+from app.functions import frequencyInList, wordVariator
 
 
 def removeBadCharacters(word):

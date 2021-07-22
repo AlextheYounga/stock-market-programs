@@ -9,7 +9,7 @@ import progressbar
 from datetime import date
 from ..functions import *
 from ...redisdb.controller import rdb_save_stock
-from app.lab.core.functions import chunks, dataSanityCheck
+from app.functions import chunks, dataSanityCheck
 from app.lab.core.api.historical import getHistoricalEarnings
 from app.lab.core.api.batch import quoteStatsBatchRequest
 from app.lab.core.api.stats import getPriceTarget

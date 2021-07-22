@@ -1,6 +1,6 @@
 import redis
 import progressbar
-from app.lab.core.functions import unzip_folder, zipfolder
+from app.functions import unzip_folder, zipfolder
 import colored
 from colored import stylize
 import json

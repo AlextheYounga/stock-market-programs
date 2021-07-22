@@ -268,3 +268,10 @@ def is_date(string, fuzzy=False):
 
     except ValueError:
         return False
+
+
+def filterNone(dct):
+    for key, value in dict(dct).items():
+        if value is None:
+            del dct[key]
+    return dct

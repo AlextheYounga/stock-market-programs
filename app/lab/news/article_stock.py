@@ -1,5 +1,5 @@
 from app.lab.core.api.batch import batchQuote
-from app.lab.core.functions import chunks, readTxtFile
+from app.functions import chunks, readTxtFile
 from bs4 import BeautifulSoup
 import redis
 import re

@@ -4,7 +4,7 @@ from django.db.models.deletion import CASCADE
 from jsonfield import JSONField
 from numpy import save
 from requests.models import LocationParseError
-from app.lab.core.functions import frequencyInList
+from app.functions import frequencyInList, filterNone
 from django.forms.models import model_to_dict
 from app.lab.vix.vixvol import VixVol
 
@@ -22,17 +22,18 @@ class Stock(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def store(self, data, ticker=None):
-        ticker = ticker or (data.get('ticker', False) or data.get('symbol', False))
-        name = data.get('name', False) or data.get('companyName', False)
+        if (data['symbol']):
+            data['ticker'] = data['symbol']
+            del data['symbol']
+        if (data['companyName']):
+            data['name'] = data['companyName']
+            del data['companyName']
+        ticker = ticker or data['ticker']
+        data = filterNone(data)
+        # Save
         stock, created = Stock.objects.update_or_create(
             ticker=ticker,
-            defaults={
-                'name': name,
-                'lastPrice': data.get('latestPrice', None),
-                'changePercent': data.get('changePercent', None),
-                'ytdChange': data.get('ytdChange', None),
-                'volume': data.get('volume', None),
-            }
+            defaults={data}
         )        
         return stock, created
 

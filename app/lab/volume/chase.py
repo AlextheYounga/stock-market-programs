@@ -8,7 +8,7 @@ import redis
 import time
 from datetime import date
 from ..redisdb.controller import rdb_save_stock
-from app.lab.core.functions import chunks, dataSanityCheck
+from app.functions import chunks, dataSanityCheck
 from app.lab.core.api.batch import quoteStatsBatchRequest
 from app.lab.core.api.stats import getPriceTarget
 from app.lab.core.output import printFullTable, writeCSV

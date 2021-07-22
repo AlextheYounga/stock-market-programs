@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import pylab
 from app.lab.core.imports import read_historical_gold_prices
-from app.lab.core.functions import extract_data
+from app.functions import extract_data
 import os
 import sys
 from app.lab.core.api.historical import getHistoricalData

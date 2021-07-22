@@ -4,7 +4,7 @@ import sys
 import progressbar
 import time
 from datetime import date
-from app.lab.core.functions import chunks, dataSanityCheck
+from app.functions import chunks, dataSanityCheck
 from app.lab.core.api.historical import batchHistoricalData
 from app.lab.core.output import printFullTable, writeCSV
 import django

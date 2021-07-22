@@ -1,5 +1,5 @@
 from app.lab.scrape.scraper import Scraper
-from app.lab.core.functions import readTxtFile, is_date
+from app.functions import readTxtFile, is_date
 import colored
 from colored import stylize
 import dateutil.parser as parser

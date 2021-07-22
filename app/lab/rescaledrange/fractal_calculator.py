@@ -1,7 +1,7 @@
 import statistics
 from scipy import stats
 import math
-from app.lab.core.functions import extract_data
+from app.functions import extract_data
 from app.lab.core.api.stats import getCurrentPrice
 from app.lab.core.api.historical import getHistoricalData
 from .functions import *

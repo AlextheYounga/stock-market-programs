@@ -2,7 +2,7 @@ import praw
 from praw.models import MoreComments
 import colored
 from colored import stylize
-from app.lab.core.functions import frequencyInList, chunks
+from app.functions import frequencyInList, chunks
 from app.lab.core.output import printFullTable
 from app.lab.core.api.batch import batchQuote
 from .functions import *

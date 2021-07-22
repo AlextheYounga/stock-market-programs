@@ -1,7 +1,7 @@
 from app.lab.news.engines.bing_news import BingNews
 from app.lab.news.engines.google_news import GoogleNews
 from app.lab.news.article_stock import ArticleStock
-from app.lab.core.functions import readTxtFile
+from app.functions import readTxtFile
 import sys
 import json
 import os
@@ -16,6 +16,7 @@ BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
 
 class NewsFeed():
+    # TODO: Create headline scanner
     def __init__(self, aggregator='bing'):
         self.aggregator = aggregator
         self.engine = self.callModule()

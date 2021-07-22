@@ -1,6 +1,6 @@
 import json
 import sys
-from app.lab.core.functions import extract_data
+from app.functions import extract_data
 from app.lab.core.api.historical import getHistoricalData
 from app.lab.core.api.stats import getCurrentPrice
 from app.lab.core.output import printTabs

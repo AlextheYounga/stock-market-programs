@@ -6,7 +6,7 @@ import sys
 from datetime import date
 from app.lab.fintwit.fintwit import Fintwit
 from .functions import getETFs
-from app.lab.core.functions import chunks
+from app.functions import chunks
 from app.lab.core.api.batch import quoteStatsBatchRequest
 from app.lab.core.api.stats import getStockInfo
 from app.lab.core.output import printFullTable, writeCSV

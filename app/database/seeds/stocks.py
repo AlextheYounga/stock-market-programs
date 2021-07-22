@@ -1,7 +1,7 @@
 import django
 from app.lab.core.api.batch import batchQuote
 from app.lab.core.api.sync import syncStocks
-from app.lab.core.functions import chunks
+from app.functions import chunks
 from django.apps import apps
 django.setup()
 

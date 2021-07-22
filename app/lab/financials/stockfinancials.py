@@ -1,5 +1,5 @@
 from app.lab.core.api.stats import getCashFlow, getFinancials, getKeyStats, getAdvancedStats, getCurrentPrice
-from app.lab.core.functions import dataSanityCheck
+from app.functions import dataSanityCheck
 import colored
 from colored import stylize
 import json
