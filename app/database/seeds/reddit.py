@@ -1,5 +1,4 @@
 import django
-from app.lab.core.api.batch import batchQuote
 from app.lab.reddit.api_scraper import scrapeWSB
 from app.functions import chunks
 from django.apps import apps

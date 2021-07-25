@@ -1,6 +1,7 @@
 import json
 import sys
 from app.functions import extract_data
+from app.lab.core.api.iex import IEX
 from app.lab.core.api.historical import getHistoricalData
 from app.lab.core.api.stats import getCurrentPrice
 from app.lab.core.output import printTabs
@@ -12,13 +13,14 @@ import csv
 class Donchian():
     
     def calculate(self, ticker, days=30, sendtweet=False):
-        asset_data = getHistoricalData(ticker, '1m')
+        iex = IEX()
+        asset_data = iex.getHistorical('chart', ticker, timeframe='1m')
         highs = extract_data(asset_data, 'high')
         lows = extract_data(asset_data, 'low')
 
         donchian_range = {
             'donchianHigh': max(list(reversed(highs))[:days]),
-            'currentPrice': getCurrentPrice(ticker),
+            'currentPrice': iex.get('price', ticker),
             'donchianLow': min(list(reversed(lows))[:days])
         }
 

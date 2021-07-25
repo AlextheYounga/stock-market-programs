@@ -1,4 +1,4 @@
-from app.lab.core.api.batch import batchQuote
+from app.lab.core.api.iex import IEX
 from app.functions import chunks, readTxtFile
 from bs4 import BeautifulSoup
 import redis
@@ -95,6 +95,7 @@ class ArticleStock():
             'volume'
         ]
         
+        iex = IEX()
         apiResults = {}
         blacklist = readTxtFile(BLACKLISTWORDS)
         unique_plausible = list(dict.fromkeys(plausible))
@@ -104,7 +105,7 @@ class ArticleStock():
 
         for i, chunk in enumerate(chunked_plausible):
             print(stylize("Sending heap to API", colored.fg("yellow")))
-            batch = batchQuote(chunk)
+            batch = iex.get('quote', chunk, batch=True)
             time.sleep(1)
 
             for ticker, stockinfo in batch.items():

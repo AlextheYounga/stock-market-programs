@@ -14,6 +14,7 @@ from app.lab.core.api.batch import quoteStatsBatchRequest
 from app.lab.core.output import printFullTable, writeCSV
 load_dotenv()
 
+# TODO: Needs work fam
 
 def sectors():
     return [

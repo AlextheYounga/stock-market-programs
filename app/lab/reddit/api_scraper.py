@@ -4,7 +4,7 @@ import colored
 from colored import stylize
 from app.functions import frequencyInList, chunks
 from app.lab.core.output import printFullTable
-from app.lab.core.api.batch import batchQuote
+from app.lab.core.api.iex import IEX
 from .functions import *
 import time
 import datetime
@@ -68,6 +68,7 @@ def scanHeap(heap):
 
             possible.append(string)
 
+    iex = IEX()
     results = []
     stockfound = []
 
@@ -86,9 +87,8 @@ def scanHeap(heap):
     print(stylize("{} possibilities".format(len(unique_possibles)), colored.fg("yellow")))
 
     for i, chunk in enumerate(chunked_strings):
-
         print(stylize("Sending heap to API", colored.fg("yellow")))
-        batch = batchQuote(chunk)
+        batch = iex.get('quote', chunk, batch=True)
         time.sleep(1)
 
         for ticker, stockinfo in batch.items():

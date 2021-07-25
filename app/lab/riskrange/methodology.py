@@ -14,7 +14,7 @@ def rangeRules(ticker):
     # --------------------------------------------
     # Data
     prices = list(reversed(removeZeroes(extract_data(assetData, 'close'))))
-    current_price = getCurrentPrice(ticker)
+    current_price = iex.get('price', ticker)
     highs = list(reversed(removeZeroes(extract_data(assetData, 'high'))))
     lows = list(reversed(removeZeroes(extract_data(assetData, 'low'))))
     dates = list(reversed(removeZeroes(extract_data(assetData, 'date'))))
