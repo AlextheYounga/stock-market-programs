@@ -2,8 +2,6 @@ import json
 import sys
 from app.functions import extract_data
 from app.lab.core.api.iex import IEX
-from app.lab.core.api.historical import getHistoricalData
-from app.lab.core.api.stats import getCurrentPrice
 from app.lab.core.output import printTabs
 from app.lab.fintwit.fintwit import Fintwit
 import os
