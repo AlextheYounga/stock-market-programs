@@ -1,13 +1,7 @@
-
-import json
-import sys
+from .vix_functions import *
 import math
-import colored
-import time
-from colored import stylize
 from app.lab.core.scrape.bonds import scrape3mTreasury
 from app.lab.fintwit.fintwit import Fintwit
-from .vix_functions import *
 
 class VixVol:
     def __init__(self, sendtweet=False, debug=False, dummyData=False, setTimer=False):

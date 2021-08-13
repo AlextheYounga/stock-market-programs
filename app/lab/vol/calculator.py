@@ -1,13 +1,6 @@
-import statistics
-import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib import pylab
-import numpy as np
-from scipy import stats
 from app.lab.core.api.historical import getHistoricalData
 from app.functions import chunks, extract_data
-import math
 from .functions import *
 
 

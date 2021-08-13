@@ -3,16 +3,10 @@ from praw.models import MoreComments
 import colored
 from colored import stylize
 from app.functions import frequencyInList, chunks
-from app.lab.core.output import printFullTable
 from app.lab.core.api.iex import IEX
 from .functions import *
 import time
 import datetime
-import re
-import sys
-import json
-import os
-import pprint
 from app.lab.fintwit.fintwit import Fintwit
 from dotenv import load_dotenv
 load_dotenv()

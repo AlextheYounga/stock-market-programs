@@ -1,13 +1,8 @@
-import statistics
-from scipy import stats
+from .functions import *
 import math
 from app.functions import extract_data
-from app.lab.core.api.stats import getCurrentPrice
 from app.lab.core.api.historical import getHistoricalData
-from .functions import *
 from .output import exportFractal, outputTable
-import sys
-from tabulate import tabulate
 
 # For full detailed explanation on the calculation, visit:
 # https://blogs.cfainstitute.org/investor/2013/01/30/rescaled-range-analysis-a-method-for-detecting-persistence-randomness-or-mean-reversion-in-financial-markets/

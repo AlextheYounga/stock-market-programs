@@ -1,7 +1,7 @@
+from .functions import *
 import csv
 import os
 import texttable
-from .functions import *
 from datetime import datetime
 
 
