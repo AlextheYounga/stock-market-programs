@@ -22,6 +22,11 @@ class IEX():
 
     def endpointUrl(self, endpoint, data, domain, key, filters, batch):    
         if (batch):
+            # TODO: Set up dynamic payload using requests 'param' function and list function
+            # https://docs.python-requests.org/en/master/user/quickstart/#make-a-request
+            # payload = {
+            #     'symbols': data,                
+            # }
             base_url = f"https://{domain}/stable/stock/market/batch?symbols={data}&types="            
             urls = {
                 'stats': f"{base_url}quote,stats",
