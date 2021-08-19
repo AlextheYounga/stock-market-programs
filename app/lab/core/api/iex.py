@@ -19,26 +19,30 @@ class IEX():
         self.key = os.environ.get("IEX_TOKEN")
         self.sandbox_key = os.environ.get("IEX_SANDBOX_TOKEN")
         self.sandbox_domain = 'sandbox.iexapis.com'
+        self.settings = {'timeout': 5}
 
     def endpointUrl(self, endpoint, data, domain, key, filters, batch):    
+        payload = {}
         if (batch):
             # TODO: Set up dynamic payload using requests 'param' function and list function
             # https://docs.python-requests.org/en/master/user/quickstart/#make-a-request
-            # payload = {
-            #     'symbols': data,                
-            # }
-            base_url = f"https://{domain}/stable/stock/market/batch?symbols={data}&types="            
-            urls = {
-                'stats': f"{base_url}quote,stats",
-                'quote': f"{base_url}quote",
-                'price': f"{base_url}quote&filter=latestPrice",
-                'company': f"{base_url}quote,company",
+            payload = {
+                'symbols': data,               
             }
-            return f"{urls[endpoint]}&token={key}"
+            base_url = f"https://{domain}/stable/stock/market/batch"  
+            params = {
+                'stats': {'types': ['quote', 'stats']},
+                'quote': {'types': 'quote'},
+                'price': {'types': 'quote', 'filter': 'latestPrice'},
+                'company': {'types': ['quote', 'company']},
+            }
+            payload = payload.update(params[endpoint]).update({'token': key})
 
-        base_url=f"https://{domain}/stable/stock/"
+            return base_url, payload
+
+        base_url=f"https://{domain}/stable/stock/"        
         urls = {  
-            'price': f"{base_url}{data}/quote?filter=latestPrice",
+            'price': f"{base_url}{data}/quote",
             'quote': f"{base_url}{data}/quote",         
             'stats': f"{base_url}{data}/stats",    
             'advanced-stats': f"{base_url}{data}/advanced-stats",
@@ -46,15 +50,20 @@ class IEX():
             'cash-flow': f"{base_url}{data}/cash-flow",            
             'price-target': f"{base_url}{data}/price-target",
         }
+        params = {
+            'price': {'filter': 'latestPrice'},
+        }
+        if (endpoint in params):
+            payload.update(params[endpoint])
+
         if (filters):
             if (endpoint != 'price'):
-                filterResults = ",".join(filters) if (len(filters) > 1) else filters[0]
-                return f"{urls[endpoint]}?filter={filterResults}"
+                payload.update({'filter': filters})
             else: 
                 print('Cannot add filter to price endpoint.')
+        payload.update({'token': key})
                 
-        sep = '?' if ('?' not in urls[endpoint]) else '&'
-        return f"{urls[endpoint]}{sep}token={key}"
+        return urls[endpoint], payload
     
     def get(self, endpoint, data, filters=[], batch=False, sandbox=False):
         """
@@ -77,10 +86,9 @@ class IEX():
             domain = self.sandbox_domain
             key = self.sandbox_key
 
-        batch = ",".join(data) if (batch) else False # Convert to comma-separated string
-        url = self.endpointUrl(endpoint, (data or batch), domain, key, filters, batch)
+        url, payload = self.endpointUrl(endpoint, (data or batch), domain, key, filters, batch)
         try:
-            response = requests.get(url).json()
+            response = requests.get(url, params=payload, **self.settings).json()
         except:
             print("Unexpected error:", sys.exc_info()[0])
             return None
@@ -100,17 +108,19 @@ class IEX():
         urls= {
             '3m': f"{base_url}/time-series/treasury/DGS3MO",
         }
+    
+        url = f"{urls[endpoint]}"
+        payload = {'token': key}
 
-        url = f"{urls[endpoint]}?token={key}"
         try:
-            response = requests.get(url).json()
+            response = requests.get(url, params=payload, **self.settings).json()
         except:
             print("Unexpected error:", sys.exc_info()[0])
             return None
 
         return response
 
-
+    # TODO: Finish setting up payloads
     def getOptions(self, endpoint, ticker, fdate=None, sandbox=False):
         key = self.key
         domain = self.domain

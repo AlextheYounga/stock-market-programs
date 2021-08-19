@@ -1,7 +1,7 @@
 import texttable
 from tabulate import tabulate
 from .api.batch import quoteStatsBatchRequest
-from .functions import dataSanityCheck
+from app.functions import dataSanityCheck
 from datetime import date
 import colored
 from colored import stylize

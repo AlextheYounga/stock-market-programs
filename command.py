@@ -121,25 +121,26 @@ def news_controller(subroutine, args=[]):
 
     command_error()
 
-# def donchian_controller(args):
-#     required = {'ticker': {'pos': 0, 'type': str}}
-#     opt = {
-#         'days': {'type': int, 'default': 30},
-#         '--tweet': {'type': bool, 'default': False}
-#     }
+def donchian_controller(args):
+    required = {'ticker': {'pos': 0, 'type': str}}
+    opt = {
+        'days': {'type': int, 'default': 30},
+        '--tweet': {'type': bool, 'default': False}
+    }
 
-#     if (not args):
-#         command_error(required, opt)
-#         return
+    if (not args):
+        command_error(required, opt)
+        return
 
-#     params = parse_args(args, required, opt)
+    params = parse_args(args, required, opt)
 
-#     from app.lab.donchian.range import calculate
-#     print(calculate(
-#         params['ticker'],
-#         days=params['days'] if 'days' in params else opt['days']['default'],
-#         sendtweet=True if ('tweet' in params) else opt['--tweet']['default']
-#     ))
+    from app.lab.donchian.donchian import Donchian
+    d = Donchian()
+    print(d.calculate(
+        params['ticker'],
+        days=params['days'] if 'days' in params else opt['days']['default'],
+        sendtweet=True if ('tweet' in params) else opt['--tweet']['default']
+    ))
 
 
 # def inflation_controller(subroutine, args=[]):

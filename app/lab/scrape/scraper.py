@@ -26,18 +26,20 @@ class Scraper():
         }
         
 
-    def search(self, url, useHeaders=True):
-        params = {
+    def search(self, url, payload={}, useHeaders=True):
+        settings = {
             'timeout': self.timeout,
             'allow_redirects': True,
         }
         if (useHeaders):
-            params['headers'] = self.headers
+            settings['headers'] = self.headers
 
-        time.sleep(2.3) # Slow is smooth and smooth is fast.
+        time.sleep(1.3) # Slow is smooth and smooth is fast.
+        # time.sleep(0.3)
 
         try:
-            response = requests.get(url, **params)
+            response = requests.get(url, params=payload, **settings)
+            # print(response.url)
         except:
             print(stylize("Unexpected error:", colored.fg("red")))
             print(stylize(sys.exc_info()[0], colored.fg("red")))
@@ -45,7 +47,9 @@ class Scraper():
 
         if (response.ok):            
             return response
-        return response.status_code
+            
+        print(print(stylize(f"Bad response: {response.status_code}", colored.fg("red"))))
+        return False
 
     def parseHTML(self, response):
         soup = BeautifulSoup(response.text, 'html.parser')
