@@ -9,9 +9,8 @@ load_dotenv()
 
 
 class StockFinancials():
-    def lookup(ticker):
-        iex = IEX()
-        
+    def lookup(self, ticker):
+        iex = IEX()        
         cash_flow_json = iex.get('cash-flow', ticker)
         financials_json = iex.get('financials', ticker)
         stats = iex.get('stats', ticker, filters=['sharesOutstanding', 'peRatio'])
@@ -38,16 +37,16 @@ class StockFinancials():
 
             data = {
                 'price': price,
-                'reportDate': financials['reportDate'],
-                'netIncome': financials['netIncome'],
+                'reportDate': financials.get('reportDate', None),
+                'netIncome': financials.get('netIncome', None),
                 'netWorth': netWorth,
-                'shortTermDebt': financials['shortTermDebt'],
-                'longTermDebt': financials['longTermDebt'],
-                'totalCash': financials['totalCash'],
-                'totalDebt': financials['totalDebt'],
-                'debtToEquity': advanced_stats['debtToEquity'],
-                'priceToSales': advanced_stats['priceToSales'],
-                'EBITDA': advanced_stats['EBITDA'],
+                'shortTermDebt': financials.get('shortTermDebt', None),
+                'longTermDebt': financials.get('longTermDebt', None),
+                'totalCash': financials.get('totalCash', None),
+                'totalDebt': financials.get('totalDebt', None),
+                'debtToEquity': advanced_stats.get('debtToEquity', None),
+                'priceToSales': advanced_stats.get('priceToSales', None),
+                'EBITDA': advanced_stats.get('EBITDA', None),
                 'freeCashFlow': freeCashFlow,
                 'freeCashFlowPerShare': freeCashFlowPerShare,
                 'freeCashFlowYield': freeCashFlowYield,
@@ -56,7 +55,7 @@ class StockFinancials():
 
             for k, v in data.items():
                 print(k +': '+str(v))
-
-
+            
+            return data
         else:
             print(stylize("Error: Could not fetch financials", colored.fg("red")))

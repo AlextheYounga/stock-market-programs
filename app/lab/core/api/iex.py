@@ -13,6 +13,7 @@ import os
 from django.apps import apps
 load_dotenv()
 
+# https://docs.python-requests.org/en/master/user/quickstart/#make-a-request
 class IEX():
     def __init__(self):
         self.domain = 'cloud.iexapis.com'
@@ -21,22 +22,22 @@ class IEX():
         self.sandbox_domain = 'sandbox.iexapis.com'
         self.settings = {'timeout': 5}
 
-    def endpointUrl(self, endpoint, data, domain, key, filters, batch):    
+    def endpointUrl(self, endpoint, data, domain, key, filters):    
         payload = {}
-        if (batch):
-            # TODO: Set up dynamic payload using requests 'param' function and list function
-            # https://docs.python-requests.org/en/master/user/quickstart/#make-a-request
+        if (isinstance(data, list) and len(data) > 1):         
+            # For batch requests
             payload = {
-                'symbols': data,               
+                'symbols': ','.join(data),               
             }
             base_url = f"https://{domain}/stable/stock/market/batch"  
             params = {
-                'stats': {'types': ['quote', 'stats']},
+                'stats': {'types': 'quote,stats'},
                 'quote': {'types': 'quote'},
                 'price': {'types': 'quote', 'filter': 'latestPrice'},
-                'company': {'types': ['quote', 'company']},
+                'company': {'types': 'quote,company'},
             }
-            payload = payload.update(params[endpoint]).update({'token': key})
+            payload.update(params[endpoint])
+            payload.update({'token': key})
 
             return base_url, payload
 
@@ -45,6 +46,7 @@ class IEX():
             'price': f"{base_url}{data}/quote",
             'quote': f"{base_url}{data}/quote",         
             'stats': f"{base_url}{data}/stats",    
+            'company': f"{base_url}{data}/company",  
             'advanced-stats': f"{base_url}{data}/advanced-stats",
             'financials': f"{base_url}{data}/financials",
             'cash-flow': f"{base_url}{data}/cash-flow",            
@@ -65,14 +67,18 @@ class IEX():
                 
         return urls[endpoint], payload
     
-    def get(self, endpoint, data, filters=[], batch=False, sandbox=False):
+    def get(self, endpoint, data, filters=[], sandbox=False):
         """
         Makes api call to IEX api
 
         Parameters
         ----------
+        endpoint    :string
+                    price | quote | stats | company | advanced-stats | financials | cash-flow | price-target
         data        :string | :list
-                    Either a ticker or a list of tickers if batch == True
+                    Either a ticker or a list of tickers 
+        filters     :string | :list
+                    Filter results                    
         sandbox     :bool
                     Sets the IEX environment to sandbox mode to make limitless API calls for testing.
 
@@ -86,15 +92,16 @@ class IEX():
             domain = self.sandbox_domain
             key = self.sandbox_key
 
-        url, payload = self.endpointUrl(endpoint, (data or batch), domain, key, filters, batch)
+        url, payload = self.endpointUrl(endpoint, data, domain, key, filters)
         try:
             response = requests.get(url, params=payload, **self.settings).json()
         except:
             print("Unexpected error:", sys.exc_info()[0])
             return None
 
-        if (endpoint == 'price' and batch == False):
+        if (endpoint == 'price' and response.get('latestPrice', False)):
             return response['latestPrice']
+
         return response
     
     def getTreasuries(self, endpoint='3m', sandbox=False):        
@@ -120,7 +127,6 @@ class IEX():
 
         return response
 
-    # TODO: Finish setting up payloads
     def getOptions(self, endpoint, ticker, fdate=None, sandbox=False):
         key = self.key
         domain = self.domain
@@ -128,47 +134,87 @@ class IEX():
             domain = self.sandbox_domain
             key = self.sandbox_key
 
-        base_url=f"https://{domain}/stable/stock/" 
+        base_url=f"https://{domain}/stable/stock/{ticker}/options" 
         urls = {                                   
-            'chain': f"{base_url}{ticker}/options/{fdate}",
-            'expirations': f"{base_url}{ticker}/options",
+            'chain': base_url,
+            'expirations': f"{base_url}/{fdate}"
         }
-        url = f"{urls[endpoint]}?token={key}"
+        payload = {'token': key}
+        url = f"{urls[endpoint]}"
 
         try:
-            response = requests.get(url).json()
+            response = requests.get(url, params=payload, **self.settings).json()
         except:
             print("Unexpected error:", sys.exc_info()[0])
             return None
 
         return response
 
-    def getHistorical(self, endpoint, data, timeframe=None, priceOnly=False, batch=False, sandbox=False):
+    def getHistorical(self, endpoint, data, timeframe=None, priceOnly=False, sandbox=False):
+        """
+        Makes api call to IEX api
+
+        Parameters
+        ----------
+        endpoint    :string
+                    chart | earnings
+        data        :string | :list
+                    Either a ticker or a list of tickers 
+        filters     :string | :list
+                    Filter results                    
+        sandbox     :bool
+                    Sets the IEX environment to sandbox mode to make limitless API calls for testing.
+
+        Returns
+        -------
+        dict object from API
+        """
         key = self.key
+        domain = self.domain
         if (sandbox):
             domain = self.sandbox_domain
             key = self.sandbox_key
         
-        base_url = f"https://{domain}/stable/stock/"
+        payload = {}
+        base_url = f"https://{domain}/stable/stock"
+        
         urls = {
-            'chart': f"{base_url}chart/batch?symbols={(data or batch)}&types=chart&range={timeframe}",
-            'earnings': f"{data}/earnings/4/"
+            'chart': f"{base_url}chart/batch",
+            'earnings': f"{base_url}/{data}/earnings/4"
         }
+        if (isinstance(data, list) and len(data) > 1):
+            # Batch
+            urls = { 'chart': f"{base_url}chart/batch"}
+            params = {
+                'chart': {
+                    'symbols': ','.join(data),
+                    'types': 'chart',
+                    'range': timeframe,
+                }
+            }
+        else:
+            # Single
+            urls = {
+                'chart': f"{base_url}/{data}/chart/{timeframe}",
+                'earnings': f"{base_url}/{data}/earnings/4"
+            }
+            params = {}
 
-        batch = ",".join(data) if (batch) else False 
-       
+        if (endpoint in params):
+            payload.update(params[endpoint])
         if (priceOnly):
-            url = f"{urls[endpoint]}&chartCloseOnly=true&token={key}"
-        else:        
-            url = f"{urls[endpoint]}&token={key}" 
+            payload.update({'chartCloseOnly': 'true'})
+
+        url = urls[endpoint]
+        payload.update({'token': key})
 
         try:
-            historicalRequest = requests.get(url).json()
+            response = requests.get(url, params=payload, **self.settings).json()
         except:
             print("Unexpected error:", sys.exc_info()[0])
             return {}
 
-        return historicalRequest
+        return response
 
 
     def syncStocks(self):
@@ -179,9 +225,10 @@ class IEX():
         -------
         object of all stocks 
         """
-        try:
-            url = f"https://cloud.iexapis.com/stable/ref-data/iex/symbols?token={self.key}"
-            tickers = requests.get(url).json()
+        payload = {'token': self.key}
+        url = f"https://cloud.iexapis.com/stable/ref-data/iex/symbols"
+        try:        
+            tickers = requests.get(url, params=payload, **self.settings).json()
         except:
             #print("Unexpected error:", sys.exc_info()[0])
             return {}
@@ -213,17 +260,22 @@ class IEX():
 
         for i, batch in enumerate(chunked_tickers):
             time.sleep(1)
+            url = f"https://{domain}/stable/stock/market/batch"
+            payload = {
+                'symbols': ','.join(batch),
+                'types': 'quote',
+                'filter': 'latestPrice',
+                'token': key
+            }
             try:
-                batch = ",".join(batch)  # Convert to comma-separated string
-                url = f"https://{domain}/stable/stock/market/batch?symbols={batch}&types=quote&filter=latestPrice&token={key}"
                 
-                batch_request = requests.get(url).json()
+                response = requests.get(url, params=payload, **self.settings).json()
             except:
                 print("Unexpected error:", sys.exc_info()[0])
                 return
 
-            if (batch_request):
-                for ticker, data in batch_request.items():                
+            if (response):
+                for ticker, data in response.items():                
                     quote = data['quote']
                     if ('latestPrice' in quote):
                         price = quote['latestPrice']
