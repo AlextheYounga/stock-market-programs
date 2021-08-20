@@ -9,7 +9,7 @@ from pytz import timezone
 import colored
 from colored import stylize
 from dateutil.relativedelta import relativedelta
-from app.lab.core.api.options import *
+from app.lab.core.api.tdam import TDAmeritrade
 import pandas as pd
 import numpy as np
 import calendar
@@ -17,6 +17,7 @@ import calendar
 
 
 def collectOptionChain(ticker, dummyData):
+    td = TDAmeritrade()
     today = datetime.datetime.now()
     three_months_away = (today + relativedelta(months=+3))    
     three_months_away_days = calendar.monthrange(three_months_away.year, three_months_away.month)[1]
@@ -35,7 +36,7 @@ def collectOptionChain(ticker, dummyData):
             chain = json.loads(jsonfile.read())
             return chain
 
-    chain = getOptionChainTD(ticker, timeRange)
+    chain = td.optionChain(ticker, timeRange)
     return chain
 
 

@@ -177,6 +177,3 @@ class Macro():
             txt = "${} +{}%\n".format(etf['ticker'], round(etf['changeToday'], 2))
             tweet = tweet + txt
         twit.send_tweet(tweet, True)
-
-macro = Macro()
-macro.trends(print_results=True)

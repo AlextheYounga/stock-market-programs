@@ -78,6 +78,20 @@ class Gold(models.Model):
     class Meta:
         verbose_name_plural = "gold"
 
+class Senate(models.Model):
+    id = models.AutoField(primary_key=True)
+    first_name = models.CharField(max_length=300, null=True)
+    last_name = models.CharField(max_length=300)
+    office = models.CharField(max_length=300, null=True)
+    link = models.TextField(null=True)
+    date = models.DateField(auto_now=False, auto_now_add=False)
+    transactions = models.JSONField(null=True) 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "senate"
+
 class Vix(models.Model):
     id = models.AutoField(primary_key=True)
     ticker = models.CharField(db_index=True, max_length=30, unique=True)

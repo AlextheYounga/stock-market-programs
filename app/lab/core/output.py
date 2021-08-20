@@ -1,6 +1,6 @@
 import texttable
 from tabulate import tabulate
-from .api.batch import quoteStatsBatchRequest
+from app.lab.core.api.iex import IEX
 from app.functions import dataSanityCheck
 from datetime import date
 import colored
@@ -144,7 +144,8 @@ def writeCSV(data, output, append=False):
 def printStockResults(tickers):
     print("\n")
     results = []
-    batch = quoteStatsBatchRequest(tickers)
+    iex = IEX()
+    batch = iex.get('stats', tickers)
     for ticker, stockinfo in batch.items():
         if (isinstance(stockinfo, dict)):
             if (stockinfo.get('quote', False) and stockinfo.get('stats', False)):
@@ -191,5 +192,4 @@ def printStockResults(tickers):
             print(stylize(batch, colored.fg("red")))
 
     if results:
-        rdb_save_output(results)
         printFullTable(results, struct='dictlist')

@@ -1,6 +1,4 @@
 from datetime import time
-
-from iexfinance.stocks import base
 from app.functions import chunks
 from dotenv import load_dotenv
 import redis

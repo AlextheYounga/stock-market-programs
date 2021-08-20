@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-import xml.etree.ElementTree as ET
 import time
 import datetime
 import requests
@@ -54,6 +53,7 @@ class Scraper():
     def parseHTML(self, response):
         soup = BeautifulSoup(response.text, 'html.parser')
         return (soup if (soup) else False)
+    
 
     def stripParams(self, link):
         if ('?' in link):
