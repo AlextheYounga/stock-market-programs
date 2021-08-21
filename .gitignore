@@ -280,5 +280,6 @@ app/lab/core/storage/
 app/database/redisdb/export/*
 app/database/redisdb/exports/*
 app/database/redisdb/imports/*
-lab/cache/ez/*
+app/lab/fintwit/data
+task.py
 graveyard

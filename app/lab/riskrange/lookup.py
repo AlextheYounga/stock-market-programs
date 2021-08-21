@@ -4,7 +4,7 @@ import json
 import sys
 from .methodology import rangeRules
 from app.lab.core.output import printTable
-from app.lab.fintwit.fintwit import Fintwit
+from app.lab.fintwit.fintwit import Tweet
 
 
 def rangeLookup(ticker, sendtweet=False):

@@ -1,7 +1,7 @@
 import django
 from dotenv import load_dotenv
 from app.lab.core.api.iex import IEX
-from app.lab.fintwit.fintwit import Fintwit
+from app.lab.fintwit.fintwit import Tweet
 from app.functions import chunks
 import progressbar
 import redis

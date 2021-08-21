@@ -3,7 +3,7 @@ import sys
 from app.functions import extract_data
 from app.lab.core.api.iex import IEX
 from app.lab.core.output import printTabs
-from app.lab.fintwit.fintwit import Fintwit
+from app.lab.fintwit.fintwit import Tweet
 import os
 from datetime import datetime
 import csv

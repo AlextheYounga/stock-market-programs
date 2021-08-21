@@ -12,7 +12,7 @@ from app.lab.core.api.iex import IEX
 # from app.lab.core.api.stats import getPriceTarget
 # from app.lab.core.api.batch import quoteStatsBatchRequest
 from app.lab.core.output import printTable, printFullTable, writeCSV
-from app.lab.fintwit.fintwit import Fintwit
+from app.lab.fintwit.fintwit import Tweet
 load_dotenv()
 django.setup()
 class Chaser():
