@@ -5,12 +5,13 @@ import sys
 import json
 import os
 
+
 class SenateWatcher():
-    
+
     def __init__(self):
         self.domain = 'https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com'
         self.settings = {'timeout': 5}
-    
+
     def lastReport(self, print_results=False):
         # https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/data/transaction_report_for_07_23_2021.json
         latest = self.fileMap()[0]
@@ -40,5 +41,5 @@ class SenateWatcher():
         root = ET.fromstring(response.content)
         for child in root.iter('Key'):
             fmap.append(child.text)
-        
+
         return fmap

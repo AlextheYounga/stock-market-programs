@@ -15,11 +15,10 @@ import numpy as np
 import calendar
 
 
-
 def collectOptionChain(ticker, dummyData):
     td = TDAmeritrade()
     today = datetime.datetime.now()
-    three_months_away = (today + relativedelta(months=+3))    
+    three_months_away = (today + relativedelta(months=+3))
     three_months_away_days = calendar.monthrange(three_months_away.year, three_months_away.month)[1]
 
     # Building a timerange to send to TD Ameritrade's API
@@ -76,7 +75,7 @@ def selectOptionExpirations(chain):
                                 'month': expDate.month,
                                 'preciseExpiration': preciseExpiration,
                                 'daysToExpiration': daysToExpiration,
-                            },                        
+                            },
                             'strikes': strikes
                         }
             else:
@@ -97,7 +96,7 @@ def selectOptionExpirations(chain):
             """
             this_month = today.month
             next_month = (today + relativedelta(months=+1))
-            two_months_away = (today + relativedelta(months=+2))                        
+            two_months_away = (today + relativedelta(months=+2))
             three_months_away = (today + relativedelta(months=+3))
 
             month_0 = []
@@ -120,18 +119,18 @@ def selectOptionExpirations(chain):
                 flat_list = [item for sublist in [month_1, month_2, month_3] for item in sublist]
                 if (len(flat_list) > 0):
                     nextTermExp = min(flat_list)
-                    return {'nearTerm': nearTermExp, 'nextTerm': nextTermExp }
+                    return {'nearTerm': nearTermExp, 'nextTerm': nextTermExp}
             if (len(month_1) != 0):
                 nearTermExp = min(month_1)
                 flat_list = [item for sublist in [month_2, month_3] for item in sublist]
                 if (len(flat_list) > 0):
                     nextTermExp = min(flat_list)
-                    return {'nearTerm': nearTermExp, 'nextTerm': nextTermExp }
+                    return {'nearTerm': nearTermExp, 'nextTerm': nextTermExp}
             if (len(month_2) != 0):
                 nearTermExp = min(month_2)
                 if (len(month_3) > 0):
                     nextTermExp = min(month_3)
-                    return {'nearTerm': nearTermExp, 'nextTerm': nextTermExp }
+                    return {'nearTerm': nearTermExp, 'nextTerm': nextTermExp}
 
             # If not enough option data, end program. We can go no further.
             print(stylize("Not enough option data for ticker to make a useful measurement.", colored.fg("red")))
@@ -150,7 +149,7 @@ def selectOptionExpirations(chain):
 
             # Date timezone manipulation; doing here because we'll need these later.
             for term, side in selectedChain.items():
-                for k, data in side.items():       
+                for k, data in side.items():
                     t = data['dateInfo']['preciseExpiration']
                     dateT = datetime.datetime.fromtimestamp(float(t / 1000))  # Windows workaround
                     # The previous division by 1000 is simply a workaround for Windows. Windows doesn't seem to play nice
@@ -160,7 +159,6 @@ def selectOptionExpirations(chain):
 
                     selectedChain[term][k]['dateInfo']['dateTzObj'] = dateObj
                     selectedChain[term][k]['dateInfo']['dateStr'] = dateStr
-            
 
             return selectedChain
         return False
@@ -185,7 +183,7 @@ def calculateForwardLevel(selectedChain):
 
     # Collecting prices on call and put options with strike price as key.
     for term, options in selectedChain.items():
-        for side, option in options.items():            
+        for side, option in options.items():
             for strike, details in option['strikes'].items():
 
                 if (not strikes[term].get(strike, False)):
