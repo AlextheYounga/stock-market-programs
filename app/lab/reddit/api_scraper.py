@@ -7,7 +7,7 @@ from app.lab.core.api.iex import IEX
 from .functions import *
 import time
 import datetime
-from app.lab.fintwit.fintwit import Tweet
+from app.lab.fintwit.tweet import Tweet
 from dotenv import load_dotenv
 load_dotenv()
 

@@ -349,12 +349,12 @@ def twitter_controller(subroutine, args):
     ta = TwitterAccounts()
     if (subroutine == 'follow'):
         if (args):
-            handle = args[0]
-            index = args[1] if (len(args) > 1) else 0
+            index = args[0] if (len(args) > 1) else 0
             if (index == 'restart'):
                 print(ta.followList(p=0))
-            else:
-                print(ta.followList(index))
+                return
+        print(ta.followList())
+        return
 
     if (subroutine == 'trim'):
         if (args and args[0] == 'restart'):

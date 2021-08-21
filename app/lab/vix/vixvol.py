@@ -1,7 +1,7 @@
 from .vix_functions import *
 import math
 from app.lab.core.scrape.bonds import scrape3mTreasury
-from app.lab.fintwit.fintwit import Tweet
+from app.lab.fintwit.tweet import Tweet
 
 class VixVol:
     def __init__(self, sendtweet=False, debug=False, dummyData=False, setTimer=False):
