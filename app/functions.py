@@ -275,3 +275,8 @@ def filterNone(dct):
         if value is None:
             del dct[key]
     return dct
+
+def get_hazlitt_path():
+    dir_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    return dir_name
+

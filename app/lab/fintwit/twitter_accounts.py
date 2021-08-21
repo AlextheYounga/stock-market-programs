@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from datetime import datetime, timedelta
-from .functions import *
-from app.functions import writeTxtFile, readTxtFile, deleteFromTxTFile
+from app.lab.fintwit.functions import *
+from app.functions import writeTxtFile, readTxtFile, deleteFromTxTFile, get_hazlitt_path
 import time
 from dotenv import load_dotenv
 from logs.hazlittlog import log
@@ -12,9 +12,9 @@ import tweepy
 load_dotenv()
 
 logger = log('TwitterAccounts')
-KEYWORDS = 'app/lab/fintwit/data/keywords.json'
-ACCOUNT_LIST = 'app/lab/fintwit/data/accounts.txt'
-USED_LIST = 'app/lab/fintwit/data/finished.txt'
+KEYWORDS = f"{get_hazlitt_path()}/app/lab/fintwit/data/keywords.json"
+ACCOUNT_LIST = f"{get_hazlitt_path()}/app/lab/fintwit/data/accounts.txt"
+USED_LIST = f"{get_hazlitt_path()}/app/lab/fintwit/data/finished.txt"
 
 class TwitterAccounts():
     def __init__(self):
@@ -110,7 +110,7 @@ class TwitterAccounts():
             No red flags by this point.
             trimFollowers() may safely exit.
             """
-            return True
+            return True, None
 
         if (f.followers_count > 400):
             for p in keywords['positive']:
@@ -124,6 +124,8 @@ class TwitterAccounts():
     def trimFollowers(self, p=cache.get('trim_followers_last_page')):
         user = self.api.get_user(os.environ.get("TWITTER_HANDLE"))
         keywords = self.collect_keywords()
+        if (p == None):
+            p=0
 
         for page in self.limit_handled(tweepy.Cursor(self.api.friends, id=user.id, page=p).pages()):
             p += 1

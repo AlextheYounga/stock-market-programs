@@ -4,7 +4,9 @@ import requests
 import sys
 import json
 import os
+from logs.hazlittlog import log
 
+logger = log('SenateWatcherAPI')
 
 class SenateWatcher():
 
@@ -20,8 +22,9 @@ class SenateWatcher():
         try:
             response = requests.get(url, **self.settings).json()
         except:
-            print("Unexpected error:", sys.exc_info()[0])
+            logger.error("Unexpected error:", sys.exc_info()[0])
             return None
+                
 
         if (print_results):
             printFullTable(response, struct='dictlist')
@@ -35,7 +38,7 @@ class SenateWatcher():
         try:
             response = requests.get(url, **self.settings)
         except:
-            print("Unexpected error:", sys.exc_info()[0])
+            logger.error("Unexpected error:", sys.exc_info()[0])
             return None
 
         root = ET.fromstring(response.content)

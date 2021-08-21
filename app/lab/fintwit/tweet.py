@@ -27,7 +27,7 @@ class Tweet():
         return '\n'.join(res)
 
 
-    def send_tweet(self, tweet, headline=False, footer=False):
+    def send_tweet(self, tweet, headline=False, footer=False, prompt=True):
         while True:
             if (headline):
                 headline = ""
@@ -47,27 +47,27 @@ class Tweet():
             if (len(tweet) > 280):            
                 print(stylize("Error: Tweet over 280 characters.", colored.fg("red")))
                 continue
-
-            while True:
-                # First prompt
-                send = str(input('Send Tweet? (y/n): '))
-                if send in ('y', 'n'):
-                    break            
-                print(stylize("Invalid input.", colored.fg("red")))
-
-            if (send == 'n'):
+            if (prompt):
                 while True:
-                    # Rerun program?
-                    rerun = str(input('Rerun program? (y/n): '))
-                    if rerun in ('y', 'n'):
-                        break
+                    # First prompt
+                    send = str(input('Send Tweet? (y/n): '))
+                    if send in ('y', 'n'):
+                        break            
+                    print(stylize("Invalid input.", colored.fg("red")))
+
+                if (send == 'n'):
+                    while True:
+                        # Rerun program?
+                        rerun = str(input('Rerun program? (y/n): '))
+                        if rerun in ('y', 'n'):
+                            break
+                        else:
+                            print(stylize("Invalid input.", colored.fg("red")))
+                    if (rerun == 'n'):
+                        sys.exit()
                     else:
-                        print(stylize("Invalid input.", colored.fg("red")))
-                if (rerun == 'n'):
-                    sys.exit()
-                else:
-                    continue
-            if (send == 'y'):
+                        continue
+            if (prompt == False or send == 'y'):
                 self.api.PostUpdate(tweet)            
                 print(stylize("Tweet Sent", colored.fg("green")))
                 break

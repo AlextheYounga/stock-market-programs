@@ -277,11 +277,13 @@ app/lab/donchian/news/*
 app/lab/fintwit/user.py
 app/lab/fintwit/notes.*
 app/lab/core/storage/
+app/lab/fintwit/data
+app/lab/reddit/reports
+# Database
 app/database/redisdb/export/*
 app/database/redisdb/exports/*
 app/database/redisdb/imports/*
-app/lab/fintwit/data
+
 tasks/
 app/logs/hazlitt.log
-task.py
 graveyard

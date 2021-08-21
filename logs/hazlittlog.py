@@ -1,4 +1,6 @@
 import logging
+import os
+from app.functions import get_hazlitt_path
 
 """
 This is my simple logging system I made. Django's logging system seems to make 
@@ -10,7 +12,7 @@ and call it day.
 """
 def log(name):
     logging.basicConfig(
-        filename='logs/hazlitt.log', 
+        filename=f"{get_hazlitt_path()}/logs/hazlitt.log", 
         format='%(name)s - %(levelname)s - %(message)s',
         level=logging.INFO
         )
