@@ -281,5 +281,6 @@ app/database/redisdb/export/*
 app/database/redisdb/exports/*
 app/database/redisdb/imports/*
 app/lab/fintwit/data
+tasks/
 task.py
 graveyard

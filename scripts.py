@@ -344,6 +344,23 @@ def donchian_controller(args):
 
 #     command_error()
 
+def twitter_controller(subroutine, args):
+    from app.lab.fintwit.twitter_accounts import TwitterAccounts
+    ta = TwitterAccounts()
+    if (subroutine == 'follow'):
+        if (args):
+            handle = args[0]
+            index = args[1] if (len(args) > 1) else 0
+            if (index == 'restart'):
+                print(ta.followList(p=0))
+            else:
+                print(ta.followList(index))
+
+    if (subroutine == 'trim'):
+        if (args and args[0] == 'restart'):
+            print(ta.trimFollowers(0))
+        else:
+            print(ta.trimFollowers())
 
 # def vol_controller(subroutine, args):
 #     required = {'ticker': {'pos': 0, 'type': str}}
