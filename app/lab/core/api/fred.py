@@ -55,7 +55,3 @@ class Fred():
             return None
 
         return response
-
-
-f = Fred()
-print(json.dumps(f.series('balance-sheet', '1m'), indent=1))

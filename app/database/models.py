@@ -7,6 +7,8 @@ from requests.models import LocationParseError
 from app.functions import frequencyInList, filterNone
 from django.forms.models import model_to_dict
 from app.lab.vix.vixvol import VixVol
+import colored
+from colored import stylize
 
 
 # Create your models here.
@@ -14,29 +16,36 @@ class Stock(models.Model):
     id = models.AutoField(primary_key=True)
     ticker = models.CharField(db_index=True, max_length=30, unique=True)
     name = models.CharField(max_length=1000)
-    lastPrice = models.CharField(max_length=300, null=True)
+    lastPrice = models.FloatField(null=True)
     changePercent = models.FloatField(null=True)
     ytdChange = models.FloatField(null=True)
-    volume = models.FloatField(null=True)    
+    volume = models.FloatField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def store(self, data, ticker=None):
-        if (data['symbol']):
-            data['ticker'] = data['symbol']
-            del data['symbol']
-        if (data['companyName']):
-            data['name'] = data['companyName']
-            del data['companyName']
-        ticker = ticker or data['ticker']
-        data = filterNone(data)
-        # Save
-        stock, created = Stock.objects.update_or_create(
-            ticker=ticker,
-            defaults={data}
-        )        
-        return stock, created
+        apiFields = {
+            'symbol': 'ticker',
+            'companyName': 'name',
+            'latestPrice': 'lastPrice'
+        }
 
+        dbOnly = [f.name for f in self._meta.get_fields()]
+
+        for k, v in apiFields.items():
+            if (data.get(k, False)):
+                data[v] = data[k]
+                del data[k]
+
+        ticker = ticker or data['ticker']
+        data = filterNone({ key: data.get(key, None) for key in dbOnly})
+
+        # Save
+        stock, created = self.__class__.objects.update_or_create(
+            ticker=ticker,
+            defaults=data
+        )
+        return stock, created
 
     def getETFs(tickersonly=False):
         stocks = Stock.objects.all()
@@ -49,16 +58,11 @@ class Stock(models.Model):
                     etfs.append(stock)
 
         return etfs
-    
-    def get(self, ticker):
-        if (Stock.objects.filter(ticker=ticker).exists()):
-            return Stock.objects.get(ticker=ticker).value
-        return False 
-        
+
 
 class Hurst(models.Model):
     id = models.AutoField(primary_key=True)
-    stock = models.ForeignKey(Stock, on_delete = models.CASCADE)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     values = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -66,17 +70,19 @@ class Hurst(models.Model):
     class Meta:
         verbose_name_plural = "hurst"
 
+
 class Gold(models.Model):
     id = models.AutoField(primary_key=True)
     date = models.DateField(auto_now=False, auto_now_add=False)
     close = models.FloatField(null=True)
     low = models.FloatField(null=True)
-    high = models.FloatField(null=True)    
+    high = models.FloatField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "gold"
+
 
 class Senate(models.Model):
     id = models.AutoField(primary_key=True)
@@ -85,12 +91,15 @@ class Senate(models.Model):
     office = models.CharField(max_length=300, null=True)
     link = models.TextField(null=True)
     date = models.DateField(auto_now=False, auto_now_add=False)
-    transactions = models.JSONField(null=True) 
+    stock = models.JSONField(null=True)
+    amount = models.FloatField(null=True)
+    transaction = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "senate"
+
 
 class Vix(models.Model):
     id = models.AutoField(primary_key=True)
@@ -98,34 +107,35 @@ class Vix(models.Model):
     value = models.FloatField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name_plural = "vix"
-    
+
     def store(self, ticker, vix):
         vix, created = Vix.objects.update_or_create(
             ticker=ticker,
-            defaults = {
+            defaults={
                 'value': round(vix, 3),
-            }                
+            }
         )
         return vix, created
-    
+
     def get(self, ticker):
         if (Vix.objects.filter(ticker=ticker).exists()):
             return Vix.objects.get(ticker=ticker).value
-        return None 
-    
+        return None
+
     def lookup(self, ticker):
         vix = self.get(ticker)
         if (vix):
             return vix
-            
+
         vixvol = VixVol().equation(ticker)
         if (vixvol):
             Vix().store(ticker, vixvol)
             return self.get(ticker)
         return None
-        
+
 
 class News(models.Model):
     id = models.AutoField(primary_key=True)
@@ -137,19 +147,20 @@ class News(models.Model):
     pubDate = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name_plural = "news"
-    
-    def store(self, item):        
+
+    def store(self, item):
         article, created = News.objects.update_or_create(
             url=item['url'],
-            defaults = {
-            'headline': item.get('headline', None),
-            'author': item.get('author', None),
-            'source': item.get('source', None),
-            'description': item.get('description', None),
-            'pubDate': item.get('pubDate', None)}
-        )        
+            defaults={
+                'headline': item.get('headline', None),
+                'author': item.get('author', None),
+                'source': item.get('source', None),
+                'description': item.get('description', None),
+                'pubDate': item.get('pubDate', None)}
+        )
         return article, created
 
     def latest_news(self):
@@ -160,7 +171,7 @@ class News(models.Model):
             dct['stocknews'] = m.stocknews_set.all() or []
             latest_news.append(dct)
         return latest_news
-    
+
     def latest_stocks_mentioned(self):
         latest_news = self.latest_news()
         stocks = []
@@ -172,7 +183,7 @@ class News(models.Model):
                         'ticker': stock.ticker,
                         'name': stock.name,
                         'lastPrice': stock.stock.lastPrice,
-                        'changePercent': round((stock.stock.changePercent or 0) * 100, 2),                        
+                        'changePercent': round((stock.stock.changePercent or 0) * 100, 2),
                     }
                     stocks.append(dct)
         return stocks
@@ -186,9 +197,10 @@ class StockNews(models.Model):
     ticker = models.CharField(db_index=True, max_length=30)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name_plural = "stocknews"
-    
+
     def store(self, article, stock, data, ticker=None, save_vix=False):
         ticker = ticker or (data.get('ticker', None) or data.get('symbol', None))
         name = data.get('name', None) or data.get('companyName', None)
@@ -199,17 +211,17 @@ class StockNews(models.Model):
                 'ticker': ticker,
                 'name': name,
             }
-        )       
+        )
         if (save_vix):
             Vix().lookup(stock.ticker)
 
         return stock, created
-    
+
     def get(self, ticker):
         if (Stock.objects.filter(ticker=ticker).exists()):
             return Stock.objects.get(ticker=ticker).value
-        return False 
-    
+        return False
+
     def frequency(self, ticker):
         stocks = StockNews.objects.all().values_list('ticker')
         return frequencyInList(stocks, ticker)
@@ -224,9 +236,10 @@ class StockNews(models.Model):
         sorted_results = sorted(top, key=lambda i: i['frequency'], reverse=True)
         return sorted_results[:10]
 
+
 class Reddit(models.Model):
     id = models.AutoField(primary_key=True)
-    stock = models.OneToOneField(Stock, on_delete=models.CASCADE, null=False)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, null=False)
     frequency = models.IntegerField(null=True)
     sentiment = models.CharField(max_length=100, null=True)
     sentimentPercent = models.FloatField(null=True)

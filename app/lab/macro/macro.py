@@ -1,5 +1,4 @@
 import django
-from django.apps import apps
 from dotenv import load_dotenv
 from app.lab.core.api.iex import IEX
 from app.lab.fintwit.fintwit import Fintwit
@@ -15,23 +14,11 @@ django.setup()
 load_dotenv()
 
 class Macro():        
-    def getETFs(self, tickersOnly=True):
-        Stock = apps.get_model('database', 'Stock')
-        stocks = Stock.objects.all()
-        etfs = []
-        for stock in stocks:
-            if ('ETF' in stock.name):
-                if (tickersOnly):
-                    etfs.append(stock.ticker)
-                else:
-                    etfs.append(stock)
-        return etfs
-    
     def scanETFs(self):
+        from app.database.models import Stock
         results = {}
-        iex = IEX()
-        
-        etfs = self.getETFs()
+        iex = IEX()        
+        etfs = Stock().getETFs()
         chunked_etfs = chunks(etfs, 100)
         chunks_length = int(len(etfs) / 100)
 
@@ -42,6 +29,7 @@ class Macro():
                 batch = iex.get('quote', chunk)
 
                 for ticker, fundInfo in batch.items():
+                    Stock().store(fundInfo.get('quote'), ticker)
                     results.update({ticker: fundInfo})
         
         return results
@@ -177,3 +165,6 @@ class Macro():
             txt = "${} +{}%\n".format(etf['ticker'], round(etf['changeToday'], 2))
             tweet = tweet + txt
         twit.send_tweet(tweet, True)
+
+m = Macro()
+m.scanETFs()
