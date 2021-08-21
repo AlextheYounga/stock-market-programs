@@ -88,17 +88,31 @@ class Senate(models.Model):
     id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=300, null=True)
     last_name = models.CharField(max_length=300)
+    owner = models.CharField(max_length=300, null=True)
     office = models.CharField(max_length=300, null=True)
     link = models.TextField(null=True)
     date = models.DateField(auto_now=False, auto_now_add=False)
-    stock = models.JSONField(null=True)
-    amount = models.FloatField(null=True)
+    ticker = models.CharField(max_length=10, null=True)
+    amount = models.CharField(max_length=500, null=True)
+    sale_type = models.CharField(max_length=500, null=True)
     transaction = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "senate"
+    
+    def store(self, data):
+        # Save
+        senate, created = self.__class__.objects.update_or_create(
+            first_name=data.get('first_name'), 
+            last_name=data.get('last_name'), 
+            ticker=data.get('ticker'),
+            date=data.get('date'),
+            defaults=data
+        )
+        return senate, created
+
 
 
 class Vix(models.Model):
@@ -239,7 +253,7 @@ class StockNews(models.Model):
 
 class Reddit(models.Model):
     id = models.AutoField(primary_key=True)
-    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, null=False)
+    stock = models.OneToOneField(Stock, on_delete=models.CASCADE, null=False)
     frequency = models.IntegerField(null=True)
     sentiment = models.CharField(max_length=100, null=True)
     sentimentPercent = models.FloatField(null=True)

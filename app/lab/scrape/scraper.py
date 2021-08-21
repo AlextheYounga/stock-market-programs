@@ -51,7 +51,9 @@ class Scraper():
         return False
 
     def parseHTML(self, response):
-        soup = BeautifulSoup(response.text, 'html.parser')
+        if (isinstance(response, requests.models.Response)):
+            response = response.text
+        soup = BeautifulSoup(response, 'html.parser')
         return (soup if (soup) else False)
     
 
