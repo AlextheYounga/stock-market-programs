@@ -4,19 +4,17 @@ from .functions import *
 from app.functions import writeTxtFile, readTxtFile, deleteFromTxTFile
 import time
 from dotenv import load_dotenv
-import logging
+from logs.hazlittlog import log
 import os
 import json
 import sys
 import tweepy
 load_dotenv()
 
+logger = log('TwitterAccounts')
 KEYWORDS = 'app/lab/fintwit/data/keywords.json'
 ACCOUNT_LIST = 'app/lab/fintwit/data/accounts.txt'
 USED_LIST = 'app/lab/fintwit/data/finished.txt'
-
-logger = logging.getLogger(__name__)
-
 
 class TwitterAccounts():
     def __init__(self):
@@ -28,7 +26,7 @@ class TwitterAccounts():
         accounts = readTxtFile(ACCOUNT_LIST)
         if (accounts):
             for account in accounts:
-                self.followFollowers(account, p=0, accountList=True)
+                self.followFollowers(account, p, accountList=True)
                 deleteFromTxTFile(ACCOUNT_LIST, [account])
                 writeTxtFile(USED_LIST, [account])
         else:
@@ -93,7 +91,7 @@ class TwitterAccounts():
 
         return keywords
 
-    def screen_follower(f, keywords, trim=False):
+    def screen_follower(self, f, keywords, trim=False):
         for nb in keywords['negative']['bio']:
             if (nb in f.description):
                 if (trim):

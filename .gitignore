@@ -282,5 +282,6 @@ app/database/redisdb/exports/*
 app/database/redisdb/imports/*
 app/lab/fintwit/data
 tasks/
+app/logs/hazlitt.log
 task.py
 graveyard

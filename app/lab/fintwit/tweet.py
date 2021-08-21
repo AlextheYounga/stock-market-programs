@@ -3,12 +3,13 @@ import os
 import sys
 import colored
 from colored import stylize
-from app.functions import prompt_yes_no
 from dotenv import load_dotenv
+from logs.hazlittlog import log
 import twitter
 import texttable
 load_dotenv()
 
+logger = log('Tweet')
 class Tweet():
     def __init__(self):
         self.api = twitter.Api(consumer_key=os.environ.get("TWITTER_API_KEY"),
