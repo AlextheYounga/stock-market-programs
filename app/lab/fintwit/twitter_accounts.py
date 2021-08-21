@@ -47,7 +47,7 @@ class TwitterAccounts():
             cache.set('twitter_last_run', current_time, 910)
             cache.set('auto_followers_last_page', p, None)
 
-            print('Page {}'.format(p))
+            logger.info(f"Twitter page {p}")
             for f in page:
                 if (self.screen_follower(f, keywords)):
                     try:
@@ -97,17 +97,21 @@ class TwitterAccounts():
         for nb in keywords['negative']['bio']:
             if (nb in f.description):
                 if (trim):
-                    print('Contained negative word in bio')
+                    reason='Contained negative word in bio'
+                    return False, reason
                 return False
         for ns in keywords['negative']['screen_name']:
             if (ns in f.screen_name):
                 if (trim):
-                    print('Contained negative word in screen name')
+                    reason='Contained negative word in screen name'
+                    return False, reason
                 return False
 
         if (trim):
-            # No red flags by this point
-            # trimfollowers() may safely exit
+            """
+            No red flags by this point.
+            trimFollowers() may safely exit.
+            """
             return True
 
         if (f.followers_count > 400):
@@ -129,11 +133,12 @@ class TwitterAccounts():
             cache.set('twitter_last_run', current_time, 910)
             cache.set('trim_followers_last_page', p, None)
 
-            print('Page {}'.format(p))
-            for f in page:
-                if (self.screen_follower(f, keywords, trim=True) == False):
+            logger.info(f"Twitter page {p}")
+            for f in page:   
+                evaluation, reason = self.screen_follower(f, keywords, trim=True)  
+                if (evaluation == False):
                     try:
                         self.api.destroy_friendship(f.id, screen_name=None, user_id=f.id)
-                        print("unfollowed {} - {} followers".format(f.screen_name, f.followers_count))
+                        logger.warning(f"Unfollowed {f.screen_name} - {f.followers_count} followers - Reason: {reason}")
                     except:
                         break
