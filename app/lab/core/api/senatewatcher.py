@@ -14,7 +14,6 @@ django.setup()
 logger = log('SenateWatcherAPI')
 scraper = Scraper()
 
-
 class SenateWatcher():
 
     def __init__(self):
@@ -68,8 +67,6 @@ class SenateWatcher():
                     print(f"Created new record for {result['first_name']} {result['last_name']}")
 
 
-        
-
     def parseData(self, data):
         results = []
         for senator in data:
@@ -80,7 +77,6 @@ class SenateWatcher():
                     'office': senator.get('office', None),
                     'link': senator.get('ptr_link', None),
                     'date': datetime.datetime.strptime(transaction['transaction_date'], '%m/%d/%Y').strftime('%Y-%m-%d') if (transaction.get('transaction_date', False)) else None,
-                    'amount': transaction.get('amount'),
                     'ticker': transaction.get('ticker', None),
                     'owner': transaction.get('owner', None),
                     'sale_type': transaction.get('type', None),
@@ -96,7 +92,11 @@ class SenateWatcher():
                     if ('<a' in v):
                         html = scraper.parseHTML(v)
                         tinfo[k] = html.text
-
+                
+                amount_range = transaction.get('amount').split(' - ')
+                tinfo['amount_low'] = int(amount_range[0].replace('$', '').replace(',', ''))
+                tinfo['amount_high'] = int(amount_range[1].replace('$', '').replace(',', ''))
+                
                 results.append(tinfo)
         return results
 

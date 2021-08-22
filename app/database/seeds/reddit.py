@@ -1,14 +1,13 @@
-import django
-from app.lab.reddit.api_scraper import scrapeWSB
-from app.functions import chunks
-from django.apps import apps
-import json
 import sys
+import json
+from app.functions import chunks
+from app.lab.reddit.api_scraper import scrapeWSB
+import django
+from dotenv import load_dotenv
+load_dotenv()
 django.setup()
+from app.database.models import Reddit, Stock
 
-
-Reddit = apps.get_model('database', 'Reddit')
-Stock = apps.get_model('database', 'Stock')
 
 wsb = scrapeWSB(sendtweet=False)
 
@@ -21,7 +20,7 @@ for bet in wsb:
         ticker=bet.get('symbol'),
         defaults={
             'name': bet.get('companyName', None),
-            'lastPrice': bet.get('latestPrice', None),                    
+            'lastPrice': bet.get('latestPrice', None),
             'changePercent': bet.get('changePercent', None),
             'ytdChange': bet.get('ytdChange', None),
             'volume': bet.get('volume', None)
@@ -31,10 +30,10 @@ for bet in wsb:
     Reddit.objects.update_or_create(
         stock=stock[0],
         defaults={
-            'frequency': bet.get('frequency'),                    
+            'frequency': bet.get('frequency'),
             'sentiment': sentimentTerm,
             'sentimentPercent': (float(sentimentPercent.split('%')[0]) / 100) if sentimentPercent else None,
         }
     )
-    
+
     print('saved {}'.format(bet['symbol']))

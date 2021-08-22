@@ -5,14 +5,14 @@ import progressbar
 import time
 from datetime import date
 from app.functions import chunks, dataSanityCheck
-from app.lab.core.api.historical import batchHistoricalData
+from app.lab.core.api.iex import IEX
 from app.lab.core.output import printFullTable, writeCSV
 import django
 load_dotenv()
 django.setup()
+from app.database.models import Stock
 
-Stock = apps.get_model('database', 'Stock')
-Watchlist = apps.get_model('database', 'Watchlist')
+iex = IEX()
 
 print('Running...')
 
@@ -25,7 +25,7 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
     for i, chunk in enumerate(chunked_tickers):
         bar.update(i)
         time.sleep(1)
-        batch = batchHistoricalData(chunk, '5d', priceOnly=True)
+        batch = iex.getHistorical('chart', chunk, timerframe='5d', priceOnly=True)
 
         for ticker, info in batch.items():
             if (info.get('chart', False)):

@@ -1,30 +1,27 @@
-import django
-from django.apps import apps
-from dotenv import load_dotenv
-import json
-import sys
-import progressbar
-from datetime import date
-import time
-import redis
-from app.functions import chunks, dataSanityCheck
-from app.lab.core.api.iex import IEX
-# from app.lab.core.api.stats import getPriceTarget
-# from app.lab.core.api.batch import quoteStatsBatchRequest
-from app.lab.core.output import printTable, printFullTable, writeCSV
 from app.lab.fintwit.tweet import Tweet
+from app.lab.core.output import printFullTable
+from app.lab.core.api.iex import IEX
+from app.functions import chunks, dataSanityCheck
+import time
+import progressbar
+import sys
+import json
+import django
+from dotenv import load_dotenv
 load_dotenv()
 django.setup()
+from app.database.models import Stock
+
+
 class Chaser():
     def __init__(self):
         self.api = IEX()
 
     def scan(self):
         print('Scanning...')
-        
-        Stock = apps.get_model('database', 'Stock')
+
         tickers = Stock.objects.all().values_list('ticker', flat=True)
-        results = {}        
+        results = {}
 
         chunked_tickers = chunks(tickers, 100)
         chunks_length = int(len(tickers) / 100)
@@ -39,7 +36,6 @@ class Chaser():
                     results.update({ticker: stockinfo})
         return results
 
-    
     def run(self, pennyStocks=False, tweet=False, printResults=False):
         results = []
         stocks = self.scan()
@@ -112,7 +108,6 @@ class Chaser():
                                     }
                                     stockData.update(keyStats)
 
-
                                     stockData['changeToday'] = changeToday
                                     print('{} saved to Watchlist'.format(ticker))
 
@@ -123,7 +118,7 @@ class Chaser():
                                     results.append(stockData)
         if (tweet):
             # Tweet
-            twit = Fintwit()
+            twit = Tweet()
             tweet = ""
             for i, data in enumerate(results):
                 ticker = '${}'.format(data['ticker'])
@@ -131,7 +126,7 @@ class Chaser():
                 tweet_data = "{} +{}% \n".format(ticker, changeToday)
                 tweet = tweet + tweet_data
 
-            twit.send_tweet(tweet, True)
+            twit.send(tweet, True)
 
         if (printResults):
             printFullTable(results, struct='dictlist')

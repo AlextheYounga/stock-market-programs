@@ -1,11 +1,12 @@
-import django
-from app.lab.core.api.iex import IEX
 from app.functions import chunks
-from django.apps import apps
+from app.lab.core.api.iex import IEX
+import django
+from dotenv import load_dotenv
+load_dotenv()
 django.setup()
+from app.database.models import Stock
 
 
-Stock = apps.get_model('database', 'Stock')
 iex = IEX()
 stocks = iex.syncStocks()
 tickers = [stock['symbol'] for stock in stocks]

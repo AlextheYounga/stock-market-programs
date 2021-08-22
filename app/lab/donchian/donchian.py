@@ -29,10 +29,10 @@ class Donchian():
 
 
     def tweet(self, ticker, donchian_range):
-        twit = Fintwit()
+        twit = Tweet()
         headline = "${} 3week Donchian Range:".format(ticker)
         tweet = headline + twit.translate_data(donchian_range)
-        twit.send_tweet(tweet)
+        twit.send(tweet)
     
     def export(self, donchian_range, ticker):
         output_file = 'app/lab/donchian/output/donchianrange.csv'

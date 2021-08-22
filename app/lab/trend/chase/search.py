@@ -1,21 +1,17 @@
 import django
-from django.apps import apps
 from dotenv import load_dotenv
 import json
 import sys
 from datetime import date
-from ...redisdb.controller import rdb_save_stock
 from app.functions import chunks, dataSanityCheck
-from app.lab.core.api.batch import quoteStatsBatchRequest
-from app.lab.core.api.stats import getPriceTarget
-from app.lab.core.output import printTable, printFullTable, writeCSV
-from ...fintwit.tweet import send_tweet
+from app.lab.core.api.iex import IEX
+from app.lab.core.output import printFullTable, writeCSV
+from ...fintwit.tweet import send
 load_dotenv()
 django.setup()
+from app.database.models import Stock
 
-Stock = apps.get_model('database', 'Stock')
-Watchlist = apps.get_model('database', 'Watchlist')
-
+iex = IEX()
 
 print('Running...')
 
@@ -33,10 +29,8 @@ def search(string):
 
         chunked_tickers = chunks(tickers, 100)
 
-
-
         for i, chunk in enumerate(chunked_tickers):
-            batch = quoteStatsBatchRequest(chunk)
+            batch = iex.get('stats', chunk)
 
             for ticker, stockinfo in batch.items():
                 if (stockinfo.get('quote', False) and stockinfo.get('stats', False)):
@@ -83,11 +77,9 @@ def search(string):
                         'ttmEPS': ttmEPS
                     }
 
-                    rdb_save_stock(ticker, keyStats)
-
                     if (changeToday > 12):
                         if (volume > previousVolume):
-                            priceTargets = getPriceTarget(ticker)
+                            priceTargets = iex.get('price-target', ticker)
                             fromPriceTarget = round((price / priceTargets['priceTargetHigh']) * 100, 3) if (dataSanityCheck(priceTargets, 'priceTargetHigh')) else 0
                             avgPricetarget = priceTargets['priceTargetAverage'] if (dataSanityCheck(priceTargets, 'priceTargetAverage')) else None
                             highPriceTarget = priceTargets['priceTargetHigh'] if (dataSanityCheck(priceTargets, 'priceTargetHigh')) else None
@@ -98,7 +90,6 @@ def search(string):
                                 'highPriceTarget': highPriceTarget,
                                 'fromPriceTarget': fromPriceTarget,
                             }
-                            rdb_save_stock(ticker, trend_data)
 
                             keyStats.update({
                                 'highPriceTarget': highPriceTarget,
@@ -111,12 +102,6 @@ def search(string):
                                 'lastPrice': price
                             }
                             stockData.update(keyStats)
-
-                            # Save to Watchlist
-                            Watchlist.objects.update_or_create(
-                                ticker=ticker,
-                                defaults=stockData
-                            )
 
                             stockData['changeToday'] = changeToday
                             print('{} saved to Watchlist'.format(ticker))
@@ -136,4 +121,4 @@ def search(string):
                 tweet_data = "{} +{}% \n".format(ticker, changeToday)
                 tweet = tweet + tweet_data
 
-            send_tweet(tweet, True)
+            send(tweet, True)

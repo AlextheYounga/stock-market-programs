@@ -1,7 +1,5 @@
 import django
-from django.apps import apps
-from app.lab.core.api.stats import getCurrentPrice
-from app.lab.core.api.sync import syncPrices
+from app.lab.core.api.iex import IEX
 import colored
 from colored import stylize
 import redis
@@ -10,6 +8,7 @@ import sys
 from dotenv import load_dotenv
 load_dotenv()
 django.setup()
+from app.database.models import Stock
 
 
 def checkEarnings(earnings):
@@ -41,13 +40,12 @@ def checkEarnings(earnings):
         return results
 
 
-
 def getPennyStocks(tickersOnly=True, refresh_prices=False):
+    iex = IEX()
     if (refresh_prices):
         print(stylize("Syncing prices...", colored.fg("yellow")))
-        syncPrices()
+        iex.syncPrices()
 
-    Stock = apps.get_model('database', 'Stock')
     stocks = Stock.objects.all()
     r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
     pennystocks = []
@@ -62,7 +60,3 @@ def getPennyStocks(tickersOnly=True, refresh_prices=False):
                     pennystocks.append(stock)
 
     return pennystocks
-
-
-
-    

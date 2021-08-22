@@ -158,13 +158,13 @@ def scrapeWSB(sendtweet=False):
     sorted_results = sorted(results, key=lambda i: i['frequency'], reverse=True)
 
     if (sendtweet):
-        twit = Fintwit()
+        twit = Tweet()
         tweetdata = {}
         for r in sorted_results[:10]:
             tweetdata['$' + r['ticker']] = r['frequency']
 
         headline = "Top mentioned stocks on r/wallstreetbets and times mentioned:\n"
         tweet = headline + twit.translate_data(tweetdata)
-        twit.send_tweet(tweet)
+        twit.send(tweet)
 
     return results

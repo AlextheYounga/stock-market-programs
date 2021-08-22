@@ -1,28 +1,18 @@
 import django
-from django.apps import apps
 from dotenv import load_dotenv
 import json
 import sys
 import progressbar
-import redis
 import time
-from datetime import date
-from ..redisdb.controller import rdb_save_stock
 from app.functions import chunks, dataSanityCheck
-from app.lab.core.api.batch import quoteStatsBatchRequest
-from app.lab.core.api.stats import getPriceTarget
-from app.lab.core.output import printFullTable, writeCSV
-from app.lab.fintwit.tweet import send_tweet
+from app.lab.core.api.iex import IEX
+from app.lab.core.output import printFullTable
+from app.lab.fintwit.tweet import send
 load_dotenv()
 django.setup()
+from app.database.models import Stock
 
-Stock = apps.get_model('database', 'Stock')
-Watchlist = apps.get_model('database', 'Watchlist')
-
-rdb = True
-stocksaved = 0
-wlsaved = 0
-
+iex = IEX()
 
 print('Running...')
 
@@ -37,7 +27,7 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
 
         bar.update(i)
         time.sleep(1)
-        batch = quoteStatsBatchRequest(chunk)
+        batch = iex.get('stats', chunk)
 
         for ticker, stockinfo in batch.items():
 
@@ -78,18 +68,10 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
                         'ttmEPS': ttmEPS
                     }
 
-                    if (rdb == True):
-                        try:
-                            rdb_save_stock(ticker, keyStats)
-                            stocksaved += 1
-                        except redis.exceptions.ConnectionError:
-                            rdb = False
-                            print('Redis not connected. Not saving.')
-
                     if ((fromHigh < 100) and (fromHigh > 80)):
                         if (changeToday > 5):
                             if ((volume / previousVolume) > 3):
-                                priceTargets = getPriceTarget(ticker)
+                                priceTargets = iex.get('price-target', ticker)
                                 fromPriceTarget = round((price / priceTargets['priceTargetHigh']) * 100, 3) if (dataSanityCheck(priceTargets, 'priceTargetHigh')) else 0
                                 avgPricetarget = priceTargets['priceTargetAverage'] if (dataSanityCheck(priceTargets, 'priceTargetAverage')) else None
                                 highPriceTarget = priceTargets['priceTargetHigh'] if (dataSanityCheck(priceTargets, 'priceTargetHigh')) else None
@@ -113,14 +95,6 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
                                 }
                                 stockData.update(keyStats)
 
-                                # Save to Watchlist
-                                Watchlist.objects.update_or_create(
-                                    ticker=ticker,
-                                    defaults=stockData
-                                )
-
-                                wlsaved += 1
-
                                 stockData['volume'] = "{}K".format(round(volume / 1000, 2))
                                 stockData['previousVolume'] = "{}K".format(round(previousVolume / 1000, 2))
                                 stockData['changeToday'] = changeToday
@@ -136,8 +110,6 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
 
 if results:
     print('Total scanned: '+str(len(tickers)))
-    print('Stocks saved: '+str(stocksaved))
-    print('Saved to Watchlist: '+str(wlsaved))
 
     # today = date.today().strftime('%m-%d')
     # writeCSV(results, 'app/lab/trend/output/volume/trend_chasing_{}.csv'.format(today))
@@ -153,4 +125,4 @@ if results:
         tweet_data = "{} previous: {}, today: {} \n".format(ticker, previousVolume, volume)
         tweet = tweet + tweet_data
 
-    send_tweet(tweet, True)
+    send(tweet, True)

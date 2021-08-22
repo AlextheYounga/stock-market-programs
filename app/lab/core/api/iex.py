@@ -1,15 +1,17 @@
-from datetime import time
-from app.functions import chunks
-from dotenv import load_dotenv
-import redis
-import colored
-from colored import stylize
-import requests
-import sys
-import json
 import os
-from django.apps import apps
+import sys
+import requests
+from colored import stylize
+import colored
+import redis
+from app.functions import chunks
+from datetime import time
+import django
+from dotenv import load_dotenv
 load_dotenv()
+django.setup()
+from app.database.models import Stock
+
 
 # https://docs.python-requests.org/en/master/user/quickstart/#make-a-request
 
@@ -249,7 +251,6 @@ class IEX():
         -------
         dict object of company info for 100 tickers
         """
-        Stock = apps.get_model('database', 'Stock')
         tickers = Stock.objects.all().values_list('ticker', flat=True)
         r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
         key = self.key

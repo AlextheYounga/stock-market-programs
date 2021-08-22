@@ -141,10 +141,10 @@ class VixVol:
 
 
     def tweet(self, vix, ticker):     
-        twit = Fintwit()   
+        twit = Tweet()   
         headline = "${} VIX: ".format(ticker)
         tweet = headline + str(round(vix, 3))
-        twit.send_tweet(tweet)
+        twit.send(tweet)
             
 
 

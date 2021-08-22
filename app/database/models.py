@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.deletion import CASCADE
 from jsonfield import JSONField
 from numpy import save
+from statistics import mode
 from requests.models import LocationParseError
 from app.functions import frequencyInList, filterNone
 from django.forms.models import model_to_dict
@@ -93,7 +94,8 @@ class Senate(models.Model):
     link = models.TextField(null=True)
     date = models.DateField(auto_now=False, auto_now_add=False)
     ticker = models.CharField(max_length=10, null=True)
-    amount = models.CharField(max_length=500, null=True)
+    amount_low = models.IntegerField(null=True)
+    amount_high = models.IntegerField(null=True)
     sale_type = models.CharField(max_length=500, null=True)
     transaction = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -112,7 +114,13 @@ class Senate(models.Model):
             defaults=data
         )
         return senate, created
-
+    
+    def top_trader(self, data):
+        senators = self.__class__.objects.all().values_list('last_name', flat=True)
+        most = mode(senators)
+        senator = self.__class__.objects.get(last_name=most)
+        trades = frequencyInList(senators, most)
+        return f"{senator.first_name} {senator.last_name}", trades
 
 
 class Vix(models.Model):

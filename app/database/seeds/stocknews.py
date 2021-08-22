@@ -1,11 +1,12 @@
-from app.lab.news.article_stock import ArticleStock
 import redis
-import sys
+from app.lab.news.article_stock import ArticleStock
 import django
-from django.apps import apps
+from dotenv import load_dotenv
+load_dotenv()
 django.setup()
+from app.database.models import News
 
-News = apps.get_model('database', 'News')
+
 articles = News.objects.all()
 r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
 heap = []

@@ -27,7 +27,7 @@ class Tweet():
         return '\n'.join(res)
 
 
-    def send_tweet(self, tweet, headline=False, footer=False, prompt=True):
+    def send(self, tweet, headline=False, footer=False, prompt=True):
         while True:
             if (headline):
                 headline = ""

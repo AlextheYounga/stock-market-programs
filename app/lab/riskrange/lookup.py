@@ -1,5 +1,3 @@
-import statistics
-import math
 import json
 import sys
 from .methodology import rangeRules
@@ -12,7 +10,7 @@ def rangeLookup(ticker, sendtweet=False):
     printTable(data[ticker])
 
     if (sendtweet):
-        twit = Fintwit()
+        twit = Tweet()
         percentDownside = data[ticker]['PercentDownside']
         percentUpside = data[ticker]['PercentUpside']
         lowerRange = data[ticker]['lowerRange']
@@ -25,4 +23,4 @@ def rangeLookup(ticker, sendtweet=False):
             percentUpside
         )
         
-        twit.send_tweet(tweet, True)
+        twit.send(tweet, True)

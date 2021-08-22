@@ -4,7 +4,6 @@ from app.lab.core.api.iex import IEX
 from app.lab.fintwit.tweet import Tweet
 from app.functions import chunks
 import progressbar
-import redis
 from app.lab.core.output import printTable
 import progressbar
 import json
@@ -159,12 +158,12 @@ class Macro():
         return
 
     def sendtweet(self, results):
-        twit = Fintwit()
+        twit = Tweet()
         tweet = ""
         for etf in results:
             txt = "${} +{}%\n".format(etf['ticker'], round(etf['changeToday'], 2))
             tweet = tweet + txt
-        twit.send_tweet(tweet, True)
+        twit.send(tweet, True)
 
 m = Macro()
 m.scanETFs()
