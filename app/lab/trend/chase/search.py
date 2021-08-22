@@ -6,7 +6,7 @@ from datetime import date
 from app.functions import chunks, dataSanityCheck
 from app.lab.core.api.iex import IEX
 from app.lab.core.output import printFullTable, writeCSV
-from ...fintwit.tweet import send
+from app.lab.fintwit.tweet import send
 load_dotenv()
 django.setup()
 from app.database.models import Stock

@@ -75,7 +75,7 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
 
                     if ((fromHigh < 105) and (fromHigh > 95)):
                         if (changeToday > 10):
-                            earningsData = iex.getHistorical('earnings', ticker)
+                            earningsData = iex.getChart(ticker, endpoint='earnings')
                             if (earningsData and isinstance(earningsData, dict)):
                                 earningsChecked = checkEarnings(earningsData)
                                 if (isinstance(earningsChecked, dict) and earningsChecked['actual'] and earningsChecked['consensus']):

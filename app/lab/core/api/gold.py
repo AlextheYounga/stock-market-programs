@@ -2,7 +2,7 @@ from datetime import datetime, time, timedelta
 import time
 from dotenv import load_dotenv
 import requests
-import redis
+from app.database.redisdb.rdb import Rdb
 import sys
 import json
 import os
@@ -24,7 +24,7 @@ def goldForexPrice():
 
 def syncGoldPrices():
     print('Syncing gold prices... ')
-    r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+    r = Rdb().setup()
 
     def goldapi_io_fetch(date):
         """

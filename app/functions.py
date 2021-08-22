@@ -270,11 +270,18 @@ def is_date(string, fuzzy=False):
         return False
 
 
-def filterNone(dct):
-    for key, value in dict(dct).items():
-        if value is None:
-            del dct[key]
-    return dct
+def filterNone(obj):
+    if (isinstance(obj, dict)):
+        for key, value in dict(obj).items():
+            if value is None:
+                del obj[key]
+        return obj
+    if (isinstance(obj, list)):
+        res = []
+        for val in obj:
+            if (val != None):
+                res.append(val)
+        return res
 
 def get_hazlitt_path():
     dir_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

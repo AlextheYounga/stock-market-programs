@@ -5,7 +5,7 @@ from app.lab.core.output import printStockResults
 import colored
 from colored import stylize
 import time
-import redis
+from app.database.redisdb.rdb import Rdb
 import json
 import sys
 
@@ -17,7 +17,7 @@ def stock_search_trends(rescan=False):
     going to make and the unpredictability of Google's rate limits. To ensure we keep Google happy. 
     """
     tickers = getPennyStocks()
-    r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+    r = Rdb().setup()
 
     if (rescan):
         pytrends = TrendReq(hl='en-US', tz=360)

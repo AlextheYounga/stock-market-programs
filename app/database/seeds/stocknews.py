@@ -1,4 +1,4 @@
-import redis
+from app.database.redisdb.rdb import Rdb
 from app.lab.news.article_stock import ArticleStock
 import django
 from dotenv import load_dotenv
@@ -8,7 +8,7 @@ from app.database.models import News
 
 
 articles = News.objects.all()
-r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+r = Rdb().setup()
 heap = []
 
 for article in articles:

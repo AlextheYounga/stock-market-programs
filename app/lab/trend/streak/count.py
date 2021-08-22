@@ -1,12 +1,13 @@
 from .functions import *
 from app.functions import extract_data
-from app.lab.core.api.historical import getHistoricalData
+from app.lab.core.api.iex import IEX
 from tabulate import tabulate
 
 
 
 def count_streak(ticker):
-    asset_data = list(reversed(getHistoricalData(ticker, '1y', True)))
+    iex = IEX()
+    asset_data = list(reversed(iex.getChart(ticker, timeframe='1y', priceOnly=True)))
 
     prices = extract_data(asset_data, 'close')
     dates = extract_data(asset_data, 'date')

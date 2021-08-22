@@ -82,7 +82,7 @@ class Hurst():
             Returns dict of key stats to be used in final rescale range analysis calculation.
         """
         iex = IEX()
-        asset_prices = iex.getHistorical('chart', ticker, timeframe='1y', priceOnly=True)
+        asset_prices = iex.getChart(ticker, timeframe='1y', priceOnly=True)
         if (asset_prices):
             prices = list(reversed(extract_data(asset_prices, 'close')))
 

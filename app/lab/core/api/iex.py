@@ -3,7 +3,7 @@ import sys
 import requests
 from colored import stylize
 import colored
-import redis
+from app.database.redisdb.rdb import Rdb
 from app.functions import chunks
 from datetime import time
 import django
@@ -152,9 +152,47 @@ class IEX():
 
         return response
 
-    def getHistorical(self, endpoint, data, timeframe=None, priceOnly=False, sandbox=False):
+    def priceAtDate(self, ticker, date, sandbox=False):
         """
-        Makes api call to IEX api
+        Parameters
+        ----------
+        endpoint    :string
+                    chart | earnings
+        ticker      :string 
+                    Either a ticker or a list of tickers 
+        date        :string 
+                    Date must be in %Y%m%d format                    
+        sandbox     :bool
+                    Sets the IEX environment to sandbox mode to make limitless API calls for testing.
+
+        Returns
+        -------
+        dict object from API
+        """
+        # https://cloud.iexapis.com/stable/stock/AAPL/chart/date/20190520?chartByDay=true&token=pk_19d457837b8442e0894626298d6837d7
+        key = self.key
+        domain = self.domain
+        if (sandbox):
+            domain = self.sandbox_domain
+            key = self.sandbox_key
+        date
+        url = f"https://{domain}/stable/stock/{ticker}/chart/date/{date}"
+        payload = {
+            'chartByDay': 'true',
+            'token': key,
+        }
+
+        try:
+            response = requests.get(url, params=payload, **self.settings).json()
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            return {}
+
+        return response
+
+    def getChart(self, data, endpoint='chart', timeframe=None, priceOnly=False, sandbox=False):
+        """
+        Makes chart call to IEX api
 
         Parameters
         ----------
@@ -252,7 +290,7 @@ class IEX():
         dict object of company info for 100 tickers
         """
         tickers = Stock.objects.all().values_list('ticker', flat=True)
-        r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+        r = Rdb().setup()
         key = self.key
         domain = self.domain
         chunked_tickers = chunks(tickers, 100)

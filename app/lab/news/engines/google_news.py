@@ -1,7 +1,7 @@
 from app.lab.scrape.scraper import Scraper
 from app.functions import readTxtFile, is_date
 import requests
-import redis
+from app.database.redisdb.rdb import Rdb
 import colored
 from colored import stylize
 from datetime import datetime
@@ -9,18 +9,22 @@ import dateutil.parser as parser
 import time
 import sys
 import json
+import django
+from dotenv import load_dotenv
+load_dotenv()
+django.setup()
+from app.database.models import News
 
 
 CURATED_SRCS = 'app/lab/news/data/curated_sources.txt'
 URL = 'https://news.google.com/'
-r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+r = Rdb().setup()
 
 class GoogleNews():
     def __init__(self, url=URL):
         self.url = url
 
     def scrapeNews(self, search_query, limit):
-        from app.database.models import News
         scrape = Scraper()        
         articles = []            
         # Google News search 

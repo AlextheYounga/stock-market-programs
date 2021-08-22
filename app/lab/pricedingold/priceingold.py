@@ -12,7 +12,7 @@ load_dotenv()
 class PriceInGold():
     def calculate(self, ticker, timeframe='5y', graph=True, sandbox=False):
         iex = IEX()
-        asset_prices = iex.getHistorical('chart', ticker, timeframe, sandbox=sandbox)
+        asset_prices = iex.getChart(ticker, timeframe, sandbox=sandbox)
         gold_prices = read_historical_gold_prices()
 
         dates = []

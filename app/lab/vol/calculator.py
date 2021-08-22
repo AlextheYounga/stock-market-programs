@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
-from app.lab.core.api.historical import getHistoricalData
+from app.lab.core.api.iex import IEX
 from app.functions import chunks, extract_data
 from .functions import *
 
 
 def calculateVol(ticker, ndays=30):
-    asset_data = getHistoricalData(ticker, timeframe='5y', priceOnly=True, sandbox=False)
+    iex = IEX()
+    asset_data = iex.getChart(ticker, timeframe='5y', priceOnly=True)
     prices = list(reversed(extract_data(asset_data, 'close')))
     lreturns = log_returns(prices)
     stdevs = rollingStDev(lreturns)

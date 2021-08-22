@@ -2,7 +2,7 @@ import django
 from app.lab.core.api.iex import IEX
 import colored
 from colored import stylize
-import redis
+from app.database.redisdb.rdb import Rdb
 import json
 import sys
 from dotenv import load_dotenv
@@ -47,7 +47,7 @@ def getPennyStocks(tickersOnly=True, refresh_prices=False):
         iex.syncPrices()
 
     stocks = Stock.objects.all()
-    r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+    r = Rdb().setup()
     pennystocks = []
 
     for stock in stocks:

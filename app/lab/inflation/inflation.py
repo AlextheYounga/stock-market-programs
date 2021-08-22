@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 import numpy as np
-import redis
+from app.database.redisdb.rdb import Rdb
 import statistics
 import progressbar
 import json
@@ -44,6 +44,7 @@ SECTORS = [
         # 'IYR',
         # 'XLRE',
     ]
+r = Rdb().setup()
 class Inflation():
     def formula(self, data):
         """
@@ -53,8 +54,7 @@ class Inflation():
         Theoretically, this should represent 'real' US asset inflation over the last 10 years.
         """
         avgs = {}
-        index = {}
-        r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+        index = {}        
 
         for day, prices in data.items():
             avg = statistics.mean(prices)
@@ -76,7 +76,6 @@ class Inflation():
 
 
     def calculate(self, update):
-        r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
         data = {}
 
         for ticker in progressbar.progressbar(SECTORS, prefix='Calculating: '):

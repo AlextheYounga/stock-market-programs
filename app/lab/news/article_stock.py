@@ -1,7 +1,7 @@
 from app.lab.core.api.iex import IEX
 from app.functions import chunks, readTxtFile
 from bs4 import BeautifulSoup
-import redis
+from app.database.redisdb.rdb import Rdb
 import re
 import colored
 from colored import stylize
@@ -14,7 +14,7 @@ EXCHANGES = 'app/lab/news/data/exchanges.txt'
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
-r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+r = Rdb().setup()
 
 class ArticleStock():
     def __init__(self, articles):

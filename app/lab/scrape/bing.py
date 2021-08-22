@@ -1,6 +1,6 @@
 from app.lab.scrape.scraper import Scraper
 import time
-import redis
+from app.database.redisdb.rdb import Rdb
 import colored
 from colored import stylize
 import time
@@ -58,7 +58,7 @@ def keywordSearch(keywords, domains, end=500):
 def infiniteSearch(keyword, domain):
     scrape = Scraper()
     query = f"{keyword}%20site%3A{domain}"
-    r = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+    r = Rdb().setup()
     position = r.get('bing_position') if r.get('bing_position') else 0    
     links = []
     end = 100000000

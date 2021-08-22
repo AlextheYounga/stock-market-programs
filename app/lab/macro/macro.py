@@ -29,7 +29,7 @@ class Macro():
                 batch = iex.get('quote', chunk)
 
                 for ticker, fundInfo in batch.items():
-                    Stock.store(fundInfo.get('quote'), ticker)
+                    Stock().store(fundInfo.get('quote'), ticker)
                     results.update({ticker: fundInfo})
 
         return results

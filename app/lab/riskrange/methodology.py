@@ -3,14 +3,15 @@ import sys
 import math
 import json
 from app.functions import extract_data, removeZeroes
-from app.lab.core.api.historical import getHistoricalData
-from app.lab.core.api.stats import getCurrentPrice
+from app.lab.core.api.iex import IEX
 from datetime import datetime
 
 
 def rangeRules(ticker):
+    iex = IEX()
     signalArray = {}
-    assetData = getHistoricalData(ticker, timeframe='3m')    
+    
+    assetData = iex.getChart(ticker, timeframe='3m')    
     # --------------------------------------------
     # Data
     prices = list(reversed(removeZeroes(extract_data(assetData, 'close'))))

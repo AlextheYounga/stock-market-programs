@@ -12,7 +12,7 @@ class Donchian():
     
     def calculate(self, ticker, days=30, sendtweet=False):
         iex = IEX()
-        asset_data = iex.getHistorical('chart', ticker, timeframe='1m')
+        asset_data = iex.getChart(ticker, timeframe='1m')
         highs = extract_data(asset_data, 'high')
         lows = extract_data(asset_data, 'low')
 

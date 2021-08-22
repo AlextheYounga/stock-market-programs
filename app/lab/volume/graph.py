@@ -4,19 +4,15 @@ import sys
 import redis
 import time
 from datetime import date
-from ..redisdb.controller import rdb_save_stock
 from app.functions import extract_data
-from app.lab.core.api.historical import getHistoricalData
-from app.lab.core.output import printFullTable, writeCSV
-import matplotlib
+from app.lab.core.api.iex import IEX
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib import pylab
 import numpy as np
 load_dotenv()
 
 def graph_volume(ticker, timeframe='3m', sandbox=False):
-    hdata = getHistoricalData(ticker, timeframe=timeframe, priceOnly=True, sandbox=sandbox)
+    iex = IEX()
+    hdata = iex.getChart(ticker, timeframe=timeframe, priceOnly=True, sandbox=sandbox)
     prices = extract_data(hdata, 'close')
     volumes = []
     for hd in hdata:

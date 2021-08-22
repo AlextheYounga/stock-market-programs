@@ -25,7 +25,7 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
     for i, chunk in enumerate(chunked_tickers):
         bar.update(i)
         time.sleep(1)
-        batch = iex.getHistorical('chart', chunk, timerframe='5d', priceOnly=True)
+        batch = iex.getChart(chunk, timerframe='5d', priceOnly=True)
 
         for ticker, info in batch.items():
             if (info.get('chart', False)):
