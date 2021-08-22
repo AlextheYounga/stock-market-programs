@@ -48,8 +48,8 @@ class Stock(models.Model):
         )
         return stock, created
 
-    def getETFs(tickersonly=False):
-        stocks = Stock.objects.all()
+    def getETFs(self, tickersonly=False):
+        stocks = self.__class__.objects.all()
         etfs = []
         for stock in stocks:
             if ('ETF' in stock.name):
@@ -134,7 +134,7 @@ class Vix(models.Model):
         verbose_name_plural = "vix"
 
     def store(self, ticker, vix):
-        vix, created = Vix.objects.update_or_create(
+        vix, created = self.__class__.objects.update_or_create(
             ticker=ticker,
             defaults={
                 'value': round(vix, 3),
@@ -143,8 +143,8 @@ class Vix(models.Model):
         return vix, created
 
     def get(self, ticker):
-        if (Vix.objects.filter(ticker=ticker).exists()):
-            return Vix.objects.get(ticker=ticker).value
+        if (self.__class__.objects.filter(ticker=ticker).exists()):
+            return self.__class__.objects.get(ticker=ticker).value
         return None
 
     def lookup(self, ticker):
@@ -154,7 +154,7 @@ class Vix(models.Model):
 
         vixvol = VixVol().equation(ticker)
         if (vixvol):
-            Vix().store(ticker, vixvol)
+            self.__class__.store(ticker, vixvol)
             return self.get(ticker)
         return None
 
@@ -174,7 +174,7 @@ class News(models.Model):
         verbose_name_plural = "news"
 
     def store(self, item):
-        article, created = News.objects.update_or_create(
+        article, created = self.__class__.objects.update_or_create(
             url=item['url'],
             defaults={
                 'headline': item.get('headline', None),
@@ -187,7 +187,7 @@ class News(models.Model):
 
     def latest_news(self):
         latest_news = []
-        model_set = News.objects.filter(pubDate__isnull=False).all().order_by('-pubDate')[:40]
+        model_set = self.__class__.objects.filter(pubDate__isnull=False).all().order_by('-pubDate')[:40]
         for m in model_set:
             dct = model_to_dict(m)
             dct['stocknews'] = m.stocknews_set.all() or []
@@ -245,12 +245,12 @@ class StockNews(models.Model):
         return False
 
     def frequency(self, ticker):
-        stocks = StockNews.objects.all().values_list('ticker')
+        stocks = self.__class__.objects.all().values_list('ticker')
         return frequencyInList(stocks, ticker)
 
     def top_mentioned(self):
         top = {}
-        stocks = StockNews.objects.all().values_list('ticker')
+        stocks = self.__class__.objects.all().values_list('ticker')
         for stock in stocks:
             top['ticker'] = stock
             top['frequency'] = frequencyInList(stocks, stock)

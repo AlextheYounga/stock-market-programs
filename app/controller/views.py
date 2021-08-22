@@ -2,16 +2,15 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.template import RequestContext
-from app.database.models import Vix
+from app.database.models import Vix, News
 from app.lab.news.newsfeed import NewsFeed
-from app.database.models import News
 # Create your views here.
 
 def dashboard(request):
     news = News()
     stocks_mentioned = news.latest_stocks_mentioned()
     for stock in stocks_mentioned:
-        stock['vix'] = Vix().get(stock['ticker']) or 'NA'
+        stock['vix'] = Vix.get(stock['ticker']) or 'NA'
         # TODO: Make color work
         stock['changeColor'] = 'green' if (stock.get('changePercent', False) and stock['changePercent'] > 0) else 'red'
         print(stock)
