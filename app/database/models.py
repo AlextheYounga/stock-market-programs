@@ -1,6 +1,7 @@
 from os import spawnve
 from django.db import models
 from django.db.models.deletion import CASCADE
+from django.db.models.fields.related import ForeignKey
 from jsonfield import JSONField
 from numpy import save
 from statistics import mode
@@ -39,7 +40,7 @@ class Stock(models.Model):
                 del data[k]
 
         ticker = ticker or data['ticker']
-        data = filterNone({ key: data.get(key, None) for key in dbOnly})
+        data = filterNone({key: data.get(key, None) for key in dbOnly})
 
         # Save
         stock, created = self.__class__.objects.update_or_create(
@@ -87,6 +88,7 @@ class Gold(models.Model):
 
 class Senate(models.Model):
     id = models.AutoField(primary_key=True)
+    hash_key = models.CharField(max_length=70, unique=True, default=None)
     first_name = models.CharField(max_length=300, null=True)
     last_name = models.CharField(max_length=300)
     owner = models.CharField(max_length=300, null=True)
@@ -94,6 +96,7 @@ class Senate(models.Model):
     link = models.TextField(null=True)
     date = models.DateField(auto_now=False, auto_now_add=False)
     ticker = models.CharField(max_length=10, null=True)
+    price_at_date = models.FloatField(null=True)
     amount_low = models.IntegerField(null=True)
     amount_high = models.IntegerField(null=True)
     sale_type = models.CharField(max_length=500, null=True)
@@ -103,24 +106,23 @@ class Senate(models.Model):
 
     class Meta:
         verbose_name_plural = "senate"
-    
+
     def store(self, data):
         # Save
         senate, created = self.__class__.objects.update_or_create(
-            first_name=data.get('first_name'), 
-            last_name=data.get('last_name'), 
-            ticker=data.get('ticker'),
-            date=data.get('date'),
+            hash_key=data.get('hash_key'),
             defaults=data
         )
         return senate, created
-    
-    def top_trader(self, data):
+
+    def top_trader(self):
         senators = self.__class__.objects.all().values_list('last_name', flat=True)
         most = mode(senators)
         senator = self.__class__.objects.get(last_name=most)
         trades = frequencyInList(senators, most)
         return f"{senator.first_name} {senator.last_name}", trades
+
+    # def portfolio(self, last_name):
 
 
 class Vix(models.Model):

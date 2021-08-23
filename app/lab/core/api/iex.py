@@ -1,11 +1,11 @@
 import os
 import sys
 import requests
+import time
 from colored import stylize
 import colored
 from app.database.redisdb.rdb import Rdb
 from app.functions import chunks
-from datetime import time
 import django
 from dotenv import load_dotenv
 load_dotenv()
@@ -30,6 +30,7 @@ class IEX():
             # For batch requests
             payload = {
                 'symbols': ','.join(data),
+                'token': key,
             }
             base_url = f"https://{domain}/stable/stock/market/batch"
             params = {
@@ -39,7 +40,6 @@ class IEX():
                 'company': {'types': 'quote,company'},
             }
             payload.update(params[endpoint])
-            payload.update({'token': key})
 
             return base_url, payload
 
@@ -65,7 +65,6 @@ class IEX():
                 payload.update({'filter': filters})
             else:
                 print('Cannot add filter to price endpoint.')
-        payload.update({'token': key})
 
         return urls[endpoint], payload
 
@@ -101,8 +100,8 @@ class IEX():
             print("Unexpected error:", sys.exc_info()[0])
             return None
 
-        if (endpoint == 'price' and response.get('latestPrice', False)):
-            return response['latestPrice']
+        if (endpoint == 'price' and ('quote' in response) and (response['quote'].get('latestPrice', False))):
+            return response['quote']['latestPrice']
 
         return response
 
@@ -152,7 +151,8 @@ class IEX():
 
         return response
 
-    def priceAtDate(self, ticker, date, sandbox=False):
+    def priceAtDate(self, data, date, sandbox=False):
+        # https://cloud.iexapis.com/stable/stock/market/chart/date/20190109?&symbols=twtr,aapl&chartByDay=true&token=pk_19d457837b8442e0894626298d6837d7
         """
         Parameters
         ----------
@@ -175,18 +175,35 @@ class IEX():
         if (sandbox):
             domain = self.sandbox_domain
             key = self.sandbox_key
-        date
-        url = f"https://{domain}/stable/stock/{ticker}/chart/date/{date}"
+
         payload = {
             'chartByDay': 'true',
             'token': key,
         }
+        if (isinstance(data, list) and len(data) == 1):
+            data = data.pop()
 
+        url = f"https://{domain}/stable/stock/{data}/chart/date/{date}"
+
+        if (isinstance(data, list)):
+            url = f"https://{domain}/stable/stock/market/chart/date/{date}"
+            payload.update({'symbols': ','.join(data)})
+                
+        time.sleep(0.5)
+        print(url)
         try:
-            response = requests.get(url, params=payload, **self.settings).json()
+            response = requests.get(url, params=payload, **self.settings).json()            
         except:
             print("Unexpected error:", sys.exc_info()[0])
             return {}
+
+        if (isinstance(data, str)):
+            if (isinstance(response, dict) and response.get('close', False)):
+                return response['close']
+            if (isinstance(response[0], dict) and response[0].get('close', False)):
+                return response[0]['close']
+            if (isinstance(response[0], dict) and response[0][0].get('close', False)):
+                return response[0][0]['close']
 
         return response
 
@@ -215,7 +232,7 @@ class IEX():
             domain = self.sandbox_domain
             key = self.sandbox_key
 
-        payload = {}
+        payload = {'token': key}
         base_url = f"https://{domain}/stable/stock"
 
         urls = {
@@ -246,7 +263,6 @@ class IEX():
             payload.update({'chartCloseOnly': 'true'})
 
         url = urls[endpoint]
-        payload.update({'token': key})
 
         try:
             response = requests.get(url, params=payload, **self.settings).json()
