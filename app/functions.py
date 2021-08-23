@@ -232,6 +232,10 @@ def writeTxtFile(path, data, append=False):
     return True
 
 
+def readJSONFile(path):
+    txtfile = open(path, "r")
+    return json.loads(txtfile.read())
+
 
 def deleteFromTxTFile(path, data, fmt=list):
     read = readTxtFile(path, fmt)
@@ -282,6 +286,10 @@ def filterNone(obj):
             if (val != None):
                 res.append(val)
         return res
+
+def compare_dicts(older, newer):
+    return { k : newer[k] for k in set(newer) - set(older) }
+
 
 def get_hazlitt_path():
     dir_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

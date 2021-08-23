@@ -2,11 +2,6 @@ import sys
 import json
 
 
-def readJSONFile(path):
-    txtfile = open(path, "r")
-    return json.loads(txtfile.read())
-
-
 def prompt_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
 
