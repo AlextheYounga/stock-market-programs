@@ -22,7 +22,7 @@ class TwitterAccounts():
         self.auth.set_access_token(os.environ.get("TWITTER_ACCESS_KEY"), os.environ.get("TWITTER_ACCESS_SECRET"))
         self.api = tweepy.API(self.auth)
 
-    def followList(self, p=0):
+    def followList(self, p=cache.get('auto_followers_last_page')):
         accounts = readTxtFile(ACCOUNT_LIST)
         if (accounts):
             for account in accounts:
@@ -33,6 +33,8 @@ class TwitterAccounts():
             logger.error('No accounts to follow')
 
     def followFollowers(self, handle, p=cache.get('auto_followers_last_page'), accountList=False):
+        if (p == None):
+            p=0
         user = self.api.get_user(handle)
         keywords = self.collect_keywords()
         logger.info(f"Following from account: Name: {user.name} - Screen Name: {user.screen_name} - Description: {user.description}")        

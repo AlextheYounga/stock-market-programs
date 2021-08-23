@@ -29,6 +29,9 @@ class Fred():
         storageJSON = readJSONFile(STORAGE[endpoint])
         diff = compare_dicts(storageJSON, fseries)
         if (diff):
+            if (len(diff) > 1):
+                diff = diff[list(diff.keys())[-1]]
+            
             lastK = list(reversed(list(storageJSON)))[0]        
             last = storageJSON[lastK]     
 
