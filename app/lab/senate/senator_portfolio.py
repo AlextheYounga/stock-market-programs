@@ -42,27 +42,4 @@ class SenatorPortfolio():
 
 # sp = SenatorPortfolio()
 # sp.getPriceAtDate()
-            
-            
-
-
-
-# def senate_gains():
-# senators = Senate.objects.all()
-# r = Rdb().setup()
-# iex = IEX()
-# stocks = filterNone(list(Senate.objects.all().values_list('ticker', flat=True)))
-# chunked_tickers = chunks(stocks, 100)
-
-# for chunk in chunked_tickers:
-#     batch = iex.get('price', chunk)
-#     stockdata = {}
-#     for ticker, quote in batch.items():
-#         if (quote.get('quote', False)):
-#             Stock().store(quote['quote'], ticker=ticker)
-
-
-# datestocks = {}
-# for senator in senators:
-#     if (senator.ticker):
 

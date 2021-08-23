@@ -169,7 +169,7 @@ class SenateWatcher():
 
         return fmap
 
-    def tweet(self, senateObj, prompt):
+    def tweet(self, senateObj, prompt=True):
         twit = Tweet()
         ticker = senateObj.ticker if senateObj.ticker else senateObj.transaction.get('asset_description', False)
         if (ticker):
@@ -178,7 +178,7 @@ class SenateWatcher():
             saletype = senateObj.sale_type
             amount = f"${senateObj.amount_low} - ${senateObj.amount_high}"
             date = senateObj.date
-            transaction = f"{saletype} {ticker} {amount} on {date}"
+            transaction = f"{saletype} ${ticker} {amount} on {date}"
             c = senateObj.transaction.get('comment', False)
             comment = f"Comment: {c}" if (c and (c not in ['--', 'R']) and (len(c) > 2)) else None
 
@@ -188,6 +188,5 @@ class SenateWatcher():
                 transaction,
                 comment
             ])
-            tweet = "\n".join(tweet_data),
-            print(tweet)
+            tweet = "\n".join(tweet_data)            
             twit.send(tweet, prompt=prompt)
