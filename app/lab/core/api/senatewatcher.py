@@ -58,9 +58,9 @@ class SenateWatcher():
 
         return response
 
-    def scanAllReports(self, rnge=1000):
+    def scanAllReports(self):
         files = self.fileMap()
-        for f in files[:rnge]:
+        for f in files:
             if (r.get(f"senatewatch-api-{f}")):
                 continue
             url = f"{self.domain}/{f}"

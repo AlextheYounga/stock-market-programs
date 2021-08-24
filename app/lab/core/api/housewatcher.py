@@ -57,9 +57,9 @@ class HouseWatcher():
 
         return response
 
-    def scanAllReports(self, rnge=1000):
+    def scanAllReports(self):
         files = self.fileMap()
-        for f in files[:rnge]:
+        for f in files:
             if (r.get(f"housewatch-api-{f}")):
                 continue
             url = f"{self.domain}/{f}"
@@ -147,7 +147,7 @@ class HouseWatcher():
         return hashkey
 
     def fileMap(self):
-        # https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/filemap.xml
+        # https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/filemap.xml
         fmap = []
         url = f"{self.domain}/data/filemap.xml"
         try:

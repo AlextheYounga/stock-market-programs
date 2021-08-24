@@ -152,7 +152,7 @@ class IEX():
         return response
 
     def priceAtDate(self, data, date, sandbox=False):
-        # https://cloud.iexapis.com/stable/stock/market/chart/date/20190109?&symbols=twtr,aapl&chartByDay=true&token=pk_19d457837b8442e0894626298d6837d7
+        # https://cloud.iexapis.com/stable/stock/market/chart/date/20190109?&symbols=twtr,aapl&chartByDay=true&
         """
         Parameters
         ----------
@@ -169,7 +169,7 @@ class IEX():
         -------
         dict object from API
         """
-        # https://cloud.iexapis.com/stable/stock/AAPL/chart/date/20190520?chartByDay=true&token=pk_19d457837b8442e0894626298d6837d7
+        # https://cloud.iexapis.com/stable/stock/AAPL/chart/date/20190520?chartByDay=true&
         key = self.key
         domain = self.domain
         if (sandbox):
@@ -178,6 +178,7 @@ class IEX():
 
         payload = {
             'chartByDay': 'true',
+            'filter': 'close,symbol',        
             'token': key,
         }
         if (isinstance(data, list) and len(data) == 1):
@@ -192,18 +193,10 @@ class IEX():
         time.sleep(0.5)
         print(url)
         try:
-            response = requests.get(url, params=payload, **self.settings).json()            
+            response = requests.get(url, params=payload, **self.settings).json()                   
         except:
             print("Unexpected error:", sys.exc_info()[0])
             return {}
-
-        if (isinstance(data, str)):
-            if (isinstance(response, dict) and response.get('close', False)):
-                return response['close']
-            if (isinstance(response[0], dict) and response[0].get('close', False)):
-                return response[0]['close']
-            if (isinstance(response[0], dict) and response[0][0].get('close', False)):
-                return response[0][0]['close']
 
         return response
 
