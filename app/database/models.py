@@ -86,15 +86,18 @@ class Gold(models.Model):
         verbose_name_plural = "gold"
 
 
-class Senate(models.Model):
+class Congress(models.Model):
     id = models.AutoField(primary_key=True)
     hash_key = models.CharField(max_length=70, unique=True, default=None)
+    house = models.CharField(max_length=300)
     first_name = models.CharField(max_length=300, null=True)
     last_name = models.CharField(max_length=300)
     owner = models.CharField(max_length=300, null=True)
     office = models.CharField(max_length=300, null=True)
+    district = models.CharField(max_length=300, null=True)
     link = models.TextField(null=True)
-    date = models.DateField(auto_now=False, auto_now_add=False)
+    date = models.DateField(auto_now=False, auto_now_add=False, null=True)
+    filing_date = models.DateField(auto_now=False, auto_now_add=False, null=True)    
     ticker = models.CharField(max_length=10, null=True)
     price_at_date = models.FloatField(null=True)
     amount_low = models.IntegerField(null=True)
@@ -105,15 +108,15 @@ class Senate(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name_plural = "senate"
+        verbose_name_plural = "congress"
 
     def store(self, data):
         # Save
-        senate, created = self.__class__.objects.update_or_create(
+        congress, created = self.__class__.objects.update_or_create(
             hash_key=data.get('hash_key'),
             defaults=data
         )
-        return senate, created
+        return congress, created
 
     def top_trader(self):
         senators = self.__class__.objects.all().values_list('last_name', flat=True)

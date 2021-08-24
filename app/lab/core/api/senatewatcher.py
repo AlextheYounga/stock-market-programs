@@ -1,5 +1,6 @@
 from app.lab.scrape.scraper import Scraper
 from app.lab.core.api.iex import IEX
+from app.database.redisdb.rdb import Rdb
 import html
 from app.lab.core.output import printFullTable
 from app.lab.fintwit.tweet import Tweet
@@ -18,11 +19,12 @@ import django
 from dotenv import load_dotenv
 load_dotenv()
 django.setup()
-from app.database.models import Senate
+from app.database.models import Congress
 
 logger = log('SenateWatcherAPI')
 scraper = Scraper()
 iex = IEX()
+r = Rdb().setup()
 
 class SenateWatcher():
     def __init__(self):
@@ -34,10 +36,10 @@ class SenateWatcher():
         results = self.parseData(latest)
         senators = []
         for result in results:
-            senate, created = Senate().store(result)
+            senator, created = Congress().store(result)
             if (created):
                 logger.info(f"Created new record for {result['first_name']} {result['last_name']}")
-                senators.append(senate)
+                senators.append(senator)
         return senators
 
     def scanLastReport(self, print_results=False):
@@ -56,9 +58,11 @@ class SenateWatcher():
 
         return response
 
-    def scanAllReports(self):
+    def scanAllReports(self, rnge=1000):
         files = self.fileMap()
-        for f in files:
+        for f in files[:rnge]:
+            if (r.get(f"senatewatch-api-{f}")):
+                continue
             url = f"{self.domain}/{f}"
             print(url)
 
@@ -69,12 +73,13 @@ class SenateWatcher():
             except:
                 logger.error("Unexpected error:", sys.exc_info()[0])
                 return None
-
+            
             results = self.parseData(response)
             for result in results:
-                senate, created = Senate().store(result)
+                senate, created = Congress().store(result)
                 if (created):
                     print(f"Created new record for {result['first_name']} {result['last_name']}")
+            r.set(f"senatewatch-api-{f}", 1)
 
     def parseData(self, data):
         results = []
@@ -84,6 +89,7 @@ class SenateWatcher():
                 tdata = {
                     'first_name': senator.get('first_name', None),
                     'last_name': senator.get('last_name', None),
+                    'house': 'Senate',
                     'office': senator.get('office', None),
                     'link': senator.get('ptr_link', None),
                     'date': datetime.datetime.strptime(transaction['transaction_date'], '%m/%d/%Y').strftime('%Y-%m-%d') if (transaction.get('transaction_date', False)) else None,                    
