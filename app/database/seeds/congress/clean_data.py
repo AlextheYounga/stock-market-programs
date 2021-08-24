@@ -21,7 +21,6 @@ for rep in reps:
         rep.save()
         print(f"Updated {rep.first_name} {rep.last_name} at {rep.date}")
 
-)
     
     
 
