@@ -166,7 +166,7 @@ class HouseWatcher():
         twit = Tweet()
         ticker = houseObj.ticker if houseObj.ticker else houseObj.transaction.get('asset_description', False)
         if (ticker):
-            headline = f"New stock market transaction for house rep: {houseObj.first_name} {houseObj.last_name}."
+            headline = f"New market transaction for house rep: {houseObj.first_name} {houseObj.last_name}."
             relation = f"Relation: {houseObj.owner}" if (houseObj.owner != 'Self') else None
             saletype = houseObj.sale_type
             amount = f"${houseObj.amount_low} - ${houseObj.amount_high}"

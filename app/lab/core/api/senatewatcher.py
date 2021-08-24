@@ -179,7 +179,7 @@ class SenateWatcher():
         twit = Tweet()
         ticker = senateObj.ticker if senateObj.ticker else senateObj.transaction.get('asset_description', False)
         if (ticker):
-            headline = f"New stock market transaction for senator: {senateObj.first_name} {senateObj.last_name}."
+            headline = f"New market transaction for senator: {senateObj.first_name} {senateObj.last_name}."
             relation = f"Relation: {senateObj.owner}" if (senateObj.owner != 'Self') else None
             saletype = senateObj.sale_type
             amount = f"${senateObj.amount_low} - ${senateObj.amount_high}"
