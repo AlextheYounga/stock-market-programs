@@ -34,7 +34,7 @@ def savePriceAtDate(ticker, date, price):
 
 for date, stocks in datestocks.items():
     print(date)
-    TODO: Figure out discrepancy in date.
+    # TODO: Figure out discrepancy in date.
     # https://cloud.iexapis.com/stable/stock/market/chart/date/20210730?chartByDay=true&filter=close,symbol&symbols=F%2CPINS%2CIFNNY%2CROK%2CDECK
     apistocks = []
     for stock in stocks:        
