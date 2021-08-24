@@ -39,7 +39,7 @@ class HouseWatcher():
             if (created):
                 logger.info(f"Created new record for {result['first_name']} {result['last_name']}")
                 reps.append(rep)
-        return rep
+        return reps
 
     def scanLastReport(self, print_results=False):
         # https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/transaction_report_for_07_23_2021.json

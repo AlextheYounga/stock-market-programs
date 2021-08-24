@@ -5,4 +5,4 @@ hw = HouseWatcher()
 sw = SenateWatcher()
 
 sw.scanAllReports()
-# hw.scanAllReports()
+hw.scanAllReports()

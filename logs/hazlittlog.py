@@ -13,7 +13,7 @@ and call it day.
 def log(name):
     logging.basicConfig(
         filename=f"{get_hazlitt_path()}/logs/hazlitt.log", 
-        format='%(name)s - %(levelname)s - %(message)s',
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.INFO
         )
     logger = logging.getLogger(name)
