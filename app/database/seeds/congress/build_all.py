@@ -120,10 +120,11 @@ def gain_dollars(shares, cost, price):
         return float((shares * price) - (shares * cost))
     return 0
 
-def gain_percent(amount_low, shares, cost, price):
+def gain_percent(amount_low, gain_dollars):
     # TODO: Finish this equation
-    if (amount_low, shares, cost, price):
-        return float()
+    if (amount_low and gain_dollars):
+        return 
+
     return 0
 
 
@@ -137,6 +138,7 @@ for rep in CONGRESSDATA:
     shares = shares(pad, amount_low)
     ticker = CONGRESSDATA.get('ticker', None)
     current_price = latest_price(ticker)
+    gaindollars = gain_dollars(shares, pad, current_price)
 
     congress = {
         'first_name': CONGRESSDATA.get('first_name', None),
@@ -176,7 +178,8 @@ for rep in CONGRESSDATA:
         'cost_share': pad,
         'latest_price': current_price,
         'market_value': amount_low,
-        'gain_dollars': gain_dollars(shares, pad, current_price)
+        'gain_dollars': gaindollars,
+        'gain_percent': 
         # gain_dollars = models.FloatField(null=True)
 # gain_percent = models.FloatField(null=True)
     }

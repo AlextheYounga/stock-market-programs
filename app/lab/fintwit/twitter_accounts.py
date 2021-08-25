@@ -27,8 +27,6 @@ class TwitterAccounts():
         if (accounts):
             for account in accounts:
                 self.followFollowers(account, p, accountList=True)
-                deleteFromTxTFile(ACCOUNT_LIST, [account])
-                writeTxtFile(USED_LIST, [account])
         else:
             logger.error('No accounts to follow')
 

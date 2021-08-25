@@ -225,7 +225,7 @@ def writeTxtFile(path, data, append=False):
 
     with open(path, 'w') as f:
         if (fmt == list):
-            for item in lst:
+            for item in data:
                 f.write("%s\n" % item)
         if (fmt == str):
             f.write(data)
@@ -251,8 +251,7 @@ def deleteFromTxTFile(path, data, fmt=list):
         if (fmt == list):
             for l in data:
                 read.remove(l)
-
-            os.remove(path)
+                
             with open(path, 'w') as f:
                 for item in read:
                     f.write("%s\n" % item)
