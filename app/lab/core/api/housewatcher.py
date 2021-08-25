@@ -115,6 +115,7 @@ class HouseWatcher():
                     }
                 }
                 
+                # Sorting amounts
                 amount_range = transaction.get('amount').split(' - ')
                 if (len(amount_range) == 2):
                     tdata['amount_low'] = int(amount_range[0].replace('$', '').replace(',', ''))
@@ -127,7 +128,12 @@ class HouseWatcher():
                     else:
                         tdata['amount_low'] = None
                         tdata['amount_high'] = int(amount_range.replace('$', '').replace('-', '').replace(',', ''))
+                
+                # Removing bad data
+                tdata['ticker'] = None if (tdata['ticker'] == '--') else tdata['ticker']
+                tdata['owner'] = None if (tdata['owner'] == '--') else tdata['owner']
 
+                # Generating hash for easy search/update 
                 tdata['hash_key'] = self.generateHash(tdata)
 
                 results = results[:] + [tdata]
@@ -162,24 +168,38 @@ class HouseWatcher():
 
         return fmap
 
-    def tweet(self, houseObj, prompt=True):
+    def tweet(self, reps, prompt=True):
         twit = Tweet()
-        ticker = houseObj.ticker if houseObj.ticker else houseObj.transaction.get('asset_description', False)
-        if (ticker):
-            headline = f"New market transaction for house rep: {houseObj.first_name} {houseObj.last_name}."
-            relation = f"Relation: {houseObj.owner}" if (houseObj.owner != 'Self') else None
-            saletype = houseObj.sale_type
-            amount = f"${houseObj.amount_low} - ${houseObj.amount_high}"
-            date = houseObj.date
-            transaction = f"{saletype} ${ticker} {amount} on {date}"
-            c = houseObj.transaction.get('comment', False)
-            comment = f"Comment: {c}" if (c and (c not in ['--', 'R']) and (len(c) > 2)) else None
+        orders = {}
 
-            tweet_data = filterNone([
-                headline,
-                relation,
-                transaction,
-                comment
-            ])
-            tweet = "\n".join(tweet_data)
-            twit.send(tweet, prompt=prompt)
+        for rep in reps:
+            if (rep.ticker):
+                relation = f" Owner: {rep.owner}" if (rep.owner and rep.owner != 'Self') else ''
+                ticker = f"${rep.ticker}"
+                saletype = rep.sale_type.replace('_', ' ').title()
+                date = rep.date.strftime('%b %d')
+                amount = f"${rep.amount_low} - ${rep.amount_high}" if (rep.amount_low and rep.amount_high) else f"${rep.amount_low or rep.amount_high}"
+
+                bodyline = f"{saletype} {ticker} {amount} on {date}{relation}\n"
+
+                if (rep.last_name not in orders):
+                    orders[rep.last_name] = {
+                        'headline': f"New market transaction for house rep: {rep.first_name} {rep.last_name}.\n",
+                        'body': [],
+                    }
+
+                orders[rep.last_name]['body'].append(bodyline)
+
+        for name, t in orders.items():
+            headline = t['headline']
+            body = ""
+            for line in t['body']:
+                if (len(headline + body + line) >= 280):
+                    tweet = headline + body
+                    twit.send(tweet, prompt=prompt)
+                    body = ""
+                body = (body + line)
+            
+            tweet = headline + body
+            twit.send(tweet, prompt=prompt)            
+

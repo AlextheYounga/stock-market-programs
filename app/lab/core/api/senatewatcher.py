@@ -21,10 +21,12 @@ load_dotenv()
 django.setup()
 from app.database.models import Congress
 
+
 logger = log('SenateWatcherAPI')
 scraper = Scraper()
 iex = IEX()
 r = Rdb().setup()
+
 
 class SenateWatcher():
     def __init__(self):
@@ -73,7 +75,7 @@ class SenateWatcher():
             except:
                 logger.error("Unexpected error:", sys.exc_info()[0])
                 return None
-            
+
             results = self.parseData(response)
             for result in results:
                 senate, created = Congress().store(result)
@@ -92,7 +94,7 @@ class SenateWatcher():
                     'house': 'Senate',
                     'office': senator.get('office', None),
                     'link': senator.get('ptr_link', None),
-                    'date': datetime.datetime.strptime(transaction['transaction_date'], '%m/%d/%Y').strftime('%Y-%m-%d') if (transaction.get('transaction_date', False)) else None,                    
+                    'date': datetime.datetime.strptime(transaction['transaction_date'], '%m/%d/%Y').strftime('%Y-%m-%d') if (transaction.get('transaction_date', False)) else None,
                     'owner': transaction.get('owner', None),
                     'sale_type': transaction.get('type', None),
                     'transaction': {
@@ -102,7 +104,7 @@ class SenateWatcher():
                     }
                 }
 
-                def format_data(obj):                    
+                def format_data(obj):
                     for k, v in obj.items():
                         if (v and isinstance(v, str)):
                             if ('--' in v):
@@ -121,7 +123,7 @@ class SenateWatcher():
                     obj['amount_low'] = int(amount_range[0].replace('$', '').replace(',', ''))
                     obj['amount_high'] = int(amount_range[1].replace('$', '').replace(',', ''))
                     obj['hash_key'] = self.generateHash(obj)
-                    return obj            
+                    return obj
 
                 def format_ticker(ticker):
                     if (ticker):
@@ -135,17 +137,17 @@ class SenateWatcher():
 
                 if (ticker and (' ' in ticker)):
                     tickers = ticker.split(' ')
-                    tickers.remove('')                    
-                    for t in tickers:    
-                        dupdata = tdata.copy()   
-                        dupdata['ticker'] = t   
-                        fdata = format_data(dupdata)    
-                        results = results[:] + [fdata]                        
-                else:                  
-                    tdata['ticker'] = ticker                    
+                    tickers.remove('')
+                    for t in tickers:
+                        dupdata = tdata.copy()
+                        dupdata['ticker'] = t
+                        fdata = format_data(dupdata)
+                        results = results[:] + [fdata]
+                else:
+                    tdata['ticker'] = ticker
                     fdata = format_data(tdata)
-                    results = results[:] + [fdata]    
-        return results    
+                    results = results[:] + [fdata]
+        return results
 
     def generateHash(self, data):
         keys = [
@@ -175,24 +177,40 @@ class SenateWatcher():
 
         return fmap
 
-    def tweet(self, senateObj, prompt=True):
+    def tweet(self, senators, prompt=True):
         twit = Tweet()
-        ticker = senateObj.ticker if senateObj.ticker else senateObj.transaction.get('asset_description', False)
-        if (ticker):
-            headline = f"New market transaction for senator: {senateObj.first_name} {senateObj.last_name}."
-            relation = f"Relation: {senateObj.owner}" if (senateObj.owner != 'Self') else None
-            saletype = senateObj.sale_type
-            amount = f"${senateObj.amount_low} - ${senateObj.amount_high}"
-            date = senateObj.date
-            transaction = f"{saletype} ${ticker} {amount} on {date}"
-            c = senateObj.transaction.get('comment', False)
-            comment = f"Comment: {c}" if (c and (c not in ['--', 'R']) and (len(c) > 2)) else None
+        orders = {}
 
-            tweet_data = filterNone([
-                headline,
-                relation,
-                transaction,
-                comment
-            ])
-            tweet = "\n".join(tweet_data)            
-            twit.send(tweet, prompt=prompt)
+        for sen in senators:            
+            if (sen.ticker):
+                print(sen.last_name, sen.ticker)
+                relation = f" Owner: {sen.owner}" if (sen.owner and sen.owner != 'Self') else ''
+                ticker = f"${sen.ticker}"
+                saletype = sen.sale_type.replace('_', ' ').title()
+                date = sen.date.strftime('%b %d')
+                amount = f"${sen.amount_low} - ${sen.amount_high}" if (sen.amount_low and sen.amount_high) else f"${sen.amount_low or sen.amount_high}"
+
+                bodyline = f"{saletype} {ticker} {amount} on {date}{relation}\n"
+
+                if (sen.last_name not in orders):
+                    orders[sen.last_name] = {
+                        'headline': f"New market transaction for senator: {sen.first_name} {sen.last_name}.\n",
+                        'body': [],
+                    }
+
+                orders[sen.last_name]['body'].append(bodyline)
+
+        for name, t in orders.items():
+            headline = t['headline']
+            body = ""
+            for line in t['body']:
+                if (len(headline + body + line) > 280):                
+                    tweet = headline + body
+                    twit.send(tweet, prompt=prompt)                    
+                    body = ""
+                body = (body + line)
+            
+            tweet = headline + body
+            twit.send(tweet, prompt=prompt)        
+
+            

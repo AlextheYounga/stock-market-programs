@@ -4,14 +4,14 @@ from app.lab.fintwit.functions import *
 from app.functions import writeTxtFile, readTxtFile, deleteFromTxTFile, get_hazlitt_path, readJSONFile
 import time
 from dotenv import load_dotenv
-from logs.hazlittlog import log
+from logs.hazlittlog import twitter_log
 import os
 import json
 import sys
 import tweepy
 load_dotenv()
 
-logger = log('TwitterAccounts')
+logger = twitter_log('TwitterAccounts')
 KEYWORDS = f"{get_hazlitt_path()}/app/lab/fintwit/data/keywords.json"
 ACCOUNT_LIST = f"{get_hazlitt_path()}/app/lab/fintwit/data/accounts.txt"
 USED_LIST = f"{get_hazlitt_path()}/app/lab/fintwit/data/finished.txt"
@@ -47,7 +47,7 @@ class TwitterAccounts():
             cache.set('twitter_last_run', current_time, 910)
             cache.set('auto_followers_last_page', p, None)
 
-            logger.info(f"Twitter page {p}")
+            logger.info(f"Scanning accounts to follow: Page {p}")
             for f in page:
                 if (self.screen_follower(f, keywords)):
                     try:
@@ -135,7 +135,7 @@ class TwitterAccounts():
             cache.set('twitter_last_run', current_time, 910)
             cache.set('trim_followers_last_page', p, None)
 
-            logger.info(f"Twitter page {p}")
+            logger.info(f"Trimming followers. Page: {p}")
             for f in page:   
                 evaluation, reason = self.screen_follower(f, keywords, trim=True)  
                 if (evaluation == False):
