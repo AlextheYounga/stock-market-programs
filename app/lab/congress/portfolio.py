@@ -14,6 +14,8 @@ django.setup()
 from app.database.models import Congress, Stock
 from app.lab.core.api.senatewatcher import SenateWatcher
 
-class SenatorPortfolio():
-    print('Make Portfolio Here')
 
+class CongressPortfolio():
+
+    def calculate(self, rep):
+        records = Congress.objects.filter(first_name=rep.first_name)

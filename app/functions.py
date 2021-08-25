@@ -14,6 +14,7 @@ def extract_data_pd(data, key):
     df = pd.DataFrame(data, columns=data[0].keys())
     return df[key].tolist()
 
+
 def burrow(data, key):
     values = []
     if len(key) == 2:
@@ -57,6 +58,7 @@ def extract_data(data, key):
 
     return None
 
+
 def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
@@ -81,9 +83,9 @@ def calculateVol(prices):
     stdevTrade = statistics.stdev(prices[:16])
     stdevMonth = statistics.stdev(prices[:22])
     stdevTrend = statistics.stdev(prices[:64])
-    volTrade = prices[-1] * (stdevTrade / prices[-1]) * (math.sqrt(1/16)) if (prices[-1] != 0) else 0
-    volMonth = prices[-1] * (stdevMonth / prices[-1]) * (math.sqrt(1/22)) if (prices[-1] != 0) else 0
-    volTrend = prices[-1] * (stdevTrend / prices[-1]) * (math.sqrt(1/64)) if (prices[-1] != 0) else 0
+    volTrade = prices[-1] * (stdevTrade / prices[-1]) * (math.sqrt(1 / 16)) if (prices[-1] != 0) else 0
+    volMonth = prices[-1] * (stdevMonth / prices[-1]) * (math.sqrt(1 / 22)) if (prices[-1] != 0) else 0
+    volTrend = prices[-1] * (stdevTrend / prices[-1]) * (math.sqrt(1 / 64)) if (prices[-1] != 0) else 0
     volMean = round(statistics.mean([volTrade, volMonth, volTrend]), 3)
 
     return volMean
@@ -171,13 +173,13 @@ def zipfolder(path, filename):
     def delete_old_export_files(path):
         for root, dirs, files in os.walk(path):
             for file in files:
-                os.remove(path+file)
+                os.remove(path + file)
 
     zipf = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
     zipdir(path, zipf)
     zipf.close()
     delete_old_export_files(path)
-    os.rename(filename, path+filename)
+    os.rename(filename, path + filename)
 
 
 def unzip_folder(directory, filepath):
@@ -187,18 +189,18 @@ def unzip_folder(directory, filepath):
 
 def readTxtFile(path, fmt=list):
     txtfile = open(path, "r")
-    
+
     if os.path.exists(path):
         if (fmt == list):
             items = []
             txtfile = open(path, "r")
-            for line in txtfile:            
+            for line in txtfile:
                 items.append(str(line.strip()))
 
             return list(dict.fromkeys(items))
 
         if (fmt == str):
-            txtfile = open(path, "r")            
+            txtfile = open(path, "r")
             return txtfile.read()
 
         if (fmt == dict):
@@ -206,6 +208,7 @@ def readTxtFile(path, fmt=list):
             return json.loads(txtfile.read())
     print('Error: Path does not exist')
     return False
+
 
 def writeTxtFile(path, data, append=False):
     # Appending function
@@ -220,7 +223,7 @@ def writeTxtFile(path, data, append=False):
             if (fmt == str):
                 data = checked + "\n" + data
 
-    with open(path, 'w') as f:        
+    with open(path, 'w') as f:
         if (fmt == list):
             for item in lst:
                 f.write("%s\n" % item)
@@ -230,6 +233,11 @@ def writeTxtFile(path, data, append=False):
             f.write(json.dumps(data))
 
     return True
+
+
+def writeJSONFile(path, data):
+    with open(path, 'w') as json_file:
+        json.dump(data, json_file)
 
 
 def readJSONFile(path):
@@ -257,7 +265,6 @@ def deleteFromTxTFile(path, data, fmt=list):
             with open(path, "w") as txtfile:
                 txtfile.write(read)
 
-        
 
 def is_date(string, fuzzy=False):
     """
@@ -266,7 +273,7 @@ def is_date(string, fuzzy=False):
     :param string: str, string to check for date
     :param fuzzy: bool, ignore unknown tokens in string if True
     """
-    try: 
+    try:
         parse(string, fuzzy=fuzzy)
         return True
 
@@ -287,11 +294,11 @@ def filterNone(obj):
                 res.append(val)
         return res
 
+
 def compare_dicts(older, newer):
-    return { k : newer[k] for k in set(newer) - set(older) }
+    return {k: newer[k] for k in set(newer) - set(older)}
 
 
 def get_hazlitt_path():
     dir_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     return dir_name
-

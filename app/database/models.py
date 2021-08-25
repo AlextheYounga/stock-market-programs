@@ -1,4 +1,4 @@
-from os import spawnve
+from os import lstat, spawnve
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.db.models.fields.related import ForeignKey
@@ -87,45 +87,81 @@ class Gold(models.Model):
 
 
 class Congress(models.Model):
-    id = models.AutoField(primary_key=True)
-    hash_key = models.CharField(max_length=70, unique=True, default=None)
-    house = models.CharField(max_length=300)
+    id = models.AutoField(primary_key=True)    
     first_name = models.CharField(max_length=300, null=True)
     last_name = models.CharField(max_length=300)
-    owner = models.CharField(max_length=300, null=True)
+    name = models.CharField(max_length=300, unique=True, default=last_name)
+    house = models.CharField(max_length=300)    
     office = models.CharField(max_length=300, null=True)
     district = models.CharField(max_length=300, null=True)
-    link = models.TextField(null=True)
-    date = models.DateField(auto_now=False, auto_now_add=False, null=True)
-    filing_date = models.DateField(auto_now=False, auto_now_add=False, null=True)    
-    ticker = models.CharField(max_length=10, null=True)
-    price_at_date = models.FloatField(null=True)
-    amount_low = models.IntegerField(null=True)
-    amount_high = models.IntegerField(null=True)
-    sale_type = models.CharField(max_length=500, null=True)
-    transaction = models.JSONField(null=True)
+    total_gain_dollars = models.FloatField(null=True)
+    total_gain_percent = models.FloatField(null=True)
+    trades = models.IntegerField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "congress"
-
+    
     def store(self, data):
         # Save
         congress, created = self.__class__.objects.update_or_create(
-            hash_key=data.get('hash_key'),
+            first_name=data.get('first_name'), last_name=data.get('last_name'),
             defaults=data
         )
         return congress, created
 
     def top_trader(self):
-        senators = self.__class__.objects.all().values_list('last_name', flat=True)
-        most = mode(senators)
-        senator = self.__class__.objects.get(last_name=most)
-        trades = frequencyInList(senators, most)
-        return f"{senator.first_name} {senator.last_name}", trades
+        # TODO: Make top trader
+        print('Make top trader')
 
-    # def portfolio(self, last_name):
+
+
+class CongressTransaction(models.Model):
+    id = models.AutoField(primary_key=True)
+    congress_id = models.ForeignKey(Congress, on_delete=CASCADE)
+    first_name = models.CharField(max_length=300, null=True)
+    last_name = models.CharField(max_length=300)
+    sale_type = models.CharField(max_length=500, null=True)
+    ticker = models.CharField(max_length=10, null=True)
+    price_at_date = models.FloatField(null=True)
+    amount_low = models.IntegerField(null=True)
+    amount_high = models.IntegerField(null=True)
+    date = models.DateField(auto_now=False, auto_now_add=False, null=True)
+    filing_date = models.DateField(auto_now=False, auto_now_add=False, null=True)
+    owner = models.CharField(max_length=300, null=True)
+    link = models.TextField(null=True)
+    transaction = models.JSONField(null=True)
+    hash_key = models.CharField(max_length=70, unique=True, default=None)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def store(self, data):
+        # Save
+        transaction, created = self.__class__.objects.update_or_create(
+            hash_key=data.get('hash_key'),
+            defaults=data
+        )
+        return transaction, created
+
+
+class CongressPortfolio(models.Model):
+    id = models.AutoField(primary_key=True)
+    congress_id = models.ForeignKey(Congress, on_delete=CASCADE)
+    transaction_id = models.ForeignKey(CongressTransaction, on_delete=CASCADE)
+    first_name = models.CharField(max_length=300, null=True)
+    last_name = models.CharField(max_length=300)
+    position = models.CharField(max_length=100, null=True)
+    ticker = models.CharField(max_length=10, null=True)
+    description = models.TextField(unique=True)
+    shares = models.IntegerField(null=True)    
+    cost_share = models.FloatField(null=True)
+    latest_price = models.FloatField(null=True)
+    market_value = models.FloatField(null=True)
+    gain_dollars = models.FloatField(null=True)
+    gain_percent = models.FloatField(null=True)                
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Vix(models.Model):
