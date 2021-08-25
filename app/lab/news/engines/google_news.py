@@ -1,7 +1,7 @@
 from app.lab.scrape.scraper import Scraper
 from app.functions import readTxtFile, is_date
 import requests
-from app.database.redisdb.rdb import Rdb
+from django.core.cache import cache
 import colored
 from colored import stylize
 from datetime import datetime
@@ -18,7 +18,6 @@ from app.database.models import News
 
 CURATED_SRCS = 'app/lab/news/data/curated_sources.txt'
 URL = 'https://news.google.com/'
-r = Rdb().setup()
 
 class GoogleNews():
     def __init__(self, url=URL):
@@ -62,7 +61,7 @@ class GoogleNews():
                                 'soup': page_soup
                             }
                             article, created = News().store(newsitem)                            
-                            r.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400) # Caching the soup
+                            cache.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400) # Caching the soup
                             articles.append(article)
                             print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
 
@@ -70,14 +69,14 @@ class GoogleNews():
 
     def checkLinkCache(self, link):
         key = Scraper().stripParams(link).split('articles/')[1]
-        checkCache = r.get('googlenews-'+key)
+        checkCache = cache.get('googlenews-'+key)
         if (checkCache and checkCache == link):
             return False #We've been here before.
         return True
 
     def cacheLink(self, link):        
         key = Scraper().stripParams(link).split('articles/')[1]
-        r.set('googlenews-'+key, link, 86400)
+        cache.set('googlenews-'+key, link, 86400)
         
 
     def checkSource(self, source):

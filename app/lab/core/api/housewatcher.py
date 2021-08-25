@@ -1,6 +1,7 @@
 from app.lab.scrape.scraper import Scraper
 from app.lab.core.api.iex import IEX
-from app.database.redisdb.rdb import Rdb
+# from app.database.redisdb.rdb import Rdb
+from django.core.cache import cache
 from app.lab.core.output import printFullTable
 from app.lab.fintwit.tweet import Tweet
 import xml.etree.ElementTree as ET
@@ -10,7 +11,7 @@ import requests
 import datetime
 import time
 import sys
-from logs.hazlittlog import log
+from hazlitt_log import log
 import os
 import json
 import django
@@ -22,7 +23,6 @@ from app.database.models import Congress
 logger = log('HouseWatcherAPI')
 scraper = Scraper()
 iex = IEX()
-r = Rdb().setup()
 
 
 class HouseWatcher():
@@ -60,7 +60,7 @@ class HouseWatcher():
     def scanAllReports(self):
         files = self.fileMap()
         for f in files:
-            if (r.get(f"housewatch-api-{f}")):
+            if (cache.get(f"housewatch-api-{f}")):
                 continue
             url = f"{self.domain}/{f}"
             print(url)
@@ -78,7 +78,7 @@ class HouseWatcher():
                 rep, created = Congress().store(result)
                 if (created):
                     print(f"Created new record for {result['first_name']} {result['last_name']}")
-            r.set(f"housewatch-api-{f}", 1)
+            cache.set(f"housewatch-api-{f}", 1)
 
     def parseDate(self, date):
         if (date):

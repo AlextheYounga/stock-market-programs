@@ -1,6 +1,6 @@
 from app.lab.scrape.scraper import Scraper
 from app.lab.core.api.iex import IEX
-from app.database.redisdb.rdb import Rdb
+from django.core.cache import cache
 import html
 from app.lab.core.output import printFullTable
 from app.lab.fintwit.tweet import Tweet
@@ -12,7 +12,7 @@ import requests
 import datetime
 import time
 import sys
-from logs.hazlittlog import log
+from hazlitt_log import log
 import os
 import json
 import django
@@ -25,7 +25,6 @@ from app.database.models import Congress
 logger = log('SenateWatcherAPI')
 scraper = Scraper()
 iex = IEX()
-r = Rdb().setup()
 
 
 class SenateWatcher():
@@ -63,7 +62,7 @@ class SenateWatcher():
     def scanAllReports(self):
         files = self.fileMap()
         for f in files:
-            if (r.get(f"senatewatch-api-{f}")):
+            if (cache.get(f"senatewatch-api-{f}")):
                 continue
             url = f"{self.domain}/{f}"
             print(url)
@@ -81,7 +80,7 @@ class SenateWatcher():
                 senate, created = Congress().store(result)
                 if (created):
                     print(f"Created new record for {result['first_name']} {result['last_name']}")
-            r.set(f"senatewatch-api-{f}", 1)
+            cache.set(f"senatewatch-api-{f}", 1)
 
     def parseData(self, data):
         results = []

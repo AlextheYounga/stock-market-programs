@@ -4,7 +4,7 @@ import sys
 import colored
 from colored import stylize
 from dotenv import load_dotenv
-from logs.hazlittlog import log
+from hazlitt_log import log
 import twitter
 import texttable
 load_dotenv()

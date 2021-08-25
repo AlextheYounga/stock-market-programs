@@ -2,7 +2,7 @@ from app.lab.scrape.scraper import Scraper
 from app.functions import readTxtFile, is_date
 import colored
 from colored import stylize
-from app.database.redisdb.rdb import Rdb
+from django.core.cache import cache
 import sys
 import json
 import django
@@ -15,7 +15,6 @@ from app.database.models import News
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
 URL = 'https://www.bing.com/news/'
-r = Rdb().setup()
 
 
 class BingNews():
@@ -54,7 +53,7 @@ class BingNews():
                     'soup': page_soup
                 }
                 article, created = News().store(newsitem)
-                r.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400)  # Caching the soup
+                cache.set('news-soup-'+str(article.id), str(newsitem['soup']), 86400)  # Caching the soup
                 articles.append(article)
                 print(stylize(f"Saved - {(newsitem.get('source', False) or '[Unsourced]')} - {newsitem.get('headline', None)}", colored.fg("green")))
 

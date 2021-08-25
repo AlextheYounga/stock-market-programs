@@ -1,7 +1,7 @@
 from app.lab.core.api.iex import IEX
 from app.functions import chunks, readTxtFile
 from bs4 import BeautifulSoup
-from app.database.redisdb.rdb import Rdb
+from django.core.cache import cache
 import re
 import colored
 from colored import stylize
@@ -9,12 +9,13 @@ import time
 import sys
 import json
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 EXCHANGES = 'app/lab/news/data/exchanges.txt'
 BLACKLISTWORDS = 'app/lab/news/data/blacklist_words.txt'
 BLACKLISTPAGES = 'app/lab/news/data/blacklist_pages.txt'
 CURATED = 'app/lab/news/data/curated_domains.txt'
-r = Rdb().setup()
 
 class ArticleStock():
     def __init__(self, articles):
@@ -43,7 +44,7 @@ class ArticleStock():
             # Finding all strings that look like stocks.
             article_stocks = []
             exchange_tickers = []
-            soup_string = r.get('news-soup-'+str(article.id))
+            soup_string = cache.get('news-soup-'+str(article.id))
             if (soup_string):
                 soup = BeautifulSoup(soup_string, 'html.parser')
 
@@ -70,7 +71,7 @@ class ArticleStock():
                             plausible.append(cleaned)
                             article_stocks.append(cleaned)  
                 list_string = ','.join(article_stocks)                        
-                r.set('stocknews-plausible-'+str(article.id), list_string, 600)
+                cache.set('stocknews-plausible-'+str(article.id), list_string, 600)
 
         return plausible
 
@@ -129,7 +130,7 @@ class ArticleStock():
     def save(self, apiResults):
         from app.database.models import Stock, StockNews
         for article in self.articles: 
-            cached_stocks = r.get('stocknews-plausible-'+str(article.id))
+            cached_stocks = cache.get('stocknews-plausible-'+str(article.id))
             articlestocks = cached_stocks.split(',') if cached_stocks else False
             if (articlestocks):
                 for ticker in articlestocks:

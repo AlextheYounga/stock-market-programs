@@ -4,7 +4,7 @@ from app.lab.fintwit.functions import *
 from app.functions import writeTxtFile, readTxtFile, deleteFromTxTFile, get_hazlitt_path, readJSONFile
 import time
 from dotenv import load_dotenv
-from logs.hazlittlog import twitter_log
+from hazlitt_log import twitter_log
 import os
 import json
 import sys
