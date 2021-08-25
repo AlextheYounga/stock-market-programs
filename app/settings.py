@@ -93,6 +93,13 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
+
 
 # Password validation
 # https://docs.djangoapp.com/en/3.1/ref/settings/#auth-password-validators
