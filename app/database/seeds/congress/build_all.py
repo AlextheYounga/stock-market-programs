@@ -22,6 +22,8 @@ sw = SenateWatcher()
 
 Congress.objects.all().delete()
 CongressTransaction.objects.all().delete()
+Congress.objects.raw("DELETE FROM sqlite_sequence WHERE name ='database_congress';")
+CongressTransaction.objects.raw("DELETE FROM sqlite_sequence WHERE name ='database_congresstransaction';")
 
 # "id": 47,
 # "hash_key": "f688543e4c6385de804bf20533056c4c3c924ccb0f9d887d9f8b1b3984ccf613",
@@ -154,8 +156,10 @@ for rep in CONGRESSDATA:
     current_price = latest_price(ticker)
     gaindollars = calculateGainDollars(shares, pad, current_price)
     name = ' '.join([rep.get('first_name', None), rep['last_name']]).title()
+    transactionDct = rep.get('transaction', {})
     link = rep.get('link', None)
     link_id = hw.getLinkId(link) if (house == 'House') else sw.getLinkId(link)
+    transactionDct.update({'link_id': link_id or None})
     print(name)
     
     congress = {
@@ -182,10 +186,10 @@ for rep in CONGRESSDATA:
         'filing_date': rep.get('filing_date', None),
         'owner': rep.get('owner', None),
         'link': link,
-        'description': rep['transaction'].pop('asset_description') if ('asset_description' in rep['transaction']) else None,  
-        'asset_type': rep['transaction'].pop('asset_type') if ('asset_type' in rep['transaction']) else None,  
-        'comment': rep['transaction'].pop('comment') if ('comment' in rep['transaction']) else None,
-        'transaction': rep.get('transaction', {}).update({'link_id': link_id}),  
+        'description': transactionDct.pop('asset_description') if ('asset_description' in transactionDct) else None,  
+        'asset_type': transactionDct.pop('asset_type') if ('asset_type' in transactionDct) else None,  
+        'comment': transactionDct.pop('comment') if ('comment' in transactionDct) else None,
+        'transaction': transactionDct,  
     }
 
     portfolio = {
@@ -215,7 +219,6 @@ for name, info in CONGRESS.items():
     )
     print(stylize(f"{name} saved", colored.fg("green")))
 
-# TODO: Figure hash collision
 for t in TRANSACTIONS:
     crecord = Congress.objects.get(first_name=t['first_name'], last_name=t['last_name'])
     t['congress_id'] = crecord.id

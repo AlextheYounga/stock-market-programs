@@ -151,7 +151,7 @@ class HouseWatcher():
             (data['date'] or data['filing_date']),
             (data['ticker'] or data['description']),
             data['sale_type'],
-            (data['transaction']['link_id'] or 'nolink'),
+            (data['transaction'].get('link_id', None) or 'nolink'),
             str(data['amount_low']),
             data['owner'] or 'Self',
             str(data['congress_id']),

@@ -11,11 +11,18 @@ import django
 from dotenv import load_dotenv
 load_dotenv()
 django.setup()
-from app.database.models import Congress, Stock
+from app.database.models import Congress, CongressTransaction, Stock
 from app.lab.core.api.senatewatcher import SenateWatcher
 
 
 class CongressPortfolio():
 
-    def calculate(self, rep):
-        records = Congress.objects.filter(first_name=rep.first_name)
+    def calculate(self):
+        members = Congress.objects.all()
+        for member in members:
+            transactions = member.congresstransaction_set.all().order_by('date')            
+            for tr in transactions:
+                print('')
+
+cp = CongressPortfolio()
+cp.calculate()

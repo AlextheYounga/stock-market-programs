@@ -161,7 +161,7 @@ class SenateWatcher():
             data['last_name'],       
             data['date'],
             (data['ticker'] or data['description']),
-            (data['transaction']['link_id'] or 'nolink'),
+            (data['transaction'].get('link_id', None) or 'nolink'),
             data['sale_type'],
             str(data['amount_low']),
             data['owner'] or 'Self',
