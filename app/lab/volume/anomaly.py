@@ -49,7 +49,7 @@ with progressbar.ProgressBar(max_value=chunks_length, prefix='Batch: ', redirect
                     if ((volumeToday / volumeFirst) > 50):
                         stockData = {
                             'ticker': ticker,
-                            'lastPrice': price,
+                            'latestPrice': price,
                             'volumeToday': "{}K".format(round(volumeToday / 1000, 4)),
                             'volume5dAgo': "{}K".format(round(volumeFirst / 1000, 4)),
                             'volumeIncrease': round(volumeToday / volumeFirst),

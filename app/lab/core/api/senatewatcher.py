@@ -150,9 +150,9 @@ class SenateWatcher():
 
     def generateHash(self, data):
         keys = [
-            data['last_name'],
+            str(data['congress_id'].id),
             data['date'],
-            (data['ticker'] or data['transaction']['asset_description']),
+            (data['ticker'] or data['description']),
             data['sale_type'],
             data['owner'],
         ]

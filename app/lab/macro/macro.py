@@ -142,7 +142,7 @@ class Macro():
                         stockData = {
                             'ticker': ticker,
                             'name': quote['companyName'],
-                            'lastPrice': price
+                            'latestPrice': price
                         }
                         stockData.update(keyStats)
 

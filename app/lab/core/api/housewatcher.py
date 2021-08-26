@@ -142,10 +142,10 @@ class HouseWatcher():
 
     def generateHash(self, data):
         keys = [
-            data['last_name'],
+            str(data['congress_id'].id),
             (data['date'] or data['filing_date']),
             data['house'],
-            (data['ticker'] or data['transaction']['asset_description']),
+            (data['ticker'] or data['description']),
             data['owner'] or 'None',
         ]       
         hashstring = ''.join(keys).replace(' ', '')

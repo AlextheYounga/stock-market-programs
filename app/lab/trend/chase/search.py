@@ -41,7 +41,7 @@ def search(string):
                     if (price and isinstance(price, float)):
                         stock, created = Stock.objects.update_or_create(
                             ticker=ticker,
-                            defaults={'lastPrice': price},
+                            defaults={'latestPrice': price},
                         )
                     else:
                         continue
@@ -99,7 +99,7 @@ def search(string):
                             stockData = {
                                 'ticker': ticker,
                                 'name': stock.name,
-                                'lastPrice': price
+                                'latestPrice': price
                             }
                             stockData.update(keyStats)
 

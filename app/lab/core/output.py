@@ -175,7 +175,7 @@ def printStockResults(tickers):
                 keyStats = {
                     'ticker': ticker,
                     'name': stats['companyName'],
-                    'lastPrice': price,
+                    'latestPrice': price,
                     'peRatio': stats.get('peRatio', None),
                     'week52': week52high,
                     'changeToday': changeToday,

@@ -18,7 +18,7 @@ class Stock(models.Model):
     id = models.AutoField(primary_key=True)
     ticker = models.CharField(db_index=True, max_length=30, unique=True)
     name = models.CharField(max_length=1000)
-    lastPrice = models.FloatField(null=True)
+    latestPrice = models.FloatField(null=True)
     changePercent = models.FloatField(null=True)
     ytdChange = models.FloatField(null=True)
     volume = models.FloatField(null=True)
@@ -29,7 +29,6 @@ class Stock(models.Model):
         apiFields = {
             'symbol': 'ticker',
             'companyName': 'name',
-            'latestPrice': 'lastPrice'
         }
 
         dbOnly = [f.name for f in self._meta.get_fields()]
@@ -119,10 +118,11 @@ class Congress(models.Model):
 
 class CongressTransaction(models.Model):
     id = models.AutoField(primary_key=True)
-    congress_id = models.ForeignKey(Congress, on_delete=CASCADE)
+    congress = models.ForeignKey(Congress, on_delete=CASCADE)
     first_name = models.CharField(max_length=300, null=True)
     last_name = models.CharField(max_length=300)
-    sale_type = models.CharField(max_length=500, null=True)
+    sale_type = models.CharField(max_length=300, null=True)
+    asset_type = models.CharField(max_length=100, null=True)
     ticker = models.CharField(max_length=10, null=True)
     price_at_date = models.FloatField(null=True)
     amount_low = models.IntegerField(null=True)
@@ -132,6 +132,8 @@ class CongressTransaction(models.Model):
     owner = models.CharField(max_length=300, null=True)
     link = models.TextField(null=True)
     transaction = models.JSONField(null=True)
+    description = models.TextField(null=True) 
+    comment = models.TextField(null=True) 
     hash_key = models.CharField(max_length=70, unique=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -147,19 +149,20 @@ class CongressTransaction(models.Model):
 
 class CongressPortfolio(models.Model):
     id = models.AutoField(primary_key=True)
-    congress_id = models.ForeignKey(Congress, on_delete=CASCADE)
-    transaction_id = models.ForeignKey(CongressTransaction, on_delete=CASCADE)
+    congress = models.ForeignKey(Congress, on_delete=CASCADE)
+    transaction = models.ForeignKey(CongressTransaction, on_delete=CASCADE)
     first_name = models.CharField(max_length=300, null=True)
     last_name = models.CharField(max_length=300)
     position = models.CharField(max_length=100, null=True)
     ticker = models.CharField(max_length=10, null=True)
-    description = models.TextField(unique=True)
+    description = models.TextField(null=False)
     shares = models.IntegerField(null=True)    
     cost_share = models.FloatField(null=True)
     latest_price = models.FloatField(null=True)
     market_value = models.FloatField(null=True)
     gain_dollars = models.FloatField(null=True)
-    gain_percent = models.FloatField(null=True)                
+    gain_percent = models.FloatField(null=True)     
+    status = models.CharField(max_length=100, null=True)   
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -245,7 +248,7 @@ class News(models.Model):
                     dct = {
                         'ticker': stock.ticker,
                         'name': stock.name,
-                        'lastPrice': stock.stock.lastPrice,
+                        'latestPrice': stock.stock.latestPrice,
                         'changePercent': round((stock.stock.changePercent or 0) * 100, 2),
                     }
                     stocks.append(dct)

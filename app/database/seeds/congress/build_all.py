@@ -17,6 +17,8 @@ from app.database.models import Congress, CongressTransaction, CongressPortfolio
 
 congresspath = 'app/lab/congress/database_congress.json'
 CONGRESSDATA = readJSONFile(congresspath)
+hw = HouseWatcher()
+sw = SenateWatcher()
 
 # "id": 47,
 # "hash_key": "f688543e4c6385de804bf20533056c4c3c924ccb0f9d887d9f8b1b3984ccf613",
@@ -103,7 +105,12 @@ saletypes = {
     'exchange': 'exchange',
 }
 
-def shares(pad, amount_low):
+stati = [
+    'holding',
+    'sold',
+]
+
+def calculateShares(pad, amount_low):
     if (pad and amount_low):
         return int(amount_low / pad)
 
@@ -111,75 +118,105 @@ def shares(pad, amount_low):
 
 def latest_price(ticker):
     if (ticker):
-        return Stock.objects.filter(ticker=ticker).lastPrice
+        stock = Stock.objects.filter(ticker=ticker).first()
+        if (stock):
+            return stock.latestPrice
     return None
 
 
-def gain_dollars(shares, cost, price):
-    if (shares, cost, price):
+def calculateGainDollars(shares, cost, price):
+    if (shares and cost and price):
         return float((shares * price) - (shares * cost))
     return 0
 
-def gain_percent(amount_low, gain_dollars):
-    # TODO: Finish this equation
-    if (amount_low and gain_dollars):
-        return 
+def calculateGainPercent(amount_low, gaindollars):
+    if (amount_low and gaindollars):
+        return round(((gaindollars - amount_low) / amount_low) * 100, 2)
 
     return 0
 
 
-CONGRESS = []
+CONGRESS = {}
 TRANSACTIONS = []
 PORTFOLIO = []
 for rep in CONGRESSDATA:
-    sale_type = saletypes[CONGRESSDATA['sale_type']] if CONGRESSDATA.get('sale_type', False) else None
-    pad = CONGRESSDATA.get('price_at_date', None)
-    amount_low = CONGRESSDATA.get('amount_low', None)
-    shares = shares(pad, amount_low)
-    ticker = CONGRESSDATA.get('ticker', None)
+    sale_type = saletypes[rep['sale_type']] if rep.get('sale_type', False) else None
+    pad = rep.get('price_at_date', None)
+    amount_low = rep.get('amount_low', None)
+    shares = calculateShares(pad, amount_low)
+    ticker = rep.get('ticker', None)
     current_price = latest_price(ticker)
-    gaindollars = gain_dollars(shares, pad, current_price)
-
+    gaindollars = calculateGainDollars(shares, pad, current_price)
+    name = ' '.join([rep.get('first_name', None), rep['last_name']])
+    print(name)
+    
     congress = {
-        'first_name': CONGRESSDATA.get('first_name', None),
-        'last_name': CONGRESSDATA['last_name'],
-        'name': ' '.join(CONGRESSDATA.get('first_name', None), CONGRESSDATA['last_name']),
-        'house': CONGRESSDATA.get('house', None),
-        'office': CONGRESSDATA.get('office', None),
-        'district': CONGRESSDATA.get('district', None),
-        'total_gain_dollars': 0,
-        'total_gain_percent': 0,
-        'trades': 0,
+        'first_name': rep.get('first_name', None),
+        'last_name': rep['last_name'],
+        'name': name,
+        'house': rep.get('house', None),
+        'office': rep.get('office', None),
+        'district': rep.get('district', None),
+        'total_gain_dollars': None,
+        'total_gain_percent': None,
+        'trades': None,
     }
 
     transaction = {
-        'first_name': CONGRESSDATA.get('first_name', None),
-        'last_name': CONGRESSDATA['last_name'],
+        'first_name': rep.get('first_name', None),
+        'last_name': rep['last_name'],
         'sale_type': sale_type,
         'ticker': ticker,
         'price_at_date': pad,
         'amount_low': amount_low,
-        'amount_high': CONGRESSDATA.get('amount_high', None),
-        'date': CONGRESSDATA.get('date', None),
-        'filing_date': CONGRESSDATA.get('filing_date', None),
-        'owner': CONGRESSDATA.get('owner', None),
-        'link': CONGRESSDATA.get('link', None),
-        'transaction': CONGRESSDATA.get('transaction', None),
-        'hash_key': CONGRESSDATA.get('hash_key', None),
+        'amount_high': rep.get('amount_high', None),
+        'date': rep.get('date', None),
+        'filing_date': rep.get('filing_date', None),
+        'owner': rep.get('owner', None),
+        'link': rep.get('link', None),
+        'description': rep['transaction'].pop('asset_description') if rep['transaction'].get('asset_description', False) else None,  
+        'asset_type': rep['transaction'].pop('asset_type') if rep['transaction'].get('asset_type', False) else None,  
+        'comment': rep['transaction'].pop('comment') if rep['transaction'].get('comment', False) else None,
+        'transaction': rep.get('transaction', None),  
+
     }
 
     portfolio = {
-        'first_name': CONGRESSDATA.get('first_name', None),
-        'last_name': CONGRESSDATA['last_name'],
+        'first_name': rep.get('first_name', None),
+        'last_name': rep['last_name'],
         'position': 'long',
         'ticker': ticker,
-        'description': CONGRESSDATA['transaction'].get('asset_description', None),
+        'description': transaction['description'],
         'shares': shares,
         'cost_share': pad,
         'latest_price': current_price,
         'market_value': amount_low,
         'gain_dollars': gaindollars,
-        'gain_percent': 
-        # gain_dollars = models.FloatField(null=True)
-# gain_percent = models.FloatField(null=True)
+        'gain_percent': calculateGainPercent(amount_low, gaindollars),
+        'status': '',
     }
+
+
+    CONGRESS[name] = congress
+    TRANSACTIONS.append(transaction)
+    PORTFOLIO.append(portfolio)
+
+for name, info in CONGRESS.items():
+    record, created = Congress.objects.update_or_create(
+        name=name,
+        defaults=info
+    )
+    print(stylize(f"{name} saved", colored.fg("green")))
+
+for t in TRANSACTIONS:
+    crecord = Congress.objects.get(first_name=t['first_name'], last_name=t['last_name'])
+    t['congress_id'] = crecord
+    t['hash_key'] = hw.generateHash(t) if (crecord.house == 'House') else sw.generateHash(t)
+    trecord = CongressTransaction(**t)
+    trecord.save()
+    print(stylize(f"{trecord.ticker} {trecord.date} {trecord.amount_low} saved", colored.fg("green")))
+
+# print(len(TRANSACTIONS))
+# print(len(PORTFOLIO))
+
+

@@ -20,7 +20,7 @@ for bet in wsb:
         ticker=bet.get('symbol'),
         defaults={
             'name': bet.get('companyName', None),
-            'lastPrice': bet.get('latestPrice', None),
+            'latestPrice': bet.get('latestPrice', None),
             'changePercent': bet.get('changePercent', None),
             'ytdChange': bet.get('ytdChange', None),
             'volume': bet.get('volume', None)
