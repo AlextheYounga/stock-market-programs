@@ -20,6 +20,9 @@ CONGRESSDATA = readJSONFile(congresspath)
 hw = HouseWatcher()
 sw = SenateWatcher()
 
+Congress.objects.all().delete()
+CongressTransaction.objects.all().delete()
+
 # "id": 47,
 # "hash_key": "f688543e4c6385de804bf20533056c4c3c924ccb0f9d887d9f8b1b3984ccf613",
 # "house": "Senate",
@@ -140,6 +143,9 @@ CONGRESS = {}
 TRANSACTIONS = []
 PORTFOLIO = []
 for rep in CONGRESSDATA:
+    first_name = rep['first_name'].title() if rep.get('first_name', False) else None
+    last_name = rep['last_name'].title() if rep.get('last_name', False) else None
+    house = rep.get('house', None)
     sale_type = saletypes[rep['sale_type']] if rep.get('sale_type', False) else None
     pad = rep.get('price_at_date', None)
     amount_low = rep.get('amount_low', None)
@@ -147,14 +153,16 @@ for rep in CONGRESSDATA:
     ticker = rep.get('ticker', None)
     current_price = latest_price(ticker)
     gaindollars = calculateGainDollars(shares, pad, current_price)
-    name = ' '.join([rep.get('first_name', None), rep['last_name']])
+    name = ' '.join([rep.get('first_name', None), rep['last_name']]).title()
+    link = rep.get('link', None)
+    link_id = hw.getLinkId(link) if (house == 'House') else sw.getLinkId(link)
     print(name)
     
     congress = {
-        'first_name': rep.get('first_name', None),
-        'last_name': rep['last_name'],
+        'first_name': first_name,
+        'last_name': last_name,
         'name': name,
-        'house': rep.get('house', None),
+        'house': house,
         'office': rep.get('office', None),
         'district': rep.get('district', None),
         'total_gain_dollars': None,
@@ -163,8 +171,8 @@ for rep in CONGRESSDATA:
     }
 
     transaction = {
-        'first_name': rep.get('first_name', None),
-        'last_name': rep['last_name'],
+        'first_name': first_name,
+        'last_name': last_name,
         'sale_type': sale_type,
         'ticker': ticker,
         'price_at_date': pad,
@@ -173,17 +181,16 @@ for rep in CONGRESSDATA:
         'date': rep.get('date', None),
         'filing_date': rep.get('filing_date', None),
         'owner': rep.get('owner', None),
-        'link': rep.get('link', None),
-        'description': rep['transaction'].pop('asset_description') if rep['transaction'].get('asset_description', False) else None,  
-        'asset_type': rep['transaction'].pop('asset_type') if rep['transaction'].get('asset_type', False) else None,  
-        'comment': rep['transaction'].pop('comment') if rep['transaction'].get('comment', False) else None,
-        'transaction': rep.get('transaction', None),  
-
+        'link': link,
+        'description': rep['transaction'].pop('asset_description') if ('asset_description' in rep['transaction']) else None,  
+        'asset_type': rep['transaction'].pop('asset_type') if ('asset_type' in rep['transaction']) else None,  
+        'comment': rep['transaction'].pop('comment') if ('comment' in rep['transaction']) else None,
+        'transaction': rep.get('transaction', {}).update({'link_id': link_id}),  
     }
 
     portfolio = {
-        'first_name': rep.get('first_name', None),
-        'last_name': rep['last_name'],
+        'first_name': first_name,
+        'last_name': last_name,
         'position': 'long',
         'ticker': ticker,
         'description': transaction['description'],
@@ -208,9 +215,10 @@ for name, info in CONGRESS.items():
     )
     print(stylize(f"{name} saved", colored.fg("green")))
 
+# TODO: Figure hash collision
 for t in TRANSACTIONS:
     crecord = Congress.objects.get(first_name=t['first_name'], last_name=t['last_name'])
-    t['congress_id'] = crecord
+    t['congress_id'] = crecord.id
     t['hash_key'] = hw.generateHash(t) if (crecord.house == 'House') else sw.generateHash(t)
     trecord = CongressTransaction(**t)
     trecord.save()

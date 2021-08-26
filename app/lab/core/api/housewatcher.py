@@ -140,14 +140,22 @@ class HouseWatcher():
 
         return results
 
+    def getLinkId(self, link):
+        if link:
+            return link.split('.pdf')[0].split('/')[-1]
+        return None
+
     def generateHash(self, data):
-        keys = [
-            str(data['congress_id'].id),
+        keys = [     
+            data['last_name'],        
             (data['date'] or data['filing_date']),
-            data['house'],
             (data['ticker'] or data['description']),
-            data['owner'] or 'None',
-        ]       
+            data['sale_type'],
+            (data['transaction']['link_id'] or 'nolink'),
+            str(data['amount_low']),
+            data['owner'] or 'Self',
+            str(data['congress_id']),
+        ]   
         hashstring = ''.join(keys).replace(' ', '')
         hashkey = sha256(hashstring.encode('utf-8')).hexdigest()
         return hashkey

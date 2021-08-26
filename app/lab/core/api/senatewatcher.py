@@ -147,15 +147,27 @@ class SenateWatcher():
                     fdata = format_data(tdata)
                     results = results[:] + [fdata]
         return results
+    
+    def getLinkId(self, link):
+        if link:
+            if ('ptr/' in link):                
+                return link.split('ptr/')[1].split('/')[0]
+            else:
+                return link.split('paper/')[1].split('/')[0]
+        return None
 
     def generateHash(self, data):
-        keys = [
-            str(data['congress_id'].id),
+        keys = [     
+            data['last_name'],       
             data['date'],
             (data['ticker'] or data['description']),
+            (data['transaction']['link_id'] or 'nolink'),
             data['sale_type'],
-            data['owner'],
+            str(data['amount_low']),
+            data['owner'] or 'Self',
+            str(data['congress_id']),
         ]
+
         hashstring = ''.join(keys).replace(' ', '')
         hashkey = sha256(hashstring.encode('utf-8')).hexdigest()
         return hashkey
