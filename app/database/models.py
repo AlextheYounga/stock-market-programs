@@ -150,7 +150,6 @@ class CongressTransaction(models.Model):
 class CongressPortfolio(models.Model):
     id = models.AutoField(primary_key=True)
     congress = models.ForeignKey(Congress, on_delete=CASCADE)
-    transaction = models.ForeignKey(CongressTransaction, on_delete=CASCADE)
     first_name = models.CharField(max_length=300, null=True)
     last_name = models.CharField(max_length=300)
     position = models.CharField(max_length=100, null=True)
@@ -161,7 +160,8 @@ class CongressPortfolio(models.Model):
     latest_price = models.FloatField(null=True)
     market_value = models.FloatField(null=True)
     gain_dollars = models.FloatField(null=True)
-    gain_percent = models.FloatField(null=True)     
+    gain_percent = models.FloatField(null=True)    
+    orders = models.JSONField(null=True)
     status = models.CharField(max_length=100, null=True)   
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -110,40 +110,9 @@ saletypes = {
     'exchange': 'exchange',
 }
 
-stati = [
-    'holding',
-    'sold',
-]
-
-def calculateShares(pad, amount_low):
-    if (pad and amount_low):
-        return int(amount_low / pad)
-
-    return None
-
-def latest_price(ticker):
-    if (ticker):
-        stock = Stock.objects.filter(ticker=ticker).first()
-        if (stock):
-            return stock.latestPrice
-    return None
-
-
-def calculateGainDollars(shares, cost, price):
-    if (shares and cost and price):
-        return float((shares * price) - (shares * cost))
-    return 0
-
-def calculateGainPercent(amount_low, gaindollars):
-    if (amount_low and gaindollars):
-        return round(((gaindollars - amount_low) / amount_low) * 100, 2)
-
-    return 0
-
-
 CONGRESS = {}
 TRANSACTIONS = []
-PORTFOLIO = []
+
 for rep in CONGRESSDATA:
     first_name = rep['first_name'].title() if rep.get('first_name', False) else None
     last_name = rep['last_name'].title() if rep.get('last_name', False) else None
@@ -151,10 +120,7 @@ for rep in CONGRESSDATA:
     sale_type = saletypes[rep['sale_type']] if rep.get('sale_type', False) else None
     pad = rep.get('price_at_date', None)
     amount_low = rep.get('amount_low', None)
-    shares = calculateShares(pad, amount_low)
     ticker = rep.get('ticker', None)
-    current_price = latest_price(ticker)
-    gaindollars = calculateGainDollars(shares, pad, current_price)
     name = ' '.join([rep.get('first_name', None), rep['last_name']]).title()
     transactionDct = rep.get('transaction', {})
     link = rep.get('link', None)
@@ -192,25 +158,10 @@ for rep in CONGRESSDATA:
         'transaction': transactionDct,  
     }
 
-    portfolio = {
-        'first_name': first_name,
-        'last_name': last_name,
-        'position': 'long',
-        'ticker': ticker,
-        'description': transaction['description'],
-        'shares': shares,
-        'cost_share': pad,
-        'latest_price': current_price,
-        'market_value': amount_low,
-        'gain_dollars': gaindollars,
-        'gain_percent': calculateGainPercent(amount_low, gaindollars),
-        'status': '',
-    }
-
 
     CONGRESS[name] = congress
     TRANSACTIONS.append(transaction)
-    PORTFOLIO.append(portfolio)
+    
 
 for name, info in CONGRESS.items():
     record, created = Congress.objects.update_or_create(
