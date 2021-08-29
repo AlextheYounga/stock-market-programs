@@ -6,7 +6,7 @@ from jsonfield import JSONField
 from numpy import save
 from statistics import mode
 from requests.models import LocationParseError
-from app.functions import frequencyInList, filterNone
+from app.functions import frequencyInList, filterNone, mostFrequent
 from django.forms.models import model_to_dict
 from app.lab.vix.vixvol import VixVol
 import colored
@@ -108,11 +108,7 @@ class Congress(models.Model):
             first_name=data.get('first_name'), last_name=data.get('last_name'),
             defaults=data
         )
-        return congress, created
-
-    def top_trader(self):
-        # TODO: Make top trader
-        print('Make top trader')
+        return congress, created    
 
 
 
@@ -145,6 +141,12 @@ class CongressTransaction(models.Model):
             defaults=data
         )
         return transaction, created
+    
+    def top_trader(self):     
+        member_ids = self.__class__.objects.all().values_list('congress_id', flat=True)   
+        top_id = mostFrequent(member_ids)
+        top_trader = Congress.objects.get(id=top_id)        
+        return top_trader, len(top_trader.congresstransaction_set.all())
 
 
 class CongressPortfolio(models.Model):
@@ -154,7 +156,7 @@ class CongressPortfolio(models.Model):
     last_name = models.CharField(max_length=300)
     position = models.CharField(max_length=100, null=True)
     ticker = models.CharField(max_length=10, null=True)
-    description = models.TextField(null=False)
+    description = models.TextField(null=True)
     shares = models.IntegerField(null=True)    
     cost_share = models.FloatField(null=True)
     latest_price = models.FloatField(null=True)
@@ -165,6 +167,19 @@ class CongressPortfolio(models.Model):
     status = models.CharField(max_length=100, null=True)   
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def store(self, data):
+        # Save
+        transaction, created = self.__class__.objects.update_or_create(
+            congress_id=data['congress_id'], ticker=data['ticker'],
+            defaults=data
+        )
+        return transaction, created
+
+    def mostBoughtTicker(self):
+        tickers = self.__class__.objects.all().values_list('ticker', flat=True)
+        return mostFrequent(tickers)
+
 
 
 class Vix(models.Model):

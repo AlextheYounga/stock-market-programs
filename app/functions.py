@@ -297,6 +297,8 @@ def filterNone(obj):
 def compare_dicts(older, newer):
     return {k: newer[k] for k in set(newer) - set(older)}
 
+def mostFrequent(lst):
+    return statistics.mode(lst)
 
 def get_hazlitt_path():
     dir_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
