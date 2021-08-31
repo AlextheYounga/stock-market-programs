@@ -21,7 +21,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.dashboard, name='dashboard'),    
+    path('', views.dashboard, name='dashboard'),  
+    path('congress', views.congress, name='congress.index'),  
+    path('congress/<int:id>/', views.congress, name='congress.show'),    
     path('vix/<str:ticker>/', views.vix, name='vix.show'),
     path('correlations', views.correlations, name='correlations.index'),
     path('correlations/<str:ticker>/', views.correlations, name='correlations.show'),

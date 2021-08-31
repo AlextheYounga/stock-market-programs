@@ -23,6 +23,16 @@ from app.database.models import Congress
 logger = log('HouseWatcherAPI')
 scraper = Scraper()
 iex = IEX()
+SALETYPES = {
+    'Sale (Partial)': 'partial-sell',
+    'Sale (Full)': 'sell',
+    'Purchase': 'buy',
+    'Exchange': 'exchange',
+    'sale_full': 'sell',
+    'purchase': 'buy',
+    'sale_partial': 'partial-sell',
+    'exchange': 'exchange',
+}
 
 
 class HouseWatcher():
@@ -40,6 +50,12 @@ class HouseWatcher():
                 logger.info(f"Created new record for {result['first_name']} {result['last_name']}")
                 reps.append(rep)
         return reps
+
+    def priceAtDate(self, ticker, date):
+        pad = iex.priceAtDate(ticker, date)
+        if (pad):
+            return pad
+        return None
 
     def scanLastReport(self, print_results=False):
         # https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/transaction_report_for_07_23_2021.json
@@ -68,7 +84,7 @@ class HouseWatcher():
             time.sleep(1)  # Slow is smooth and smooth is fast.
             try:
                 response = requests.get(url, **self.settings).json()
-                
+
             except:
                 logger.error("Unexpected error:", sys.exc_info()[0])
                 return None
@@ -94,51 +110,87 @@ class HouseWatcher():
         return None
 
     def parseData(self, data):
-        results = []
+        results = {}
         for rep in data:
-            for transaction in rep['transactions']:
-                tdata = {
-                    'first_name': rep.get('first_name', None),
-                    'last_name': rep.get('last_name', None),
-                    'ticker': transaction.get('ticker', None),
+            for trade in rep['transactions']:
+                first_name = rep.get('first_name', None),
+                last_name = rep.get('last_name', None),
+                name = ' '.join(first_name, last_name).title()
+                sale_type = SALETYPES[trade['transaction_type']] if (trade.get('transaction_type', False)) else None
+                transactionJSON = {'cap_gains_over_200': trade.get('cap_gains_over_200', None)}
+                link = rep.get('source_ptr_link', None)
+                link_id = self.getLinkId(link)
+                transactionJSON.update({'link_id': link_id or None})
+
+                # TODO: Finish reforming data
+                # tdata = {
+                #     'ticker': trade.get('ticker', None),
+                #     'house': 'House',
+                #     'office': rep.get('office', None),
+                #     'link': rep.get('source_ptr_link', None),
+                #     'district': rep.get('district', None),
+                #     'date': self.parseDate(trade.get('transaction_date', None)),
+                #     'filing_date': self.parseDate(rep.get('filing_date', None)),
+                #     'owner': trade.get('owner', None),
+                #     'sale_type': trade.get('transaction_type', None),
+                #     'transaction': {
+                #         "asset_description": trade.get('description', None),
+                #         "cap_gains_over_200": trade.get('cap_gains_over_200', None),
+                #     }
+                # }
+                
+                # results[] How to keep these two together
+                congress = {
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'name': name,
                     'house': 'House',
                     'office': rep.get('office', None),
-                    'link': rep.get('source_ptr_link', None),
                     'district': rep.get('district', None),
-                    'date': self.parseDate(transaction.get('transaction_date', None)),
-                    'filing_date': self.parseDate(rep.get('filing_date', None)),
-                    'owner': transaction.get('owner', None),
-                    'sale_type': transaction.get('transaction_type', None),
-                    'transaction': {
-                        "asset_description": transaction.get('description', None),
-                        "cap_gains_over_200": transaction.get('cap_gains_over_200', None),
-                    }
+                    'total_gain_dollars': None,
+                    'total_gain_percent': None,
+                    'trades': None,
                 }
-                
+
+                transaction = {
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'sale_type': sale_type,
+                    'date': self.parseDate(trade.get('transaction_date', None)),
+                    'filing_date': self.parseDate(rep.get('filing_date', None)),
+                    'owner': trade.get('owner', None),
+                    'link': rep.get('source_ptr_link', None),
+                    'description': trade.get('description', None),
+                    'comment': trade.get('comment', None),
+                    'transaction': transactionJSON,
+                }
+
                 # Sorting amounts
-                amount_range = transaction.get('amount').split(' - ')
+                amount_range = trade.get('amount').split(' - ')
                 if (len(amount_range) == 2):
-                    tdata['amount_low'] = int(amount_range[0].replace('$', '').replace(',', ''))
-                    tdata['amount_high'] = int(amount_range[1].replace('$', '').replace(',', ''))                
+                    transaction['amount_low'] = int(amount_range[0].replace('$', '').replace(',', ''))
+                    transaction['amount_high'] = int(amount_range[1].replace('$', '').replace(',', ''))
                 else:
                     amount_range = amount_range[0]
                     if ('+' in amount_range):
-                        tdata['amount_low'] = int(amount_range.replace('$', '').replace('+', '').replace(',', ''))
-                        tdata['amount_high'] = None
+                        transaction['amount_low'] = int(amount_range.replace('$', '').replace('+', '').replace(',', ''))
+                        transaction['amount_high'] = None
                     else:
-                        tdata['amount_low'] = None
-                        tdata['amount_high'] = int(amount_range.replace('$', '').replace('-', '').replace(',', ''))
-                
+                        transaction['amount_low'] = None
+                        transaction['amount_high'] = int(amount_range.replace('$', '').replace('-', '').replace(',', ''))
+
                 # Removing bad data
-                tdata['ticker'] = None if (tdata['ticker'] == '--') else tdata['ticker']
-                tdata['owner'] = None if (tdata['owner'] == '--') else tdata['owner']
+                transaction['ticker'] = None if (transaction['ticker'] == '--') else transaction['ticker']
+                transaction['owner'] = None if (transaction['owner'] == '--') else transaction['owner']
+                transaction['price_at_date'] = self.priceAtDate(transaction['ticker'], (transaction['date'] or transaction['filing_date']))
 
-                # Generating hash for easy search/update 
-                tdata['hash_key'] = self.generateHash(tdata)
+                # Generating hash for easy search/update
+                transaction['hash_key'] = self.generateHash(transaction)
 
-                results = results[:] + [tdata]
+                congressData = congressData[:] + [congress]
+                transactionData = transactionData[:] + [transaction]
 
-        return results
+        return congressData, transactionData
 
     def getLinkId(self, link):
         if link:
@@ -146,8 +198,8 @@ class HouseWatcher():
         return None
 
     def generateHash(self, data):
-        keys = [     
-            data['last_name'],        
+        keys = [
+            data['last_name'],
             (data['date'] or data['filing_date']),
             (data['ticker'] or data['description']),
             data['sale_type'],
@@ -155,7 +207,7 @@ class HouseWatcher():
             str(data['amount_low']),
             data['owner'] or 'Self',
             str(data['congress_id']),
-        ]   
+        ]
         hashstring = ''.join(keys).replace(' ', '')
         hashkey = sha256(hashstring.encode('utf-8')).hexdigest()
         return hashkey
@@ -207,7 +259,6 @@ class HouseWatcher():
                     twit.send(tweet, prompt=prompt)
                     body = ""
                 body = (body + line)
-            
-            tweet = headline + body
-            twit.send(tweet, prompt=prompt)            
 
+            tweet = headline + body
+            twit.send(tweet, prompt=prompt)

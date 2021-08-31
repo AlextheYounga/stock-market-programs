@@ -148,6 +148,9 @@ class CongressTransaction(models.Model):
         top_trader = Congress.objects.get(id=top_id)        
         return top_trader, len(top_trader.congresstransaction_set.all())
 
+    def recent(self):
+        return self.__class__.objects.order_by('date')[:25]
+
 
 class CongressPortfolio(models.Model):
     id = models.AutoField(primary_key=True)
@@ -201,15 +204,10 @@ class Vix(models.Model):
         )
         return vix, created
 
-    def get(self, ticker):
-        if (self.__class__.objects.filter(ticker=ticker).exists()):
-            return self.__class__.objects.get(ticker=ticker).value
-        return None
-
     def lookup(self, ticker):
-        vix = self.get(ticker)
+        vix = self.__class__.objects.get(ticker=ticker)
         if (vix):
-            return vix
+            return vix.value
 
         vixvol = VixVol().equation(ticker)
         if (vixvol):

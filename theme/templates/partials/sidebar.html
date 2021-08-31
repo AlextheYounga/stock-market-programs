@@ -7,6 +7,12 @@
                 <img class="w-8 mr-4" src="{% static 'svg/dashboard.svg' %}" />
                 Dashboard
             </a>
+            <a href="{% url 'congress.index' %}"
+                class="{% if '/congress' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <!-- Heroicon name: outline/users -->
+                <img class="w-8 mr-4" src="{% static 'svg/congress.svg' %}" />
+                Congress
+            </a>
             <a href="{% url 'vix.show' ticker='SPY' %}"
                 class="{% if '/vix' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
                 <!-- Heroicon name: outline/users -->

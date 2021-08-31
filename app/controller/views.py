@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.template import RequestContext
-from app.database.models import Vix, News
+from app.database.models import Vix, News, Congress, CongressTransaction, CongressPortfolio
 from app.lab.news.newsfeed import NewsFeed
 # Create your views here.
 
@@ -10,14 +10,15 @@ def dashboard(request):
     news = News()
     stocks_mentioned = news.latest_stocks_mentioned()
     for stock in stocks_mentioned:
-        stock['vix'] = Vix.get(stock['ticker']) or 'NA'
-        # TODO: Make color work
+        vix = Vix.objects.filter(ticker=stock['ticker']).first()
+        stock['vix'] = vix.value if (vix) else 'NA'
         stock['changeColor'] = 'green' if (stock.get('changePercent', False) and stock['changePercent'] > 0) else 'red'
         print(stock)
 
     context = {
         'news': news.latest_news(),
-        'stocks_mentioned': stocks_mentioned
+        'stocks_mentioned': stocks_mentioned,
+        'congress_activity': CongressTransaction().recent()
         }    
     return render(request, 'dashboard.html', context)
 
@@ -38,6 +39,22 @@ def vix(request, ticker=None):
 
     return HttpResponse(template.render(context, request))
     
+
+def congress(request, congress_id=None):
+    context = {
+        'congress': Congress.objects.all().order_by('total_gain_percent')
+    }
+    path = 'pages/congress/'
+    page = 'index.html'
+
+    if (congress_id):
+        context = {
+            'member': Congress.objects.get(id=congress_id)
+        }
+        page = 'show.html'
+
+    return render(request, path+page, context)
+
 
 def correlations(request, ticker):    
     context = {}
