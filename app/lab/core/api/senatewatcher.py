@@ -149,6 +149,12 @@ class SenateWatcher():
                         if (v and isinstance(v, str)):
                             if ('--' in v):
                                 obj[k] = None
+                            if ('<' in v):
+                                strippedhtml = re.sub("<[^>]*>", "", v)
+                                strippedLines = strippedhtml.replace('&nbsp;', '')
+                                stripped = html.unescape(strippedLines)
+                                obj[k] = stripped
+                                
                     for k, v in obj['transaction'].items():
                         if (v):
                             if ('--' in v):
@@ -234,7 +240,6 @@ class SenateWatcher():
             data['owner'] or 'Self',
             str(data['congress_id']),
         ]
-        print(keys)
 
         hashstring = ''.join(keys).replace(' ', '')
         hashkey = sha256(hashstring.encode('utf-8')).hexdigest()
