@@ -98,9 +98,12 @@ class Fred():
             data = self.format_data(series)
             writeTxtFile(STORAGE[endpoint], data)
 
+    def format_number(self, num):
+        total = int(float(num)) * 1000000
+        return "{:,}".format(total)
+        
 
     def new_value_tweet(self, last, new, prompt=True):        
-
         def preposition(number):
             if (number < 0):
                 return 'Down'
@@ -110,8 +113,8 @@ class Fred():
         twit = Tweet()
         diff = str(int(float(new['value']) - float(last['value'])))
         headline = f"LATEST FED BALANCE SHEET NUMBER {new['date']}:"
-        value = f"{new['value']}"
-        body = f"{preposition(int(diff))} {diff} compared to last number on {last['date']}"
+        value = self.format_number(new['value'])
+        body = f"{preposition(int(diff))} {self.format_number(diff)} compared to last number on {last['date']}"
         tweet_data = [
             headline,
             value,
