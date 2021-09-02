@@ -18,7 +18,7 @@ import django
 from dotenv import load_dotenv
 load_dotenv()
 django.setup()
-from app.database.models import Congress
+from app.database.models import Congress, CongressTransaction
 
 logger = log('HouseWatcherAPI')
 scraper = Scraper()
@@ -43,18 +43,20 @@ class HouseWatcher():
     def getLatest(self):
         latest = self.scanLastReport()
         results = self.parseData(latest)
-        reps = []
+        trades = []
         for result in results:
-            rep, created = Congress().store(result)
+            trade, created = CongressTransaction().store(result)
             if (created):
                 logger.info(f"Created new record for {result['first_name']} {result['last_name']}")
-                reps.append(rep)
-        return reps
+                trades.append(trade)
+        return trades
 
     def priceAtDate(self, ticker, date):
         pad = iex.priceAtDate(ticker, date)
         if (pad):
-            return pad
+            if (isinstance(pad, list)):
+                return pad[0]['close']
+            return pad['close']
         return None
 
     def scanLastReport(self, print_results=False):
@@ -110,37 +112,14 @@ class HouseWatcher():
         return None
 
     def parseData(self, data):
-        results = {}
+        results = []
         for rep in data:
-            for trade in rep['transactions']:
-                first_name = rep.get('first_name', None),
-                last_name = rep.get('last_name', None),
-                name = ' '.join(first_name, last_name).title()
-                sale_type = SALETYPES[trade['transaction_type']] if (trade.get('transaction_type', False)) else None
-                transactionJSON = {'cap_gains_over_200': trade.get('cap_gains_over_200', None)}
-                link = rep.get('source_ptr_link', None)
-                link_id = self.getLinkId(link)
-                transactionJSON.update({'link_id': link_id or None})
-
-                # TODO: Finish reforming data
-                # tdata = {
-                #     'ticker': trade.get('ticker', None),
-                #     'house': 'House',
-                #     'office': rep.get('office', None),
-                #     'link': rep.get('source_ptr_link', None),
-                #     'district': rep.get('district', None),
-                #     'date': self.parseDate(trade.get('transaction_date', None)),
-                #     'filing_date': self.parseDate(rep.get('filing_date', None)),
-                #     'owner': trade.get('owner', None),
-                #     'sale_type': trade.get('transaction_type', None),
-                #     'transaction': {
-                #         "asset_description": trade.get('description', None),
-                #         "cap_gains_over_200": trade.get('cap_gains_over_200', None),
-                #     }
-                # }
-                
-                # results[] How to keep these two together
-                congress = {
+            first_name = rep.get('first_name', None)
+            last_name = rep.get('last_name', None)
+            name = ' '.join([first_name, last_name]).title()
+            congress = Congress.objects.filter(name=name).first()
+            if (not congress):
+                congress, created = Congress().store({
                     'first_name': first_name,
                     'last_name': last_name,
                     'name': name,
@@ -150,17 +129,26 @@ class HouseWatcher():
                     'total_gain_dollars': None,
                     'total_gain_percent': None,
                     'trades': None,
-                }
+                })
+
+            for trade in rep['transactions']:
+                sale_type = SALETYPES[trade['transaction_type']] if (trade.get('transaction_type', False)) else None
+                transactionJSON = {'cap_gains_over_200': trade.get('cap_gains_over_200', None)}
+                link = rep.get('source_ptr_link', None)
+                link_id = self.getLinkId(link)
+                transactionJSON.update({'link_id': link_id or None})
 
                 transaction = {
-                    'first_name': first_name,
-                    'last_name': last_name,
+                    'congress_id': congress.id,
+                    'first_name': congress.first_name,
+                    'last_name': congress.last_name,
+                    'ticker': trade.get('ticker', None),
                     'sale_type': sale_type,
                     'date': self.parseDate(trade.get('transaction_date', None)),
                     'filing_date': self.parseDate(rep.get('filing_date', None)),
                     'owner': trade.get('owner', None),
                     'link': rep.get('source_ptr_link', None),
-                    'description': trade.get('description', None),
+                    'description': trade.get('description', None) or trade.get('asset_description', None),
                     'comment': trade.get('comment', None),
                     'transaction': transactionJSON,
                 }
@@ -187,10 +175,9 @@ class HouseWatcher():
                 # Generating hash for easy search/update
                 transaction['hash_key'] = self.generateHash(transaction)
 
-                congressData = congressData[:] + [congress]
-                transactionData = transactionData[:] + [transaction]
+                results = results[:] + [transaction]
 
-        return congressData, transactionData
+        return results
 
     def getLinkId(self, link):
         if link:
@@ -228,27 +215,30 @@ class HouseWatcher():
 
         return fmap
 
-    def tweet(self, reps, prompt=True):
+    def tweet(self, trades, prompt=True):
+        # A bad way of doing this, I know. It's a product of how the models used to be structured.
+        # Kept in the interest of saving time.
         twit = Tweet()
         orders = {}
 
-        for rep in reps:
-            if (rep.ticker):
-                relation = f" Owner: {rep.owner}" if (rep.owner and rep.owner != 'Self') else ''
-                ticker = f"${rep.ticker}"
-                saletype = rep.sale_type.replace('_', ' ').title()
-                date = rep.date.strftime('%b %d')
-                amount = f"${rep.amount_low} - ${rep.amount_high}" if (rep.amount_low and rep.amount_high) else f"${rep.amount_low or rep.amount_high}"
+        for trade in trades:
+            member = trade.congress
+            if (trade.ticker):
+                relation = f" Owner: {trade.owner}" if (trade.owner and trade.owner != 'Self') else ''
+                ticker = f"${trade.ticker}"
+                saletype = trade.sale_type.replace('_', ' ').title()
+                date = trade.date.strftime('%b %d')
+                amount = f"${trade.amount_low} - ${trade.amount_high}" if (trade.amount_low and trade.amount_high) else f"${trade.amount_low or trade.amount_high}"
 
                 bodyline = f"{saletype} {ticker} {amount} on {date}{relation}\n"
 
-                if (rep.last_name not in orders):
-                    orders[rep.last_name] = {
-                        'headline': f"New market transaction for house rep: {rep.first_name} {rep.last_name}.\n",
+                if (member.last_name not in orders):
+                    orders[member.last_name] = {
+                        'headline': f"New market transaction for house rep: {member.name}.\n",
                         'body': [],
                     }
 
-                orders[rep.last_name]['body'].append(bodyline)
+                orders[member.last_name]['body'].append(bodyline)
 
         for name, t in orders.items():
             headline = t['headline']

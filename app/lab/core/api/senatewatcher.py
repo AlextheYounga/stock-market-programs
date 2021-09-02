@@ -19,13 +19,22 @@ import django
 from dotenv import load_dotenv
 load_dotenv()
 django.setup()
-from app.database.models import Congress
+from app.database.models import Congress, CongressTransaction
 
 
 logger = log('SenateWatcherAPI')
 scraper = Scraper()
 iex = IEX()
-
+SALETYPES = {
+    'Sale (Partial)': 'partial-sell',
+    'Sale (Full)': 'sell',
+    'Purchase': 'buy',
+    'Exchange': 'exchange',
+    'sale_full': 'sell',
+    'purchase': 'buy',
+    'sale_partial': 'partial-sell',
+    'exchange': 'exchange',
+}
 
 class SenateWatcher():
     def __init__(self):
@@ -35,13 +44,21 @@ class SenateWatcher():
     def getLatest(self):
         latest = self.scanLastReport()
         results = self.parseData(latest)
-        senators = []
+        trades = []
         for result in results:
-            senator, created = Congress().store(result)
+            trade, created = CongressTransaction().store(result)
             if (created):
                 logger.info(f"Created new record for {result['first_name']} {result['last_name']}")
-                senators.append(senator)
-        return senators
+                trades.append(trade)
+        return trades
+
+    def priceAtDate(self, ticker, date):
+        pad = iex.priceAtDate(ticker, date)
+        if (pad):
+            if (isinstance(pad, list)):
+                return pad[0]['close']
+            return pad['close']
+        return None
 
     def scanLastReport(self, print_results=False):
         # https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/data/transaction_report_for_07_23_2021.json
@@ -85,22 +102,46 @@ class SenateWatcher():
     def parseData(self, data):
         results = []
         for senator in data:
-            for transaction in senator['transactions']:
-                uticker = transaction.get('ticker', None)
-                tdata = {
-                    'first_name': senator.get('first_name', None),
-                    'last_name': senator.get('last_name', None),
+            first_name = senator.get('first_name', None)
+            last_name = senator.get('last_name', None)
+            name = ' '.join([first_name, last_name]).title()
+            congress = Congress.objects.filter(name=name).first()
+
+            if (not congress):
+                congress, created = Congress().store({
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'name': name,
                     'house': 'Senate',
                     'office': senator.get('office', None),
-                    'link': senator.get('ptr_link', None),
-                    'date': datetime.datetime.strptime(transaction['transaction_date'], '%m/%d/%Y').strftime('%Y-%m-%d') if (transaction.get('transaction_date', False)) else None,
-                    'owner': transaction.get('owner', None),
-                    'sale_type': transaction.get('type', None),
-                    'transaction': {
-                        'asset_description': transaction.get('asset_description', None),
-                        "asset_type": transaction.get('asset_type', None),
-                        "comment": transaction.get('comment', None)
-                    }
+                    'district': senator.get('district', None),
+                    'total_gain_dollars': None,
+                    'total_gain_percent': None,
+                    'trades': None,
+                })
+
+
+
+            for trade in senator['transactions']:
+                sale_type = SALETYPES[trade['type']] if (trade.get('type', False)) else None
+                transactionJSON = {}
+                link = senator.get('ptr_link', None)
+                link_id = self.getLinkId(link)
+                transactionJSON.update({'link_id': link_id or None})
+                uticker = trade.get('ticker', None)
+
+                transaction = {
+                    'congress_id': congress.id,
+                    'first_name': congress.first_name,
+                    'last_name': congress.last_name,
+                    'sale_type': sale_type,
+                    'date': self.parseDate(trade.get('transaction_date', None)),
+                    "asset_type": trade.get('asset_type', None),
+                    'owner': trade.get('owner', None),
+                    'link': link,
+                    'description': trade.get('asset_description', None),
+                    'comment': trade.get('comment', None),
+                    'transaction': transactionJSON,
                 }
 
                 def format_data(obj):
@@ -118,9 +159,22 @@ class SenateWatcher():
                                 stripped = html.unescape(strippedLines)
 
                                 obj['transaction'][k] = stripped
-                    amount_range = transaction.get('amount').split(' - ')
-                    obj['amount_low'] = int(amount_range[0].replace('$', '').replace(',', ''))
-                    obj['amount_high'] = int(amount_range[1].replace('$', '').replace(',', ''))
+                                
+                    # Sorting amounts
+                    amount_range = trade.get('amount').split(' - ')
+                    if (len(amount_range) == 2):
+                        obj['amount_low'] = int(amount_range[0].replace('$', '').replace(',', ''))
+                        obj['amount_high'] = int(amount_range[1].replace('$', '').replace(',', ''))
+                    else:
+                        amount_range = amount_range[0]
+                        if ('+' in amount_range):
+                            obj['amount_low'] = int(amount_range.replace('$', '').replace('+', '').replace(',', ''))
+                            obj['amount_high'] = None
+                        else:
+                            obj['amount_low'] = None
+                            obj['amount_high'] = int(amount_range.replace('$', '').replace('-', '').replace(',', ''))
+
+                    obj['price_at_date'] = self.priceAtDate(obj['ticker'], obj['date'])                    
                     obj['hash_key'] = self.generateHash(obj)
                     return obj
 
@@ -138,15 +192,28 @@ class SenateWatcher():
                     tickers = ticker.split(' ')
                     tickers.remove('')
                     for t in tickers:
-                        dupdata = tdata.copy()
+                        dupdata = transaction.copy()
                         dupdata['ticker'] = t
                         fdata = format_data(dupdata)
                         results = results[:] + [fdata]
                 else:
-                    tdata['ticker'] = ticker
-                    fdata = format_data(tdata)
+                    transaction['ticker'] = ticker
+                    fdata = format_data(transaction)
                     results = results[:] + [fdata]
         return results
+
+    def parseDate(self, date):
+        if (date):
+            try:
+                fdate = datetime.datetime.strptime(date, '%m/%d/%Y')
+            except ValueError:
+                try:
+                    fdate = datetime.datetime.strptime(date, '%Y-%m-%d')
+                except ValueError:
+                    return None
+            if (fdate and len(str(fdate.year)) == 4):
+                return fdate.strftime('%Y-%m-%d')
+        return None
     
     def getLinkId(self, link):
         if link:
@@ -167,6 +234,7 @@ class SenateWatcher():
             data['owner'] or 'Self',
             str(data['congress_id']),
         ]
+        print(keys)
 
         hashstring = ''.join(keys).replace(' ', '')
         hashkey = sha256(hashstring.encode('utf-8')).hexdigest()
@@ -188,28 +256,30 @@ class SenateWatcher():
 
         return fmap
 
-    def tweet(self, senators, prompt=True):
+    def tweet(self, trades, prompt=True):
+        # A bad way of doing this, I know. It's a product of how the models used to be structured.
+        # Kept in the interest of saving time.
         twit = Tweet()
         orders = {}
 
-        for sen in senators:            
-            if (sen.ticker):
-                print(sen.last_name, sen.ticker)
-                relation = f" Owner: {sen.owner}" if (sen.owner and sen.owner != 'Self') else ''
-                ticker = f"${sen.ticker}"
-                saletype = sen.sale_type.replace('_', ' ').title()
-                date = sen.date.strftime('%b %d')
-                amount = f"${sen.amount_low} - ${sen.amount_high}" if (sen.amount_low and sen.amount_high) else f"${sen.amount_low or sen.amount_high}"
+        for trade in trades:      
+            if (trade.ticker):
+                senator = trade.congress
+                relation = f" Owner: {trade.owner}" if (trade.owner and trade.owner != 'Self') else ''
+                ticker = f"${trade.ticker}"
+                saletype = trade.sale_type.replace('_', ' ').title()
+                date = trade.date.strftime('%b %d')
+                amount = f"${trade.amount_low} - ${trade.amount_high}" if (trade.amount_low and trade.amount_high) else f"${trade.amount_low or trade.amount_high}"
 
                 bodyline = f"{saletype} {ticker} {amount} on {date}{relation}\n"
 
-                if (sen.last_name not in orders):
-                    orders[sen.last_name] = {
-                        'headline': f"New market transaction for senator: {sen.first_name} {sen.last_name}.\n",
+                if (senator.last_name not in orders):
+                    orders[senator.last_name] = {
+                        'headline': f"New market transaction for senator: {senator.name}.\n",
                         'body': [],
                     }
 
-                orders[sen.last_name]['body'].append(bodyline)
+                orders[senator.last_name]['body'].append(bodyline)
 
         for name, t in orders.items():
             headline = t['headline']

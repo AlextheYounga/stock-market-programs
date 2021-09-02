@@ -2,6 +2,7 @@ import os
 import sys
 import requests
 import time
+import datetime
 from colored import stylize
 import colored
 from app.database.redisdb.rdb import Rdb
@@ -176,24 +177,25 @@ class IEX():
             domain = self.sandbox_domain
             key = self.sandbox_key
 
-        payload = {
-            'chartByDay': 'true',
-            'filter': 'close,symbol',        
-            'token': key,
-        }
         if (isinstance(data, list) and len(data) == 1):
             data = data.pop()
 
-        url = f"https://{domain}/stable/stock/{data}/chart/date/{date}"
+        payload = {
+            'chartByDay': 'true',
+            'filter': 'close,symbol',
+            'token': key,
+        }
+
+        fdate = self.formatDate(date) #Format date
+        url = f"https://{domain}/stable/stock/{data}/chart/date/{fdate}"
 
         if (isinstance(data, list)):
-            url = f"https://{domain}/stable/stock/market/chart/date/{date}"
+            url = f"https://{domain}/stable/stock/market/chart/date/{fdate}"
             payload.update({'symbols': ','.join(data)})
-                
+
         time.sleep(0.5)
-        print(url)
         try:
-            response = requests.get(url, params=payload, **self.settings).json()                   
+            response = requests.get(url, params=payload, **self.settings).json()
         except:
             print("Unexpected error:", sys.exc_info()[0])
             return {}
@@ -326,5 +328,22 @@ class IEX():
                     if ('latestPrice' in quote):
                         price = quote['latestPrice']
                         if (price):
-                            r.set('stock-'+ticker+'-price', price)
-                            print(stylize("Saved "+ticker, colored.fg("green")))
+                            r.set('stock-' + ticker + '-price', price)
+                            print(stylize("Saved " + ticker, colored.fg("green")))
+
+    def formatDate(self, date, dateformat='%Y%m%d'):
+        if (date):
+            try:
+                fdate = datetime.datetime.strptime(date, '%m/%d/%Y')
+            except ValueError:
+                try:
+                    fdate = datetime.datetime.strptime(date, '%Y-%m-%d')
+                except ValueError:
+                    try:
+                        fdate = datetime.datetime.strptime(date, '%Y/%m/%d')
+                    except ValueError:
+                        return None
+
+            if (fdate and len(str(fdate.year)) == 4):
+                return fdate.strftime(dateformat)
+        return None
