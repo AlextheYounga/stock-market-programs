@@ -1,6 +1,5 @@
 import texttable
 from tabulate import tabulate
-from app.lab.core.api.iex import IEX
 from app.functions import dataSanityCheck
 from datetime import date
 import colored
@@ -142,6 +141,7 @@ def writeCSV(data, output, append=False):
 
 
 def printStockResults(tickers):
+    from app.lab.core.api.iex import IEX
     print("\n")
     results = []
     iex = IEX()

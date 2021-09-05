@@ -5,8 +5,8 @@ import colored
 from colored import stylize
 from dotenv import load_dotenv
 from hazlitt_log import log
+from app.lab.core.output import printTable
 import twitter
-import texttable
 load_dotenv()
 
 logger = log('Tweet')
@@ -82,3 +82,10 @@ class Tweet():
             content = content + "\n{}: {}".format(k.title(), dic[k])
             
         return content
+
+    
+    def analyze_tweet(self, tweet_id):
+        tweet = self.api.GetStatus(status_id=tweet_id)        
+        for att in dir(tweet):
+            print(f"{att}: ", getattr(tweet,att))            
+                    

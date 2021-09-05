@@ -2,6 +2,7 @@ from django.core.cache import cache
 from datetime import datetime, timedelta
 from app.lab.fintwit.functions import *
 from app.functions import writeTxtFile, readTxtFile, deleteFromTxTFile, get_hazlitt_path, readJSONFile
+from app.lab.core.output import printFullTable, printTable, printTabs
 import time
 from dotenv import load_dotenv
 from hazlitt_log import twitter_log
@@ -142,3 +143,17 @@ class TwitterAccounts():
                         logger.warning(f"Unfollowed {f.screen_name} - {f.followers_count} followers - Reason: {reason}")
                     except:
                         break
+
+
+    def lookupAccount(self, handle):
+        user = self.api.get_user(handle)        
+        for att in dir(user):
+            value = getattr(user,att)       
+            # print(type(value))     
+            if (type(value) not in ["<class 'tweepy.models.Status'>", "<class 'method'>"]):
+                print(f"{att}: ", value)  
+          
+
+
+        
+
