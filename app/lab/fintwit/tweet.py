@@ -87,5 +87,14 @@ class Tweet():
     def analyze_tweet(self, tweet_id):
         tweet = self.api.GetStatus(status_id=tweet_id)        
         for att in dir(tweet):
-            print(f"{att}: ", getattr(tweet,att))            
-                    
+            print(f"{att}: ", getattr(tweet,att))         
+
+    def analyze_favourites(self, handle):
+        likes = self.api.GetFavorites(screen_name=handle, count=200)
+        # print(dir(likes))
+        print()
+        for like in likes:            
+            print(like.user.screen_name, like.id, like.created_at)            
+
+
+

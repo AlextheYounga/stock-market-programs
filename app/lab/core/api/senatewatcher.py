@@ -273,7 +273,7 @@ class SenateWatcher():
                 relation = f" Owner: {trade.owner}" if (trade.owner and trade.owner != 'Self') else ''
                 ticker = f"${trade.ticker}"
                 saletype = trade.sale_type.replace('_', ' ').title()
-                date = trade.date.strftime('%b %d')
+                date = datetime.datetime.strptime(trade.date, '%Y-%m-%d').strftime('%b %d')
                 amount = f"${trade.amount_low} - ${trade.amount_high}" if (trade.amount_low and trade.amount_high) else f"${trade.amount_low or trade.amount_high}"
 
                 bodyline = f"{saletype} {ticker} {amount} on {date}{relation}\n"

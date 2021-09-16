@@ -45,6 +45,18 @@ class PortfolioBuilder():
 
         return None
 
+    def calculateMarketValue(self, amount, action, mkval=False):
+        if (amount and mkval):
+            if (action == 'sell'):
+                new_mkval = (mkval - amount)
+            if (action == 'buy'):
+                new_mkval = (mkval + amount)
+
+            if (new_mkval < 0):
+                new_mkval = 0
+            return new_mkval
+        return amount or 0
+
     def determineStatus(self, marketval):
         if (marketval == 0):
             return 'sold'
@@ -53,8 +65,10 @@ class PortfolioBuilder():
         else:
             return 'holding'
 
-
     def build(self):
+        CongressPortfolio.objects.all().delete()
+        CongressPortfolio.objects.raw("DELETE FROM SQLite_sequence WHERE name='<database_congressportfolio>';")
+        # sys.exit()
         members = Congress.objects.all()
         for member in members:
             portfolio = {}
@@ -77,38 +91,35 @@ class PortfolioBuilder():
                     if ((ticker) in portfolio):
                         pf = portfolio[ticker]
                         if (sale_type == 'partial-sell'):
-                            mkval = (pf['market_value'] - amount) if (pf.get('market_value', False) and amount) else pf['market_value']
-                            pf['market_value'] = mkval
+                            pf['market_value'] = self.calculateMarketValue(amount, 'sell', pf.get('market_value', False))
                             pf['shares'] = (pf['shares'] - shares) if (pf.get('shares', False) and shares) else pf['shares']
-                            pf['status'] = self.determineStatus(mkval)
+                            pf['status'] = self.determineStatus(pf['market_value'])
 
                         if (sale_type == 'sell'):
-                            mkval = (pf['market_value'] - amount) if (pf.get('market_value', False) and amount) else pf['market_value']
-                            pf['market_value'] = mkval
+                            pf['market_value'] = self.calculateMarketValue(amount, 'sell', pf.get('market_value', False))
                             pf['shares'] = (pf['shares'] - shares) if (pf.get('shares', False) and shares) else pf['shares']
-                            pf['status'] = self.determineStatus(mkval)
-                            
+                            pf['status'] = self.determineStatus(pf['market_value'])
+
                         if (sale_type == 'buy'):
-                            mkval = (pf['market_value'] + amount) if (pf.get('market_value', False) and amount) else pf['market_value']
-                            pf['market_value'] = mkval
+                            pf['market_value'] = self.calculateMarketValue(amount, 'buy', pf.get('market_value', False))
                             pf['cost_share'] = round(statistics.mean([pf['cost_share'], pad]), 2) if (pad and pf.get('cost_share', False)) else pf['cost_share']
                             pf['shares'] = (pf['shares'] + shares) if (pf.get('shares', False) and shares) else pf['shares']
-                            pf['status'] = self.determineStatus(mkval)
+                            pf['status'] = self.determineStatus(pf['market_value'])
 
-                        if (pf['market_value'] < 0):
-                            pf['market_value'] = 0
-                        
+                        if (pf.get('shares', False) and pf['shares'] < 0):
+                            pf['shares'] = 0
+
                         if (pf['status'] == 'holding'):
                             pf['gain_dollars'] = self.calculateGainDollars(pf['shares'], pf['cost_share'], current_price)
                             pf['gain_dollars'] = self.calculateGainPercent(pf['shares'], pf['cost_share'], current_price)
-                        
+
                         if (pf['status'] == 'sold'):
                             pf['gain_dollars'] = self.calculateGainDollars(pf['shares'], pf['cost_share'], pad)
                             pf['gain_dollars'] = self.calculateGainPercent(pf['shares'], pf['cost_share'], pad)
 
                         if (pf['status'] == 'unknown'):
                             pf['gain_dollars'] = None
-                            pf['gain_dollars'] = None                                            
+                            pf['gain_dollars'] = None
 
                         pf['orders'].update({
                             date: {
@@ -142,7 +153,7 @@ class PortfolioBuilder():
                                 'amount_high': amount_high,
                             }
                         },
-                    }            
+                    }
             self.store(portfolio)
 
     def calculateGains(self):

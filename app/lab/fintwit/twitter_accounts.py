@@ -10,6 +10,7 @@ import os
 import json
 import sys
 import tweepy
+import twitter
 load_dotenv()
 
 logger = twitter_log('TwitterAccounts')
@@ -146,12 +147,17 @@ class TwitterAccounts():
 
 
     def lookupAccount(self, handle):
-        user = self.api.get_user(handle)        
+        user = self.api.get_user(handle)     
+        # me = self.api.me()
+
         for att in dir(user):
-            value = getattr(user,att)       
-            # print(type(value))     
+            value = getattr(user,att)          
             if (type(value) not in ["<class 'tweepy.models.Status'>", "<class 'method'>"]):
                 print(f"{att}: ", value)  
+    
+    def favorites_count(self, handle):
+        user = self.api.get_user(handle)   
+        print(user.favourites_count)
           
 
 
