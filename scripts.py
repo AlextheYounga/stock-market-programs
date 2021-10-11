@@ -180,26 +180,35 @@ def donchian_controller(args):
 #     print(lookupFinancials(ticker))
 
 
-# def macro_controller(subroutine, args=[]):
-#     if (subroutine == 'trends'):
-#         opt = {
-#             'timeframe': {'type': str, 'default': '1m'},
-#             'gain': {'type': int, 'default': 20}
-#         }
-#         params = parse_args(args, opt=opt)
-#         from app.lab.macro.trends import calculate_trends
+def macro_controller(subroutine, args=[]):
+    from app.lab.macro.macro import Macro
+    macro = Macro()
+    if (subroutine == 'trends'):
+        opt = {
+            'timeframe': {'type': str, 'default': '1m'},
+            'gain': {'type': int, 'default': 20},
+            '--tweet': {'type': bool, 'default': False}
+        }
+        params = parse_args(args, opt=opt)
+        
 
-#         print(calculate_trends(
-#             timeframe=params['timeframe'] if ('timeframe' in params) else opt['timeframe']['default'],
-#             gain=params['gain'] if ('gain' in params) else opt['gain']['default'],
-#         ))
-#         return
+        print(macro.trends(
+            timeframe=params['timeframe'] if ('timeframe' in params) else opt['timeframe']['default'],
+            gain=params['gain'] if ('gain' in params) else opt['gain']['default'],
+            print_results=True,
+            tweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
+        ))
+        return
 
-#     if (subroutine == 'gainers'):
-#         import app.lab.macro.gainers
-#         return
+    if (subroutine == 'gainers'):
+        opt = {'--tweet': {'type': bool, 'default': False}}
+        params = parse_args(args, required=[], opt=opt)
+        macro.gainers(
+            print_results=True, 
+            tweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'])
+        return
 
-#     command_error()
+    command_error()
 
 
 # def news_controller(subroutine, args=[]):
@@ -283,17 +292,18 @@ def donchian_controller(args):
 #     ))
 
 
-# def reddit_controller(subroutine, args):
-#     if (subroutine == 'scrape'):
-#         opt = {'--tweet': {'type': bool, 'default': False}}
+def reddit_controller(subroutine, args):
+    if (subroutine == 'scrape'):
+        opt = {'--tweet': {'type': bool, 'default': False}}
 
-#         from app.lab.reddit.api_scraper import scrapeWSB
+        from app.lab.reddit.api_scraper import scrapeWSB
 
-#         params = parse_args(args, required=[], opt=opt)
+        params = parse_args(args, required=[], opt=opt)
 
-#         print(scrapeWSB(
-#             sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
-#         ))
+        print(scrapeWSB(
+            sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
+            printResults=True
+        ))
 
 
 # def trend_controller(subroutine, args):

@@ -1,3 +1,4 @@
+from app.lab.core.output import printFullTable
 import praw
 from praw.models import MoreComments
 import colored
@@ -82,7 +83,7 @@ def scanHeap(heap):
 
     for i, chunk in enumerate(chunked_strings):
         print(stylize("Sending heap to API", colored.fg("yellow")))
-        batch = iex.get('quote', chunk, batch=True)
+        batch = iex.get('quote', chunk)
         time.sleep(1)
 
         for ticker, stockinfo in batch.items():
@@ -113,7 +114,7 @@ def scanHeap(heap):
     return results
 
 
-def scrapeWSB(sendtweet=False):
+def scrapeWSB(sendtweet=False, printResults=False):
     """
     This function uses the PRAW Reddit API to search the hottest posts on wallstreet bets.
     It will send a list of text blobs to the scanHeap() function.
@@ -166,5 +167,11 @@ def scrapeWSB(sendtweet=False):
         headline = "Top mentioned stocks on r/wallstreetbets and times mentioned:\n"
         tweet = headline + twit.translate_data(tweetdata)
         twit.send(tweet)
+
+    if (printResults):
+        printFullTable(sorted_results, struct='dictlist')
+        return
+
+    
 
     return results

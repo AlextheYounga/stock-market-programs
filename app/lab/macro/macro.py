@@ -4,7 +4,7 @@ from app.lab.core.api.iex import IEX
 from app.lab.fintwit.tweet import Tweet
 from app.functions import chunks
 import progressbar
-from app.lab.core.output import printTable
+from app.lab.core.output import printTable, printFullTable
 import progressbar
 import json
 import time
@@ -18,7 +18,7 @@ class Macro():
     def scanETFs(self):
         results = {}
         iex = IEX()
-        etfs = Stock.getETFs()
+        etfs = Stock().getETFs(tickersonly=True)
         chunked_etfs = chunks(etfs, 100)
         chunks_length = int(len(etfs) / 100)
 
@@ -85,12 +85,12 @@ class Macro():
                         results.append(stockData)
 
         if (print_results):
-            printTable(results, struct='dictlist')
+            printFullTable(results, struct="dictlist")
         if (tweet):
             self.sendtweet(results)
         return
 
-    def trends(self, timeframe='1m', gain=20, print_results=False, tweet=False):
+    def trends(self, timeframe='1y', gain=20, print_results=False, tweet=False):
         results = []
         etfs = self.scanETFs()
         for ticker, etf in etfs.items():
@@ -151,7 +151,7 @@ class Macro():
                         results.append(stockData)
 
         if (print_results):
-            printTable(results, struct='dictlist')
+            printFullTable(results, struct='dictlist')
         if (tweet):
             self.sendtweet(results)
         return
@@ -164,6 +164,3 @@ class Macro():
             tweet = tweet + txt
         twit.send(tweet, True)
 
-
-m = Macro()
-m.scanETFs()
