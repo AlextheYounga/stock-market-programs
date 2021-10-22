@@ -139,8 +139,9 @@ class CongressWatcher():
         return self.congress.parseApiData(data)
 
     def tweet(self, trades, prompt=True):
-        twit = Tweet()
-        orders = {}
+        """
+        Builds tweets line by line and threads tweet by tweet.
+        """
 
         def writeLine(trade):
             """
@@ -149,28 +150,28 @@ class CongressWatcher():
             relation = f" Owner: {trade.owner}" if (trade.owner and trade.owner != 'Self') else ''
             ticker = f"${trade.ticker}"
             saletype = trade.sale_type.replace('_', ' ').title()
-            date = datetime.datetime.strptime(trade.date, '%Y-%m-%d').strftime('%b %d')
+            date = datetime.datetime.strptime(trade.date, '%Y-%m-%d').strftime('%b %d') if (isinstance(trade.date, str)) else trade.date.strftime('%b %d')
             amount = f"${trade.amount_low} - ${trade.amount_high}" if (trade.amount_low and trade.amount_high) else f"${trade.amount_low or trade.amount_high}"
 
             bodyline = f"{saletype} {ticker} {amount} on {date}{relation}\n"
             return bodyline
 
-        def buildThread(orders):
+        def buildThreads(orders):
             """
             Incrimentally building each tweet by adding lines until it becomes longer than
             280 characters. Once the tweet reaches just below 280, it is appended to thread object.
             Returns dict of threads keyed by congress member name.
             """
-            thread = {}
-
+            thread = {}               
             for name, order in orders.items():
                 if (name not in thread):
                     thread[name] = []
 
                 headline = order['headline']
                 body = ""
+
                 for line in order['body']:
-                    if (len(headline + body + line) >= 280):  # Checking to see if combined parts of tweet is above 280.
+                    if (len(headline + body + line) >= 280):  
                         tweet = headline + body
                         thread[name].append(tweet)
                         body = ""  # Resetting body
@@ -178,8 +179,13 @@ class CongressWatcher():
                     body = (body + line)
 
                 tweet = headline + body  # Handles remaining lines.
+                thread[name].append(tweet)
 
             return thread
+        
+        """Tweet building start"""
+        twit = Tweet()
+        orders = {}
 
         for trade in trades:
             rep = trade.congress  # Get representitive info
@@ -193,7 +199,7 @@ class CongressWatcher():
                 bodyline = writeLine(trade)
                 orders[rep.last_name]['body'].append(bodyline)  # Building tweet line by line.
 
-        threads = buildThread(orders)
+        threads = buildThreads(orders)
 
         for rep, thread in threads.items():
             twit.send_thread(thread)
