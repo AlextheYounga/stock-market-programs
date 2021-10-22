@@ -200,7 +200,14 @@ class IEX():
             print("Unexpected error:", sys.exc_info()[0])
             return {}
 
-        return response
+        if response:
+            print(stylize(f"Fetching {payload.get('symbols', False) or data} price at {date}", colored.fg("yellow")))
+            if (isinstance(response, list)):
+                return response[0]['close']
+            return response['close']
+        return None
+
+
 
     def getChart(self, data, endpoint='chart', timeframe=None, priceOnly=False, sandbox=False):
         """

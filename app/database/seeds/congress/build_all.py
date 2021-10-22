@@ -1,5 +1,4 @@
-from app.lab.core.api.senatewatcher import SenateWatcher
-from app.lab.core.api.housewatcher import HouseWatcher
+from app.lab.core.api.congresswatcher import CongressWatcher
 from app.lab.core.output import printFullTable
 from app.functions import readJSONFile, writeJSONFile, filterNone
 import colored
@@ -17,8 +16,8 @@ from app.database.models import Congress, CongressTransaction, CongressPortfolio
 
 congresspath = 'app/lab/congress/database_congress.json'
 CONGRESSDATA = readJSONFile(congresspath)
-hw = HouseWatcher()
-sw = SenateWatcher()
+hw = CongressWatcher(branch='house')
+sw = CongressWatcher(branch='senate')
 
 Congress.objects.all().delete()
 CongressTransaction.objects.all().delete()

@@ -1,8 +1,7 @@
-from app.lab.core.api.senatewatcher import SenateWatcher
-from app.lab.core.api.housewatcher import HouseWatcher
+from app.lab.core.api.congresswatcher import CongressWatcher
 
-hw = HouseWatcher()
-sw = SenateWatcher()
+hw = CongressWatcher(branch='house')
+sw = CongressWatcher(branch='senate')
 
 sw.scanAllReports()
 hw.scanAllReports()

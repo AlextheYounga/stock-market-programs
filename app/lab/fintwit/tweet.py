@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from hazlitt_log import log
 from app.lab.core.output import printTable
 import twitter
+import tweepy
 load_dotenv()
 
 logger = log('Tweet')
@@ -25,6 +26,41 @@ class Tweet():
             res.append('│' + (s + ' ' * width)[:width] + '│')
         res.append('└' + '─' * width + '┘')
         return '\n'.join(res)
+
+    def prompt_user(self):
+        while True:
+            # First prompt
+            send = str(input('Send Tweet? (y/n): '))
+            if send in ('y', 'n'):
+                break            
+            print(stylize("Invalid input.", colored.fg("red")))
+
+        return send
+            
+    def confirm_thread(self, thread):
+        for tweet in thread:
+            print(self.draw_box(tweet))
+        send = self.prompt_user()
+        return True if (send == 'y') else False
+    
+    def send_thread(self, lst):
+        if (isinstance(lst, list)):
+            if self.confirm_thread(lst):
+                ids = {}
+                for i, tweet in enumerate(lst):
+                    if (i == 0):
+                        sent_tweet = self.api.PostUpdate(tweet)._json
+                        ids[i] = sent_tweet['id']
+                        continue
+                    reply_to = ids[i - 1]
+                    sent_tweet = self.api.PostUpdate(status=tweet, in_reply_to_status_id=reply_to)._json
+                    ids[i] = sent_tweet['id']
+                print(stylize("Thread sent", colored.fg("green")))
+            else:
+                print(stylize("Thread aborted", colored.fg("green")))
+
+        else:
+            self.send(lst)
 
 
     def send(self, tweet, headline=False, footer=False, prompt=True):
@@ -48,13 +84,7 @@ class Tweet():
                 print(stylize("Error: Tweet over 280 characters.", colored.fg("red")))
                 continue
             if (prompt):
-                while True:
-                    # First prompt
-                    send = str(input('Send Tweet? (y/n): '))
-                    if send in ('y', 'n'):
-                        break            
-                    print(stylize("Invalid input.", colored.fg("red")))
-
+                send = self.prompt_user()
                 if (send == 'n'):
                     while True:
                         # Rerun program?

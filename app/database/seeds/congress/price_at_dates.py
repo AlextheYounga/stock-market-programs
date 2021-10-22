@@ -1,4 +1,3 @@
-from app.lab.core.api.senatewatcher import SenateWatcher
 from app.lab.core.output import printFullTable
 from app.lab.core.api.iex import IEX
 import colored

@@ -409,27 +409,27 @@ def twitter_controller(subroutine, args):
 #         import app.lab.volume.anomaly
 
 
-# def vix_controller(args):
-#     required = {'ticker': {'pos': 0, 'type': str}}
-#     opt = {
-#         '--debug': {'type': bool, 'default': False},
-#         '--dummy-data': {'type': bool, 'default': False},
-#         '--tweet': {'type': bool, 'default': False},
-#     }
+def vix_controller(args):
+    required = {'ticker': {'pos': 0, 'type': str}}
+    opt = {
+        '--debug': {'type': bool, 'default': False},
+        '--dummy-data': {'type': bool, 'default': False},
+        '--tweet': {'type': bool, 'default': False},
+    }
 
-#     if (not args):
-#         command_error(required, opt)
-#         return
+    if (not args):
+        command_error(required, opt)
+        return
 
-#     from app.lab.vix.vix import vix_equation
+    from app.lab.vix.vix import vix_equation
 
-#     params = parse_args(args, required, opt)
+    params = parse_args(args, required, opt)
 
-#     print(vix_equation(
-#         params['ticker'],
-#         sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
-#         debug=params['debug'] if ('debug' in params) else opt['--debug']['default']
-#     ))
+    print(vix_equation(
+        params['ticker'],
+        sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
+        debug=params['debug'] if ('debug' in params) else opt['--debug']['default']
+    ))
 
 
 def main():

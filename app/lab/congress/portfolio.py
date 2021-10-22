@@ -12,7 +12,7 @@ load_dotenv()
 django.setup()
 from app.functions import filterNone
 from app.database.models import Congress, CongressTransaction, CongressPortfolio, Stock
-from app.lab.core.api.senatewatcher import SenateWatcher
+# from app.lab.core.api.congresswatcher import CongressWatcher
 
 
 class PortfolioBuilder():
@@ -179,6 +179,3 @@ class PortfolioBuilder():
             CongressPortfolio().store(data)
             print(stylize(f"saved {ticker} {data['last_name']}", colored.fg("green")))
 
-
-# pb = PortfolioBuilder()
-# pb.build()
