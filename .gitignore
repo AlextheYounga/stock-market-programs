@@ -286,7 +286,7 @@ app/database/redisdb/export/*
 app/database/redisdb/exports/*
 app/database/redisdb/imports/*
 
-tests/*
-tasks/*
+# tests/*
+# tasks/*
 app/logs/hazlitt.log
 graveyard
