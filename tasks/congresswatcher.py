@@ -2,7 +2,10 @@
 # C:\Users\alexy\Documents\Development\Python\hazlitt-data\env\Scripts\python C:\Users\alexy\Documents\Development\Python\hazlitt-data\tasks\congresswatcher.py
 
 import sys
-sys.path.append('C:/Users/alexy/Documents/Development/Python/hazlitt-data')
+import os
+get_hazlitt_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+if (sys.platform == 'win32'):
+    sys.path.append(f"{get_hazlitt_path}")
 from app.lab.core.api.congresswatcher import CongressWatcher
 from hazlitt_log import log
 

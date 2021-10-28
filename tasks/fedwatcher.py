@@ -2,7 +2,10 @@
 # C:\Users\alexy\Documents\Development\Python\hazlitt-data\env\Scripts\python C:\Users\alexy\Documents\Development\Python\hazlitt-data\tasks\fedwatcher.py
 
 import sys
-sys.path.append('C:/Users/alexy/Documents/Development/Python/hazlitt-data')
+import os
+get_hazlitt_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+if (sys.platform == 'win32'):
+    sys.path.append(f"{get_hazlitt_path}")
 from app.lab.core.api.fred import Fred
 from hazlitt_log import log
 
