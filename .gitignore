@@ -280,7 +280,7 @@ app/lab/fintwit/notes.*
 app/lab/core/storage/
 app/lab/fintwit/data
 app/lab/reddit/reports
-app/lab/congress/filemaps/
+# app/lab/congress/filemaps/
 # Database
 app/database/redisdb/export/*
 app/database/redisdb/exports/*
