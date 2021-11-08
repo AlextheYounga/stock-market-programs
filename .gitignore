@@ -288,5 +288,4 @@ app/database/redisdb/imports/*
 
 # tests/*
 # tasks/*
-app/logs/hazlitt.log
 graveyard
