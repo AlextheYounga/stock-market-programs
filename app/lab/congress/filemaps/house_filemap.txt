@@ -474,3 +474,10 @@ data/transaction_report_for_10_18_2021.json
 data/transaction_report_for_10_21_2021.json
 data/transaction_report_for_10_22_2021.json
 data/transaction_report_for_10_25_2021.json
+data/transaction_report_for_10_27_2021.json
+data/transaction_report_for_10_26_2021.json
+data/transaction_report_for_11_01_2021.json
+data/transaction_report_for_10_30_2021.json
+data/transaction_report_for_10_29_2021.json
+data/transaction_report_for_11_02_2021.json
+data/transaction_report_for_11_03_2021.json

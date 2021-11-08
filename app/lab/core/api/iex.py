@@ -198,7 +198,7 @@ class IEX():
             response = requests.get(url, params=payload, **self.settings).json()
         except:
             print("Unexpected error:", sys.exc_info()[0])
-            return {}
+            return None
 
         if response:
             print(stylize(f"Fetching {payload.get('symbols', False) or data} price at {date}", colored.fg("yellow")))

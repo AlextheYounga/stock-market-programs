@@ -2,7 +2,9 @@
 # C:\Users\alexy\Documents\Development\Python\hazlitt-data\env\Scripts\python C:\Users\alexy\Documents\Development\Python\hazlitt-data\tasks\congresswatcher.py
 
 import sys
-sys.path.append('C:/Users/alexy/Documents/Development/Python/hazlitt-data')
+import os
+if os.name == 'nt': #windows
+	sys.path.append('C:/Users/alexy/Documents/Development/Python/hazlitt-data')
 from app.lab.core.api.congresswatcher import CongressWatcher
 from hazlitt_log import log
 
