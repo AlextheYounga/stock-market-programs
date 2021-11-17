@@ -17,7 +17,7 @@ STORAGE = {
     'balance-sheet': f"{get_hazlitt_path()}/app/lab/fed/storage/balancesheet.json"
 }
 
-class Fred():
+class FedBalanceSheet():
     def __init__(self):
         self.domain = 'https://api.stlouisfed.org/fred'
         self.key = os.environ.get("FRED_API_KEY")

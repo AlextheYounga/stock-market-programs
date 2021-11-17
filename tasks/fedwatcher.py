@@ -5,13 +5,13 @@ import sys
 import os
 if os.name == 'nt': #windows
 	sys.path.append('C:/Users/alexy/Documents/Development/Python/hazlitt-data')
-from app.lab.core.api.fred import Fred
+from app.lab.core.api.fred.balance_sheet import FedBalanceSheet
 from hazlitt_log import log
 
 print("RUNNING FED WATCHER... \n")
 logger = log('FedWatcher')
 logger.info('Running fed watcher')
-fed = Fred()
+fed = FedBalanceSheet()
 fed.checkLatest('balance-sheet', tweet=True)
 series = fed.series('balance-sheet')
 fed.store('balance-sheet', series)

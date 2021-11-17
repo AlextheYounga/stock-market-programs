@@ -487,3 +487,6 @@ data/transaction_report_for_11_05_2021.json
 data/transaction_report_for_11_04_2021.json
 data/transaction_report_for_11_07_2021.json
 data/transaction_report_for_11_10_2021.json
+data/transaction_report_for_11_15_2021.json
+data/transaction_report_for_11_14_2021.json
+data/transaction_report_for_11_12_2021.json
