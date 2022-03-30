@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <div class="dashboard">    
+    <div class="w-full flex">
+      <aside class="hidden xl:block w-1/4">
+        <section aria-labelledby="stock-stats">
+          <div class="stocks-mentioned bg-dark-opacity rounded w-full h-full text-gray-100 overflow-y-scroll overflow-hidden" style="height: 80vh;">
+            <h2 class="text-gray-100 mb-3 px-3">
+              Recent Congressional Transactions
+            </h2>
+            {% for trade in congress_activity %}
+            {% if trade.ticker %}
+              <div class="hover:bg-dark-mode-blue px-3 py-3 row-item">              
+                <div class="flex justify-between text-sm">
+                  <p class="text-gray-100">{{ trade.congress.name }}</p>
+                  <p class="text-gold">${{ trade.ticker }}</p>
+                  <p class="text-gray-100">${{ trade.amount_low }} - ${{ trade.amount_high }}</p>
+                </div>              
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+      </aside>
+      <main class="w-1/2 px-4">
+        <div class="item-news bg-dark-opacity rounded w-full h-full text-gray-100 overflow-y-scroll overflow-hidden" style="height: 80vh;">
+          <div class="rounded alternating-row">
+          <h1 class="text-gray-100 mb-3 px-3">Recent News</h1>
+            {% for article in news %}
+              <div class="hover:bg-dark-mode-blue px-2 py-3 row-item">
+                <a href="{{ article.url }}" rel="nofollow" target="_blank">
+                  <span class="headline text-gray-100 text-sm whitespace-no-wrap overflow-hidden px-1">
+                    {{ article.headline }}
+                  </span>
+                  {% if article.stocknews %}
+                    <span class="stocknews text-xs text-gold rounded italic px-1 my-0">
+                      Stocks mentioned:
+                    </span>
+                    {% for stock in article.stocknews %}
+                      <span class="stock text-xs text-gold rounded my-0">
+                        ${{ stock.ticker }}
+                      </span>
+                    {% endfor %}
+                  {% endif %}
+                  <div class="flex justify-between">
+                    <div>
+
+                      <p class="source text-xs text-gold rounded px-1 italic">
+                        {{ article.source }}
+                      </p>
+                    </div>
+                    <p class="date text-xs text-gold rounded px-1 italic">
+                      {{ article.pubDate }}
+                    </p>
+                  </div>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </main>
+      <aside class="hidden xl:block w-1/4">
+        <div class="sticky top-4 space-y-4">
+          <section aria-labelledby="stocks-mentioned">
+            <div class="stocks-mentioned bg-dark-opacity rounded w-full h-full text-gray-100 overflow-y-scroll overflow-hidden" style="height: 80vh;">
+              <h2 class="text-gray-100 mb-3 px-3">
+                Stocks Mentioned
+              </h2>
+              {% for stock in stocks_mentioned %}
+                <div class="hover:bg-dark-mode-blue px-3 py-3 row-item">
+                  <div class="flex justify-between text-sm">
+                    <p class="text-gray-100">{{ stock.name }}</p>
+                    <p class="text-gold">${{ stock.ticker }}</p>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-100 text-xs">${{ stock.latestPrice }}</span>
+                    <span class="text-gray-100 text-xs">{{ stock.changePercent }}</span>
+                    <span class="text-gray-100 text-xs">VIX:
+                      {{ stock.vix }}
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+
+        </div>
+      </aside>
+    </div>
+  </div>
+
+{% endblock %}

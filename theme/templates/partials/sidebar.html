@@ -1,0 +1,56 @@
+{% load static %}
+<div class="flex flex-col flex-1 bg-dark-mode">
+    <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+        <nav class="mt-5 flex-1 px-2 bg-dark-mode space-y-1" aria-label="Sidebar">
+            <a href="{% url 'dashboard' %}"
+                class="{% if request.path == '/' %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <img class="w-8 mr-4" src="{% static 'svg/dashboard.svg' %}" />
+                Dashboard
+            </a>
+            <a href="{% url 'congress.index' %}"
+                class="{% if '/congress' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <!-- Heroicon name: outline/users -->
+                <img class="w-8 mr-4" src="{% static 'svg/congress.svg' %}" />
+                Congress
+            </a>
+            <a href="{% url 'vix.show' ticker='SPY' %}"
+                class="{% if '/vix' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <!-- Heroicon name: outline/users -->
+                <img class="w-8 mr-4" src="{% static 'svg/vol.svg' %}" />
+                VIX
+            </a>
+            <a href="{% url 'news.index' %}"
+                class="{% if '/news' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <!-- Heroicon name: outline/inbox -->
+                <img class="w-8 mr-4" src="{% static 'svg/news.svg' %}" />
+                News Scraper
+            </a>
+            <a href="{% url 'news.index' %}"
+                class="{% if '/news' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <!-- Heroicon name: outline/inbox -->
+                <img class="w-8 mr-4" src="{% static 'svg/reddit.svg' %}" />
+                Reddit Scraper
+            </a>
+            <a href="{% url 'hurst.index' %}"
+                class="{% if '/hurst' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <!-- Heroicon name: outline/inbox -->
+                <img class="w-8 mr-4" src="{% static 'svg/prediction.svg' %}" />
+                Hurst Calculation
+            </a>
+
+        <!--
+            <a href="{% url 'gold.index' %}"
+                class="{% if '/pricedingold' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <img class="w-8 mr-4" src="{% static 'svg/gold.svg' %}" />
+                Priced in Gold
+            </a>
+
+            <a href="{% url 'correlations.index' %}" class="{% if '/correlations' in request.path %}bg-dark-mode-light text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %} group flex items-center px-2 py-2 text-md font-medium rounded-md">
+                <img class="w-8 mr-4" src="{% static 'svg/correlation.svg' %}" />
+                Correlations
+            </a>
+        
+        -->
+        </nav>
+    </div>
+</div>

@@ -1,0 +1,32 @@
+// python manage.py sass theme/static/sass/app.scss theme/static/css/app.css
+
+$gold: #f2d024;
+$dark-mode: #212121;
+$dark-mode-light: #34363a;
+$dark-mode-lighter: #303030;
+$dark-mode-lightest: #424242;
+$dark-mode-blue: #3d4852;
+
+body, h1, h2, h3, h4, h5, p, a, span {
+    font-family: 'Titillium Web', sans-serif !important;
+    font-weight: 400;
+}
+
+#chart {
+    height: 80vh;
+}
+
+.sidebar-icon {
+    fill: $gold;
+    color: $gold;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    background-color: black;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #dae1e7;
+    border-radius: 5px;
+}

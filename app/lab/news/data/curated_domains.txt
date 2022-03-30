@@ -1,0 +1,12 @@
+reuters.com
+cnbc.com
+marketwatch.com
+zerohedge.com
+forbes.com
+barrons.com
+bloomberg.com
+seekingalpha.com
+wsj.com
+nytimes.com
+businessinsider.com
+fool.com
