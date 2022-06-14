@@ -5,7 +5,7 @@ from app.lab.core.output import printTable
 from app.lab.fintwit.tweet import Tweet
 
 
-def rangeLookup(ticker, sendtweet=False):
+def calculateRange(ticker, sendtweet=False):
     data = rangeRules(ticker)
     printTable(data[ticker])
 

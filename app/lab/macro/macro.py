@@ -85,7 +85,10 @@ class Macro():
                         results.append(stockData)
 
         if (print_results):
-            printFullTable(results, struct="dictlist")
+            if (len(results) > 0):
+                printFullTable(results, struct="dictlist")
+            else:
+                print('No Results.')
         if (tweet):
             self.sendtweet(results)
         return
@@ -151,7 +154,10 @@ class Macro():
                         results.append(stockData)
 
         if (print_results):
-            printFullTable(results, struct='dictlist')
+            if (len(results) > 0):
+                printFullTable(results, struct="dictlist")
+            else:
+                print('No Results.')
         if (tweet):
             self.sendtweet(results)
         return

@@ -273,23 +273,23 @@ def macro_controller(subroutine, args=[]):
 #         import_rdb()
 
 
-# def range_controller(args):
+def range_controller(args):
 
-#     required = {'ticker': {'pos': 0, 'type': str}}
-#     opt = {'--tweet': {'type': bool, 'default': False}}
+    required = {'ticker': {'pos': 0, 'type': str}}
+    opt = {'--tweet': {'type': bool, 'default': False}}
 
-#     if (not args):
-#         command_error(required, opt)
-#         return
+    if (not args):
+        command_error(required, opt)
+        return
 
-#     from app.lab.riskrange.lookup import rangeLookup
+    from app.lab.riskrange.range import calculateRange
 
-#     params = parse_args(args, required, opt)
+    params = parse_args(args, required, opt)
 
-#     print(rangeLookup(
-#         ticker=params['ticker'],
-#         sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
-#     ))
+    print(calculateRange(
+        ticker=params['ticker'],
+        sendtweet=params['tweet'] if ('tweet' in params) else opt['--tweet']['default'],
+    ))
 
 
 def reddit_controller(subroutine, args):
@@ -306,53 +306,52 @@ def reddit_controller(subroutine, args):
         ))
 
 
-# def trend_controller(subroutine, args):
+def trend_controller(subroutine, args):
+    if (subroutine == 'streak'):
+        required = {'ticker': {'pos': 0, 'type': str}}
+        if (not args):
+            command_error(required)
+            return
 
-#     if (subroutine == 'streak'):
-#         required = {'ticker': {'pos': 0, 'type': str}}
-#         if (not args):
-#             command_error(required)
-#             return
+        from app.lab.trend.streak.count import count_streak
+        print(count_streak(args[0]))
+        return
 
-#         from app.lab.trend.streak.count import count_streak
-#         print(count_streak(args[0]))
-#         return
+    if (subroutine == 'search'):
+        required = {'query': {'pos': 0, 'type': str}}
 
-#     if (subroutine == 'search'):
-#         required = {'query': {'pos': 0, 'type': str}}
+        if (not args):
+            command_error(required)
+            return
 
-#         if (not args):
-#             command_error(required)
-#             return
+        from app.lab.trend.chase.search import search
+        params = parse_args(args, required)
 
-#         from app.lab.trend.chase.search import search
-#         params = parse_args(args, required)
+        print(search(params['query']))
+        return
 
-#         print(search(params['query']))
-#         return
+    if (subroutine == 'chase'):
+        from app.lab.trend.chaser import chase_trends
+        opt = {'pennies': {'type': bool, 'default': False}}
+        params = parse_args(args, opt=opt)
+        print(chase_trends(
+            pennies=params['pennies'] if ('pennies' in params) else opt['pennies']['default']
+        ))
+        return
 
-#     if (subroutine == 'chase'):
-#         from app.lab.trend.chaser import chase_trends
-#         opt = {'pennies': {'type': bool, 'default': False}}
-#         params = parse_args(args, opt=opt)
-#         print(chase_trends(
-#             pennies=params['pennies'] if ('pennies' in params) else opt['pennies']['default']
-#         ))
-#         return
+    if (subroutine == 'earnings'):
+        import app.lab.trend.chase.earnings
+        return
 
-#     if (subroutine == 'earnings'):
-#         import app.lab.trend.chase.earnings
-#         return
+    if (subroutine == 'gainers'):
+        import app.lab.trend.gainers
+        return
+    if (subroutine == 'google'):
+        from app.lab.trend.googletrends.request import stock_search_trends
+        print(stock_search_trends())
+        return
 
-#     if (subroutine == 'gainers'):
-#         import app.lab.trend.gainers
-#         return
-#     if (subroutine == 'google'):
-#         from app.lab.trend.googletrends.request import stock_search_trends
-#         print(stock_search_trends())
-#         return
-
-#     command_error()
+    command_error()
 
 def twitter_controller(subroutine, args):
     from app.lab.fintwit.twitter_accounts import TwitterAccounts
