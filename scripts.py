@@ -331,11 +331,12 @@ def trend_controller(subroutine, args):
         return
 
     if (subroutine == 'chase'):
-        from app.lab.trend.chaser import chase_trends
+        from app.lab.trend.chaser import Chaser
         opt = {'pennies': {'type': bool, 'default': False}}
         params = parse_args(args, opt=opt)
-        print(chase_trends(
-            pennies=params['pennies'] if ('pennies' in params) else opt['pennies']['default']
+        chaser = Chaser()
+        print(chaser.run(
+            pennyStocks=params['pennies'] if ('pennies' in params) else opt['pennies']['default']
         ))
         return
 
