@@ -28,6 +28,7 @@ class FedBalanceSheet():
         fseries = self.format_data(series)
         storageJSON = readJSONFile(STORAGE[endpoint])
         diff = compare_dicts(storageJSON, fseries)
+        print(diff)
         if (diff):
             if (len(diff) > 1):
                 diff = diff[list(diff.keys())[-1]]
@@ -111,6 +112,8 @@ class FedBalanceSheet():
                 return 'Up'
 
         twit = Tweet()
+        print(new)
+        print(new['date'])
         newdate = datetime.datetime.strptime(new['date'], '%Y-%m-%d').strftime('%b %d')
         lastdate = datetime.datetime.strptime(last['date'], '%Y-%m-%d').strftime('%b %d')
         diff = str(int(float(new['value']) - float(last['value'])))

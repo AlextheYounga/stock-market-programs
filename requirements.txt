@@ -26,3 +26,4 @@ django-compressor-toolkit
 django-sass
 praw
 cryptography
+dateparser

@@ -289,3 +289,4 @@ app/database/redisdb/imports/*
 # tests/*
 # tasks/*
 graveyard
+storage/*

@@ -25,6 +25,7 @@ SALETYPES = {
     'exchange': 'exchange',
 }
 
+# TODO: Remove hash key, probably useless
 
 class House():
     def parseApiData(self, data):

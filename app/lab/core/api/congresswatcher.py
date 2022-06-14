@@ -19,6 +19,9 @@ django.setup()
 from app.functions import compare_dicts, get_hazlitt_path, readTxtFile, writeTxtFile
 from app.database.models import Congress, CongressTransaction
 
+# https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/filemap.xml
+# https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/filemap.xml
+
 logger = log('CongressWatcherAPI')
 scraper = Scraper()
 DOMAINS = {

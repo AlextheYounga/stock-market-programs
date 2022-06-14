@@ -12,6 +12,8 @@ https://docs.djangoapp.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", __file__)
@@ -24,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoapp.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'uh8b(&s40z^ac9x8@)0$!is9y6qpn$%2#hwfpf-=(27fnpr_xu'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY"),
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -32,7 +34,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 TAILWIND_APP_NAME = 'theme'
-STATIC_URL = '/static/'
 
 
 # Application definition
@@ -137,4 +138,5 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoapp.com/en/3.1/howto/static-files/
 
+TAILWIND_APP_NAME = 'theme'
 STATIC_URL = '/static/'
