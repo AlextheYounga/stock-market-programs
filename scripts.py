@@ -6,7 +6,7 @@ from app.lab.core.output import printTabs, printFullTable
 from dotenv import load_dotenv
 load_dotenv()
 
-
+# TODO: scripts or run.py
 def list_commands():
     headers = ['Command', 'Description']
     print('\n')
