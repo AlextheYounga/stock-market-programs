@@ -285,8 +285,16 @@ app/lab/reddit/reports
 app/database/redisdb/export/*
 app/database/redisdb/exports/*
 app/database/redisdb/imports/*
+app/lab/congress/exports/database_congress.json
 
 # tests/*
 # tasks/*
 graveyard
 storage/*
+
+app/lab/**/data/*
+app/lab/**/storage/*
+
+.DS_Store
+*/**/.DS_Store
+*/.DS_Store
