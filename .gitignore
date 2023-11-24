@@ -298,3 +298,5 @@ app/lab/**/storage/*
 .DS_Store
 */**/.DS_Store
 */.DS_Store
+
+*.zip
