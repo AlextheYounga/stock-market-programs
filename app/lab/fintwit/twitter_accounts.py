@@ -2,11 +2,11 @@ from django.core.cache import cache
 from datetime import datetime, timedelta
 import dateparser
 from app.lab.fintwit.functions import *
-from app.functions import writeTxtFile, readTxtFile, deleteFromTxTFile, get_hazlitt_path, readJSONFile
+from app.functions import writeTxtFile, readTxtFile, deleteFromTxTFile, get_app_path, readJSONFile
 from app.lab.core.output import printFullTable, printTable, printTabs
 import time
 from dotenv import load_dotenv
-from hazlitt_log import twitter_log
+from log_handler import twitter_log
 import os
 import json
 import sys
@@ -15,9 +15,9 @@ import twitter
 load_dotenv()
 
 logger = twitter_log('TwitterAccounts')
-KEYWORDS = f"{get_hazlitt_path()}/app/lab/fintwit/data/keywords.json"
-ACCOUNT_LIST = f"{get_hazlitt_path()}/app/lab/fintwit/data/accounts.txt"
-USED_LIST = f"{get_hazlitt_path()}/app/lab/fintwit/data/finished.txt"
+KEYWORDS = f"{get_app_path()}/app/lab/fintwit/data/keywords.json"
+ACCOUNT_LIST = f"{get_app_path()}/app/lab/fintwit/data/accounts.txt"
+USED_LIST = f"{get_app_path()}/app/lab/fintwit/data/finished.txt"
 
 class TwitterAccounts():
     def __init__(self):

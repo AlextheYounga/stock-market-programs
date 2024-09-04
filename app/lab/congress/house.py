@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from app.lab.core.api.iex import IEX
 from hashlib import sha256
 import sys
-from hazlitt_log import log
+from log_handler import log
 import datetime
 import os
 import json

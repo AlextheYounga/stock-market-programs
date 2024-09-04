@@ -6,7 +6,7 @@ from hashlib import sha256
 import re
 import datetime
 import sys
-from hazlitt_log import log
+from log_handler import log
 import os
 import json
 import django

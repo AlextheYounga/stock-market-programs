@@ -1,5 +1,5 @@
 from app.lab.core.output import printTabs
-from app.functions import get_hazlitt_path, readJSONFile, compare_dicts
+from app.functions import get_app_path, readJSONFile, compare_dicts
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import pylab
@@ -10,7 +10,7 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
-balancesheet = f"{get_hazlitt_path()}/app/lab/fed/storage/balancesheet.json"
+balancesheet = f"{get_app_path()}/app/lab/fed/storage/balancesheet.json"
 balancesheetJSON = readJSONFile(balancesheet)
 
 monthly = {}

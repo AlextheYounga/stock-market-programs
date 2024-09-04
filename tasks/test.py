@@ -5,7 +5,7 @@ import sys
 import os
 if os.name == 'nt': #windows
 	sys.path.append('C:/Users/alexy/Documents/Development/Python/hazlitt-data')
-from hazlitt_log import log
+from log_handler import log
 from app.lab.fintwit.tweet import Tweet
 
 twit = Tweet()

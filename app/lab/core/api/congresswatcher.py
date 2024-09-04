@@ -9,14 +9,14 @@ import requests
 import datetime
 import time
 import sys
-from hazlitt_log import log
+from log_handler import log
 import os
 import json
 import django
 from dotenv import load_dotenv
 load_dotenv()
 django.setup()
-from app.functions import compare_dicts, get_hazlitt_path, readTxtFile, writeTxtFile
+from app.functions import compare_dicts, get_app_path, readTxtFile, writeTxtFile
 from app.database.models import Congress, CongressTransaction
 
 # https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/filemap.xml
@@ -50,7 +50,7 @@ class CongressWatcher():
         self.domain = DOMAINS[branch]
         self.cache_key = f"{branch}watch-api-"
         self.settings = {'timeout': 5}
-        self.file_ledger = f"{get_hazlitt_path()}/app/lab/congress/filemaps/{branch}_filemap.txt"
+        self.file_ledger = f"{get_app_path()}/app/lab/congress/filemaps/{branch}_filemap.txt"
         self.filemap = f"{self.domain}{FILEMAP[self.branch]}"
         self.congress = Senate() if (branch == 'senate') else House()
 

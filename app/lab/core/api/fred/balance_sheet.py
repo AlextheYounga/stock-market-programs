@@ -1,5 +1,5 @@
 from app.lab.core.output import printFullTable, printTable
-from app.functions import compare_dicts, get_hazlitt_path, writeTxtFile, readJSONFile, compare_dicts
+from app.functions import compare_dicts, get_app_path, writeTxtFile, readJSONFile, compare_dicts
 from app.lab.fintwit.tweet import Tweet
 import pytz
 import datetime
@@ -14,7 +14,7 @@ CODES = {
 	'balance-sheet': 'WALCL',
 }
 STORAGE = {
-	'balance-sheet': f"{get_hazlitt_path()}/app/lab/fed/storage/balancesheet.json"
+	'balance-sheet': f"{get_app_path()}/app/lab/fed/storage/balancesheet.json"
 }
 
 class FedBalanceSheet():

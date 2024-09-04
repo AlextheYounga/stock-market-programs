@@ -300,6 +300,6 @@ def compare_dicts(older, newer):
 def mostFrequent(lst):
     return statistics.mode(lst)
 
-def get_hazlitt_path():
+def get_app_path():
     dir_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     return dir_name
